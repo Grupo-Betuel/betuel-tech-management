@@ -1,0 +1,165 @@
+
+.card {
+  overflow: hidden;
+  align-self: stretch;
+  background-color: #fff;
+  box-shadow: 0 0 5px #ccc;
+  border-radius: 8px !important;
+}
+
+.card-content {
+  display: grid;
+  grid-template-columns: 1fr;
+  grid-template-rows: 1fr;
+  position: relative;
+  height: 100%;
+}
+
+.card-image-container:hover .card-image {
+  transform: scale(1.1);
+}
+
+.card-image {
+  overflow: hidden;
+  margin-top: 0;
+  background-repeat: no-repeat;
+  background-position: center;
+  background-size: cover;
+  transition: all .3s ease;
+  min-height: 170px;
+}
+
+.card-image img {
+  display: block;
+  width: 100%;
+  visibility: hidden;
+}
+
+.card-title {
+  margin: 0 !important;
+  height: 50px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.card-title .title h4 {
+  font-weight: 600;
+  color: #7b7b7b;
+  font-size: 0.9em !important;
+  margin: 0 !important;
+}
+
+.card-image-container {
+  position: relative;
+
+}
+
+.add-sale-container {
+  position: absolute;
+  display: flex;
+  flex-flow: column wrap;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  top: 0;
+}
+
+.card-image-container:hover {
+  &::before {
+    content: "";
+    position: absolute;
+    height: 100%;
+    width: 100%;
+    background-color: rgba(0, 0, 0, .6);
+    z-index: 1;
+  }
+}
+
+.card-image-container:hover .add-sale-container {
+  z-index: 1;
+  opacity: 1;
+}
+
+.customized-switch {
+  display: flex;
+  flex-flow: column-reverse nowrap;
+  padding: 0!important;
+}
+
+.customized-switch label::before {
+  position: relative;
+  margin: 0 auto !important;
+  left: unset !important;
+  top: unset !important;
+  bottom: 0;
+}
+
+.customized-switch label {
+  display: flex;
+  flex-flow: column-reverse nowrap;
+  color: #fff;
+  justify-content: space-between;
+  height: 50px;
+  font-size: 1.1em;
+  white-space: nowrap;
+}
+
+.customized-switch label::after {
+  left: 50% !important;
+  margin-left: -12px;
+  top: unset !important;
+  bottom: 2px;
+}
+.customized-switch input {
+  z-index: 1;
+  cursor: pointer;
+  width: 100%;
+  top: unset !important;
+  bottom: 2px;
+}
+
+.shipping-input {
+  width: 90% !important;
+}
+
+.card input[type='text'], input[type='number'], button, label {
+  animation: fadeIn .6s forwards;
+}
+
+.reset-sale {
+  position: absolute;
+  top: 6px;
+  right: 10px;
+  cursor: pointer;
+  z-index: 9;
+  color: #fff;
+}
+
+.reset-sale:hover {
+  color: #ff4846;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@media screen and (min-width: 2200px) {
+  .card-image {
+    min-height: 400px;
+  }
+}
+
+
+@media screen and (min-width: 2200px) {
+  .card-image {
+    min-height: 400px;
+  }
+}
