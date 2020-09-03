@@ -53,7 +53,11 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
         setShippingPrice(value ? Number(value) : value);
     };
 
-    const resetSaleOptions = () => setSaleOptions(defaultSaleOptions);
+    const resetSaleOptions = () => {
+        setUseCommission(false);
+        setUseShipping(false);
+        setSaleOptions(defaultSaleOptions);
+    };
 
     const newSale = async () => {
         const profit = product.price - product.cost;

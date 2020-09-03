@@ -31,7 +31,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const promotionPercent = 0.30;
 
     const getSalesData = async () => {
-        const response = await fetch('http://localhost/get-sales-data');
+        const response = await fetch(`${process.env.REACT_APP_API}get-sales-data`);
         const salesData: ISalesData = await response.json() as any;
         await setSalesData(salesData);
         return;
@@ -55,7 +55,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
             ],
         });
 
-        const response = await fetch('http://localhost/save-sales-data', {
+        const response = await fetch(`${process.env.REACT_APP_API}save-sales-data`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
