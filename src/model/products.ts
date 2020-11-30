@@ -8,6 +8,27 @@ export interface IProductData {
 
 const products: IProductData[] = [
   {
+    name: 'airpods serie 2',
+    price: 2500,
+    cost: 950,
+    image: '/assets/images/products/airpods serie 2.png',
+    commission: 100,
+  },
+  {
+    name: 'Airpods Pro',
+    price: 3000,
+    cost: 1500,
+    image: '/assets/images/products/airpodsPro.png',
+    commission: 200,
+  },
+  {
+    name: 'AppleWatch Serie 6',
+    price: 3400,
+    cost: 1500,
+    image: '/assets/images/products/airpodsPro.png',
+    commission: 200,
+  },
+  {
     name: 'AKG',
     price: 150,
     cost: 40,
@@ -19,13 +40,6 @@ const products: IProductData[] = [
     price: 600,
     cost: 290,
     image: '/assets/images/products/LY002.png',
-    commission: 100,
-  },
-  {
-    name: 'airpods serie 2',
-    price: 2500,
-    cost: 950,
-    image: '/assets/images/products/airpods serie 2.png',
     commission: 100,
   },
   {
