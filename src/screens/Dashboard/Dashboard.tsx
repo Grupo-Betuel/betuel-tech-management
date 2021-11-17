@@ -68,7 +68,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
 
     const getSalesData = (async (date?: string) => {
         setLoadingApp(true);
-        const response = await fetch(`${process.env.REACT_APP_API}get-sales-data?date=${date || recordedDate}`);
+        const response = await fetch(`${process.env.REACT_APP_API}get-sales-data?date=Noviembre-2020`);
         const salesData: ISalesData = await response.json() as any;
         setSalesData(salesData);
         setLoadingApp(false);
