@@ -2,6 +2,7 @@ import React from 'react';
 import './App.css';
 import {Dashboard} from "./screens";
 import {ToastContainer} from "react-toastify";
+import { Switch, Route } from "react-router";
 
 function App() {
   return (

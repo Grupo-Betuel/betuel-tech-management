@@ -8,6 +8,7 @@ export interface IProduct extends IProductData {
     addSale: (data: ISale) => any;
     salesQuantity?: number;
     moneyGenerated?: number;
+    onSelect: (product: IProductData) => any;
 }
 
 export interface ISaleOptions {
@@ -16,7 +17,7 @@ export interface ISaleOptions {
     inputShipping: boolean;
 }
 
-const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, moneyGenerated, ...product}) => {
+const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, moneyGenerated, onSelect, ...product}) => {
 
     const {image} = product;
     const defaultSaleOptions: ISaleOptions = {enableShipping: false, commission: false, inputShipping: false};
@@ -62,7 +63,10 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
     const newSale = async () => {
         const profit = product.price - product.cost;
         const sale: ISale = {
+            id: new Date().getTime(),
+            productId: product.id,
             price: product.price,
+            cost: product.cost,
             profit: profit,
             productName: product.name,
         };
@@ -81,8 +85,13 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
 
         setIsLoading(false);
     };
+
+    const onSelectProduct = () => {
+        onSelect(product);
+    };
+
     return (
-        <div className="card">
+        <div className="card" onClick={onSelectProduct}>
             <div
                 className="card-content"
             >
@@ -140,7 +149,7 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
 
                         {
                             !isLoading ? null :
-                                <Spinner animation="grow" variant="secondary"/>
+                                    <Spinner animation="grow" variant="secondary"/>
                         }
                     </div>
                 </div>
