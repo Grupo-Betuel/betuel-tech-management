@@ -18,6 +18,7 @@ import "./Dashboard.scss";
 import products, { IProductData } from "../../model/products";
 import { toast } from "react-toastify";
 import TableComponent, { IAction, IHeader } from "../../components/Table/Table";
+import { getSales } from "./sales";
 
 export interface ISale {
     id: number;
@@ -68,11 +69,9 @@ const Dashboard: React.FunctionComponent<any> = () => {
 
     const getSalesData = (async (date?: string) => {
         setLoadingApp(true);
-        const response = await fetch(`${process.env.REACT_APP_API}get-sales-data?date=Noviembre-2020`);
-        const salesData: ISalesData = await response.json() as any;
+        const salesData = await getSales(date || recordedDate);
         setSalesData(salesData);
         setLoadingApp(false);
-
     });
 
     React.useEffect(() => {
