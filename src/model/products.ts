@@ -1,16 +1,15 @@
 export interface IProductData {
-  id: number;
+  _id: number;
   name: string;
   price: number;
   cost: number;
   commission: number;
   image: string;
-  shipping?: number;
 }
 
 const products: IProductData[] = [
   {
-    id: 1,
+    _id: 1,
     name: 'Airpods Serie 2',
     price: 2500,
     cost: 950,
@@ -18,7 +17,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 2,
+    _id: 2,
     name: 'Airpods Pro',
     price: 3000,
     cost: 1500,
@@ -26,7 +25,7 @@ const products: IProductData[] = [
     commission: 200,
   },
   {
-    id: 3,
+    _id: 3,
     name: 'AppleWatch Serie 6',
     price: 3400,
     cost: 1680,
@@ -34,7 +33,7 @@ const products: IProductData[] = [
     commission: 200,
   },
   {
-    id: 4,
+    _id: 4,
     name: 'AKG',
     price: 150,
     cost: 40,
@@ -42,7 +41,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 5,
+    _id: 5,
     name: 'LY002',
     price: 600,
     cost: 290,
@@ -50,7 +49,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 6,
+    _id: 6,
     name: 'BX340BT',
     price: 750,
     cost: 470,
@@ -58,7 +57,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 7,
+    _id: 7,
     name: 'K856',
     price: 1150,
     cost: 650,
@@ -66,7 +65,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 8,
+    _id: 8,
     name: 'QD21',
     price: 600,
     cost: 290,
@@ -74,7 +73,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 9,
+    _id: 9,
     name: 'TG113',
     price: 500,
     cost: 260,
@@ -82,7 +81,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 10,
+    _id: 10,
     name: 'TG117',
     price: 750,
     cost: 470,
@@ -90,7 +89,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 11,
+    _id: 11,
     name: 'TG149',
     price: 750,
     cost: 470,
@@ -98,7 +97,7 @@ const products: IProductData[] = [
     commission: 100,
   },
   {
-    id: 12,
+    _id: 12,
     name: 'AppleWatch Serie 5',
     price: 3400,
     cost: 1100,
@@ -106,7 +105,7 @@ const products: IProductData[] = [
     commission: 200,
   },
   {
-    id: 13,
+    _id: 13,
     name: 'T5 Plus',
     price: 3400,
     cost: 1380,

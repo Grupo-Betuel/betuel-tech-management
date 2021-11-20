@@ -2,10 +2,10 @@ import React, {ChangeEvent} from 'react';
 import "./Product.scss";
 import {IProductData} from "../../model/products";
 import {Button, CustomInput, Input, Spinner} from "reactstrap";
-import {ISale } from "../../screens/Dashboard/Dashboard";
+import { ISale } from "../../model/interfaces/SalesModel";
 
 export interface IProduct extends IProductData {
-    addSale: (data: ISale) => any;
+    addSale: (data: Partial<ISale>) => any;
     salesQuantity?: number;
     moneyGenerated?: number;
     onSelect: (product: IProductData) => any;
@@ -63,13 +63,13 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
     const newSale = async () => {
         const profit = product.price - product.cost;
         const sale: ISale = {
-            id: new Date().getTime(),
-            productId: product.id,
+            productId: product._id,
             price: product.price,
             cost: product.cost,
             profit: profit,
             productName: product.name,
-        };
+
+        } as any;
 
         if (useShipping) {
             sale.shipping = shippingPrice;

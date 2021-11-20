@@ -4,7 +4,7 @@ import { Button, Pagination, PaginationItem, PaginationLink, Table } from "react
 export interface IHeader {label: string; property: string}
 
 export interface IAction {
-    method: (item: any) => () => any;
+    method: (item: any) => (e: React.MouseEvent<any>) => any;
     label: string;
     className?: string;
 }
