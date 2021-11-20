@@ -2,6 +2,7 @@ export interface IProductData {
   _id: number;
   name: string;
   price: number;
+  wholeSale: string;
   cost: number;
   commission: number;
   image: string;
@@ -15,6 +16,7 @@ const products: IProductData[] = [
     cost: 950,
     image: '/assets/images/products/airpods serie 2.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 2,
@@ -23,6 +25,7 @@ const products: IProductData[] = [
     cost: 1500,
     image: `${process.env.PUBLIC_URL}assets/images/products/airpodsPro.png`,
     commission: 200,
+    wholeSale: '{}',
   },
   {
     _id: 3,
@@ -31,6 +34,7 @@ const products: IProductData[] = [
     cost: 1680,
     image: '/assets/images/products/W26.png',
     commission: 200,
+    wholeSale: '{}',
   },
   {
     _id: 4,
@@ -39,6 +43,7 @@ const products: IProductData[] = [
     cost: 40,
     image: '/assets/images/products/AKG.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 5,
@@ -47,6 +52,7 @@ const products: IProductData[] = [
     cost: 290,
     image: '/assets/images/products/LY002.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 6,
@@ -55,6 +61,7 @@ const products: IProductData[] = [
     cost: 470,
     image: '/assets/images/products/BX340BT.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 7,
@@ -63,6 +70,7 @@ const products: IProductData[] = [
     cost: 650,
     image: '/assets/images/products/K856.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 8,
@@ -71,6 +79,7 @@ const products: IProductData[] = [
     cost: 290,
     image: '/assets/images/products/QD21.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 9,
@@ -79,6 +88,7 @@ const products: IProductData[] = [
     cost: 260,
     image: '/assets/images/products/TG113.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 10,
@@ -87,6 +97,7 @@ const products: IProductData[] = [
     cost: 470,
     image: '/assets/images/products/TG117.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 11,
@@ -95,6 +106,7 @@ const products: IProductData[] = [
     cost: 470,
     image: '/assets/images/products/TG149.png',
     commission: 100,
+    wholeSale: '{}',
   },
   {
     _id: 12,
@@ -103,6 +115,7 @@ const products: IProductData[] = [
     cost: 1100,
     image: '/assets/images/products/T500.png',
     commission: 200,
+    wholeSale: '{}',
   },
   {
     _id: 13,
@@ -111,6 +124,7 @@ const products: IProductData[] = [
     cost: 1380,
     image: '/assets/images/products/T500.png',
     commission: 200,
+    wholeSale: '{}',
   },
 ];
 

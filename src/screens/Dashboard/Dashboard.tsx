@@ -16,6 +16,7 @@ import { ISale } from "../../model/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
 import Test from "../../components/Test";
+import ProductForm from "../../components/ProductForm/ProductForm";
 
 const CreateNewProductButton = styled.button`
     position: fixed;
@@ -45,6 +46,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [useCommission, setUseCommission] = React.useState(false);
     const [addingSale, setAddingSale] = React.useState(false);
     const [productSalesActive, setProductSalesActive] = React.useState(false);
+    const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
     const [productSales, setProductSales] = React.useState<ISale[]>([]);
     const [sale, setSale] = React.useState<Partial<ISale>>({});
     const [salesData, setSalesData] = React.useState<ISale[]>([]);
@@ -56,6 +58,8 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [recordedDate, setRecordedDate] = React.useState<string>(`${months[new Date().getMonth()]}-${new Date().getFullYear()}`);
     const tithePercent = 0.10;
     const promotionPercent = 0.30;
+
+    const toggleProductForm = () => setProductFormIsOpen(!productFormIsOpen);
 
     const selectProduct = (product: IProductData) => {
         const profit = product.price - product.cost;
@@ -385,9 +389,12 @@ const Dashboard: React.FunctionComponent<any> = () => {
                         )}
                 </Col>
             </div>
-            <CreateNewProductButton className="btn btn-outline-danger">
+            <CreateNewProductButton className="btn btn-outline-danger" onClick={toggleProductForm}>
                 <i className="bi-plus"/>
             </CreateNewProductButton>
+
+            <ProductForm handleSubmit={(items) => console.log(items)} isOpen={productFormIsOpen}
+                         toggle={toggleProductForm}/>
         </>
     )
 };
