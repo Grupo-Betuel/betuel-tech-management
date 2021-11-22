@@ -1,0 +1,10 @@
+.product-detail-text {
+  color: transparent;
+  -webkit-background-clip: text;
+  background-color: #ababab;
+  text-shadow: -2px 2px 2px rgb(255 255 255 / 44%);
+  font-family: product-font;
+  -webkit-text-stroke: 1px #fff;
+  font-weight: bold;
+  paint-order: stroke fill;
+}

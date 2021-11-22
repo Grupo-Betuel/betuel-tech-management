@@ -4,19 +4,19 @@ import {
     Row,
     FormGroup,
     Input,
-    Spinner, CustomInput
+    Spinner, CustomInput, Modal
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
 import Logo from "../../assets/images/logo.png"
 import "./Dashboard.scss";
-import products, { IProductData } from "../../model/products";
+import { IProductData } from "../../model/products";
 import { toast } from "react-toastify";
 import { addSales, deleteSale, getRecordedDates, getSales, updateSales } from "../../services/sales";
 import { ISale } from "../../model/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
-import Test from "../../components/Test";
-import ProductForm from "../../components/ProductForm/ProductForm";
+import ProductForm, { IProductImageProperties } from "../../components/ProductForm/ProductForm";
+import { addProduct, getProducts } from "../../services/products";
 
 const CreateNewProductButton = styled.button`
     position: fixed;
@@ -54,6 +54,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [tithe, setTithe] = React.useState(0);
     const [promotion, setPromotion] = React.useState(0);
     const [registeredDates, setRegisteredDates] = React.useState<string[]>([]);
+    const [products, setProducts] = React.useState<IProductData[]>([]);
     const [filter, setFilter] = React.useState<IProductFilters>("MostProfit");
     const [recordedDate, setRecordedDate] = React.useState<string>(`${months[new Date().getMonth()]}-${new Date().getFullYear()}`);
     const tithePercent = 0.10;
@@ -86,9 +87,17 @@ const Dashboard: React.FunctionComponent<any> = () => {
         setLoadingApp(false);
     });
 
+    const getAllProducts = async () => {
+        setLoadingApp(true);
+        const products = await getProducts();
+        setProducts(products);
+        setLoadingApp(false);
+    }
+
     React.useEffect(() => {
         getSalesData();
         getAllRecordsDates();
+        getAllProducts();
     }, []);
 
     const newSale = async () => {
@@ -279,6 +288,10 @@ const Dashboard: React.FunctionComponent<any> = () => {
         getSalesData(value);
     }
 
+    const createProducts = async (products: Partial<IProductData>) => {
+       await addProduct(JSON.stringify(products));
+    }
+
     return (
         <>
             {
@@ -393,7 +406,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
                 <i className="bi-plus"/>
             </CreateNewProductButton>
 
-            <ProductForm handleSubmit={(items) => console.log(items)} isOpen={productFormIsOpen}
+            <ProductForm handleSubmit={createProducts} isOpen={productFormIsOpen}
                          toggle={toggleProductForm}/>
         </>
     )
