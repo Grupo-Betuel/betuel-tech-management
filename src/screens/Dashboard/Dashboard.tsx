@@ -288,18 +288,14 @@ const Dashboard: React.FunctionComponent<any> = () => {
         getSalesData(value);
     }
 
-    const createProducts = async (products: Partial<IProductData>) => {
-       await addProduct(JSON.stringify(products));
-    }
-
     return (
         <>
             {
                 !loadingApp ? null :
                     <>
-                        {/*<div className="loading-sale-container">*/}
-                        {/*    <Spinner animation="grow" variant="secondary"/>*/}
-                        {/*</div>*/}
+                        <div className="loading-sale-container">
+                            <Spinner animation="grow" variant="secondary"/>
+                        </div>
                     </>
             }
             <CreateSaleModal
@@ -406,7 +402,9 @@ const Dashboard: React.FunctionComponent<any> = () => {
                 <i className="bi-plus"/>
             </CreateNewProductButton>
 
-            <ProductForm handleSubmit={createProducts} isOpen={productFormIsOpen}
+            <ProductForm
+                loadProducts={getAllProducts}
+                isOpen={productFormIsOpen}
                          toggle={toggleProductForm}/>
         </>
     )

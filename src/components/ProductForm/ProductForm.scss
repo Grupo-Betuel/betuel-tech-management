@@ -1,10 +1,33 @@
 .product-detail-text {
-  color: transparent;
-  -webkit-background-clip: text;
-  background-color: #ababab;
-  text-shadow: -2px 2px 2px rgb(255 255 255 / 44%);
   font-family: product-font;
-  -webkit-text-stroke: 1px #fff;
+  -webkit-text-stroke: 1px #cdcdcd;
+  -moz-text-stroke: 1px #cdcdcd;
+  -ms-text-stroke: 1px #cdcdcd;
+  text-stroke: 1px #cdcdcd;
   font-weight: bold;
   paint-order: stroke fill;
 }
+
+
+.depth {
+  color: black;
+  position: relative;
+}
+.depth:before, .depth:after {
+  content: attr(title);
+  color: rgba(255,255,255,.2);
+  position: absolute;
+
+}
+.depth:before { top: 1px; left: -1px }
+.depth:after  { top: 2px; left: -2px }
+
+
+.inset-text {
+  /* Shadows are visible under slightly transparent text color */
+  color: rgba(171,171,171, 0.4);
+  text-shadow: -2px 2px 3px #f9f9f2, 0 0 0 #979797, -2px 2px 3px #f9f9f2;
+}
+/* Don't show shadows when selecting text */
+::-moz-selection { background: #5af; color: #fff; text-shadow: none; }
+::selection { background: #5af; color: #fff; text-shadow: none; }

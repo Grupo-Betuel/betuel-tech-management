@@ -7,15 +7,19 @@ import {
     Modal,
     ModalBody,
     ModalFooter,
-    ModalHeader,
+    ModalHeader, Spinner, Tooltip,
 } from "reactstrap";
-import React from "react";
+import React, { useCallback, useRef } from "react";
 import { IProductData } from "../../model/products";
 import { Rnd } from 'react-rnd';
 import logo from "../../assets/images/logo.png";
 import productBackground from "../../assets/images/product-background.png";
 import styled from "styled-components";
 import "./ProductForm.scss";
+import { toPng } from 'html-to-image';
+import { dataURItoBlob } from "../../utils/blob";
+import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
+import { addProduct } from "../../services/products";
 
 const draggableWidth = 350;
 const draggableHeight = 350;
@@ -28,8 +32,8 @@ export interface ICalculatedPrice {
 
 export interface IProductFormProps {
     toggle: () => any;
+    loadProducts: () => any;
     isOpen?: boolean;
-    handleSubmit: (product: Partial<IProductData>) => any;
 }
 
 export interface IProductImageProperties {
@@ -47,6 +51,15 @@ const ProductNameSpan: any = styled.span`
    transform: translate(15px, 0px);
    max-width: 206px;
    line-height:  ${(props: any) => props.fontSize || nameInitialFontSize}px;
+`;
+
+const ChangePhotoLabel: any = styled.label`
+   position: absolute;
+   top: -17px;
+   right: -35px;
+   color: #ababab;
+   cursor: pointer;
+   font-size: 35px;
 `;
 const ProductPriceSpan = styled.span`
  position: absolute;
@@ -75,7 +88,7 @@ const ProductImageContainer = styled.div`
   height: 100%;
   .rnd-container {
     a:focus > img {
-      border: 1px solid #7a7a7a;
+      border: 3px dashed #ababab;
     }
   }
 `
@@ -93,15 +106,19 @@ const ProductForm: React.FC<IProductFormProps> = (
     {
         isOpen,
         toggle,
-        handleSubmit,
+        loadProducts,
     }) => {
     const [product, setProduct] = React.useState<Partial<IProductData>>({
         name: 'Replica Exacta Clase A - Serie 2',
         price: 2500
     });
     const [useCommission, setUseCommission] = React.useState(false);
+    const [isValidForm, setIsValidForm] = React.useState(false);
+    const [productPhotoName, setProductPhotoName] = React.useState('');
     const [isSubmiting, setIsSubmiting] = React.useState(false);
+    const [hideChangeProductPhotoIcon, setHideChangeProductPhotoIcon] = React.useState(false);
     const [increaseNameFont, setIncreaseNameFont] = React.useState(nameInitialFontSize);
+    const [productPhoto, setProductPhoto] = React.useState(logo);
     const [productImageProperties, setProductImageProperties] = React.useState<IProductImageProperties>({
         width: draggableWidth,
         height: draggableHeight,
@@ -110,12 +127,13 @@ const ProductForm: React.FC<IProductFormProps> = (
     } as any);
 
 
-    const useCommissionChange = (e: any) => {
+    const useCommissionChange = async (e: any) => {
         const {checked} = e.target;
-        setUseCommission(checked);
+        await setUseCommission(checked);
+        validForm(checked);
     };
 
-    const onChangeProduct = (ev: React.ChangeEvent<any>) => {
+    const onChangeProduct = async (ev: React.ChangeEvent<any>) => {
         const {name, value, type} = ev.target;
         const finalValue = type === "number" ? Number(value) : value;
         let priceData = {};
@@ -128,13 +146,20 @@ const ProductForm: React.FC<IProductFormProps> = (
             ...priceData,
             [name]: finalValue
         };
-        setProduct(newProduct);
-
+        await setProduct(newProduct);
+        validForm()
     };
 
-    const onSubmit = (form: any) => {
+    const onSubmit = async (form: any) => {
         form.preventDefault();
-        handleSubmit(product);
+        setIsSubmiting(true);
+        await saveProductPhoto().then(async (photoName?: string) => {
+            await addProduct(JSON.stringify({...product, image: gcloudPublicURL + photoName }));
+            setIsSubmiting(false);
+            loadProducts()
+        });
+
+
     }
 
     const calculatePrice = (cost: number): ICalculatedPrice => {
@@ -216,19 +241,84 @@ const ProductForm: React.FC<IProductFormProps> = (
     const decreaseIncreaseNameFont = (minus = false) => () => {
         setIncreaseNameFont(minus ? increaseNameFont - 1 : increaseNameFont + 1);
     }
+
+    const productImageWrapper = useRef<HTMLDivElement>(null)
+
+
+    const saveProductPhoto = useCallback(async () => {
+        const productURLName = product.name ? product.name.split(' ').join('-'): product.name;
+        const photoName = `${productURLName}-${Date.now()}.png`;
+        setProductPhotoName(photoName)
+
+        setHideChangeProductPhotoIcon(true);
+        if (productImageWrapper.current === null) {
+            return
+        }
+
+        await toPng(productImageWrapper.current, {cacheBust: true,})
+            .then(async (dataUrl: string) => {
+                const blob = dataURItoBlob(dataUrl)
+                const file = new File([blob], photoName);
+                await uploadPhoto(file);
+                setHideChangeProductPhotoIcon(false);
+            })
+            .catch((err: any) => {
+                console.log(err)
+            })
+        return photoName;
+    }, [productImageWrapper]);
+
+
+
+    const onChangeProductPhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const input = event.target;
+        const url = event.target.value;
+        const ext = url.substring(url.lastIndexOf('.') + 1).toLowerCase();
+        if (input.files && input.files[0]) {
+            const reader = new FileReader();
+
+            reader.onload = function (e: any) {
+                setProductPhoto(e.target.result)
+            }
+            reader.readAsDataURL(input.files[0]);
+        } else {
+            setProductPhoto(logo);
+        }
+    }
+
+    const validForm = (useComissionData?: boolean) => {
+         setIsValidForm(['name', 'cost', 'price', 'commission'].map((key: any) => {
+            if(key === 'commission') {
+                return useCommission || useComissionData ? !!product.commission : true;
+            }
+
+            return !!(product as any)[key]
+        }).reduce((a,b)=> a && b, true));
+    };
+
     return (
 
         <Modal isOpen={isOpen} toggle={toggle}>
+            {
+                !isSubmiting ? null :
+                    <>
+                        <div className="loading-sale-container">
+                            <Spinner animation="grow" variant="secondary"/>
+                        </div>
+                    </>
+            }
             <ModalHeader toggle={toggle}>{'New Product'}</ModalHeader>
             <Form onSubmit={onSubmit}>
-                <ProductImageEditor>
+                <ProductImageEditor id="product-image-result" ref={productImageWrapper}>
                     <img src={productBackground} alt="bg-image" className="product-background"/>
                     <ProductNameSpan fontSize={increaseNameFont}
-                                     className="product-detail-text">{product.name}</ProductNameSpan>
+                                     className="product-detail-text inset-text">
+                        <span>{product.name}</span>
+                    </ProductNameSpan>
 
-                    <ProductPriceSpan className="product-detail-text">
+                    <ProductPriceSpan className="product-detail-text inset-text">
                         <span style={{fontSize: '40px'}}>RD$</span>
-                        {product.price && internationalNumberFormat.format(product.price)}
+                        <span>{product.cost && internationalNumberFormat.format(product.price || 0)}</span>
                     </ProductPriceSpan>
 
                     <GodWordSpan>Dios te bendiga</GodWordSpan>
@@ -248,21 +338,27 @@ const ProductForm: React.FC<IProductFormProps> = (
                                 });
                             }}
                         >
-                            <a href="#">
-                                <img src={logo} alt="" width="100%" height="100%"/>
+                            <a href="#" className="position-relative">
+                                <ChangePhotoLabel htmlFor="product-photo" data-toggle="tooltip" id="change-image"
+                                                  title="Cambiar Foto del Producto">
+                                    {!hideChangeProductPhotoIcon && <i className="bi bi-images"/>}
+                                </ChangePhotoLabel>
+                                <input type="file" id="product-photo" className="invisible"
+                                       onChange={onChangeProductPhoto}/>
+                                <img src={productPhoto} alt="" width="100%" height="100%"/>
                             </a>
                         </Rnd>
                     </ProductImageContainer>
                 </ProductImageEditor>
 
                 <ModalBody>
-
+                    <Button color="primary" outline onClick={saveProductPhoto}>Process Image</Button>
                     <FormGroup>
                         <Label for="name">Nombre:</Label>
                         <div className="d-flex align-items-center">
                             <Input onChange={onChangeProduct} name="name" id="name"
                                    value={product.name}/>
-                            <span className="d-flex align-items-center" style={{ fontSize: '21px' }}>
+                            <span className="d-flex align-items-center" style={{fontSize: '21px'}}>
                                <i className="bi-plus mx-3 cursor-pointer" onClick={decreaseIncreaseNameFont()}/>
                                <i className="bi-dash cursor-pointer" onClick={decreaseIncreaseNameFont(true)}/>
                             </span>
@@ -281,7 +377,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                     </FormGroup>
                     <FormGroup>
                         <Label for="productImage">File:</Label>
-                        <Input type="file" name="product-image" id="productImage"/>
+                        {/*<Input type="file" name="product-image" id="productImage" onChange={uploadPhoto}/>*/}
                     </FormGroup>
                     <>
                         <CustomInput
@@ -301,8 +397,8 @@ const ProductForm: React.FC<IProductFormProps> = (
                     }
                 </ModalBody>
                 <ModalFooter>
-                    <Button color={isSubmiting ? 'dark' : 'primary'} type="submit"
-                            disabled={isSubmiting}>Añadir</Button>{' '}
+                    <Button color={isSubmiting || !isValidForm ? 'dark' : 'primary'} outline type="submit"
+                            disabled={isSubmiting || !isValidForm}>Añadir</Button>{' '}
                     <Button color="secondary" onClick={toggle}>Cancel</Button>
                 </ModalFooter>
             </Form>
