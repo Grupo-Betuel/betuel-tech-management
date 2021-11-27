@@ -5,7 +5,6 @@ import {Button, CustomInput, Input, Spinner} from "reactstrap";
 import { ISale } from "../../model/interfaces/SalesModel";
 
 export interface IProduct extends IProductData {
-    addSale: (data: Partial<ISale>) => any;
     salesQuantity?: number;
     moneyGenerated?: number;
     onSelect: (product: IProductData) => any;
@@ -17,7 +16,7 @@ export interface ISaleOptions {
     inputShipping: boolean;
 }
 
-const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, moneyGenerated, onSelect, ...product}) => {
+const Product: React.FunctionComponent<IProduct> = ({ salesQuantity, moneyGenerated, onSelect, ...product}) => {
 
     const {image} = product;
     const defaultSaleOptions: ISaleOptions = {enableShipping: false, commission: false, inputShipping: false};
@@ -81,7 +80,7 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
         resetSaleOptions();
         setIsLoading(true);
 
-        await addSale(sale);
+        // await addSale(sale);
 
         setIsLoading(false);
     };

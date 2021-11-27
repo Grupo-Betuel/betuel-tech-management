@@ -344,7 +344,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                                     {!hideChangeProductPhotoIcon && <i className="bi bi-images"/>}
                                 </ChangePhotoLabel>
                                 <input type="file" id="product-photo" className="invisible"
-                                       onChange={onChangeProductPhoto}/>
+                                       onChange={onChangeProductPhoto} accept="image/png, image/gif, image/jpeg" />
                                 <img src={productPhoto} alt="" width="100%" height="100%"/>
                             </a>
                         </Rnd>
@@ -399,7 +399,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                 <ModalFooter>
                     <Button color={isSubmiting || !isValidForm ? 'dark' : 'primary'} outline type="submit"
                             disabled={isSubmiting || !isValidForm}>Añadir</Button>{' '}
-                    <Button color="secondary" onClick={toggle}>Cancel</Button>
+                    <Button color="secondary" onClick={toggle} outline>Cancel</Button>
                 </ModalFooter>
             </Form>
         </Modal>

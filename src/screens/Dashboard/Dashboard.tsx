@@ -43,12 +43,8 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [activeAddSaleModal, setActiveAddSaleModal] = React.useState(false);
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [loadingApp, setLoadingApp] = React.useState(false);
-    const [useCommission, setUseCommission] = React.useState(false);
-    const [addingSale, setAddingSale] = React.useState(false);
-    const [productSalesActive, setProductSalesActive] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
-    const [productSales, setProductSales] = React.useState<ISale[]>([]);
-    const [sale, setSale] = React.useState<Partial<ISale>>({});
+    const [editSale, setEditSale] = React.useState<ISale>({} as any);
     const [salesData, setSalesData] = React.useState<ISale[]>([]);
     const [salesTotals, setSalesTotals] = React.useState<ITotals>({} as any);
     const [tithe, setTithe] = React.useState(0);
@@ -72,11 +68,11 @@ const Dashboard: React.FunctionComponent<any> = () => {
             cost: product.cost,
             productName: product.name,
             shipping: 0,
-            commission: useCommission ? product.commission : 0,
+            commission: product.commission,
             date: recordedDate,
         };
 
-        setSale(sale);
+        setEditSale(sale as any);
         setActiveAddSaleModal(true);
     };
 
@@ -100,38 +96,6 @@ const Dashboard: React.FunctionComponent<any> = () => {
         getAllProducts();
     }, []);
 
-    const newSale = async () => {
-        await handleAddSale(sale);
-    };
-
-    const onChangeSaleDetails = (ev: React.ChangeEvent<any>) => {
-        const {name, value} = ev.target;
-        const intValue = Number(value);
-        const newSale = {
-            ...sale,
-            [name]: intValue
-        };
-        setSale(newSale);
-    };
-
-    const handleAddSale = async (newSale: Partial<ISale>) => {
-        setAddingSale(true);
-        const body = JSON.stringify(newSale);
-
-        const response = await addSales(body);
-
-        if (response.status === 201) {
-            await getSalesData();
-            toast('¡Venta Exitosa!', {type: "default"});
-
-        } else {
-            toast('¡Error en la Venta!', {type: "error"});
-        }
-        setAddingSale(false);
-
-    };
-
-
     const getAllRecordsDates = async () => {
         const dates: string[] = await getRecordedDates();
         const existActualDate = (dates as any).find((item: string) => item === recordedDate);
@@ -144,46 +108,46 @@ const Dashboard: React.FunctionComponent<any> = () => {
     }
 
     const handleDeleteSale = async (_id: number) => {
-        const sales = salesData.filter((item: ISale, i: number) => item._id !== _id);
-        setActiveConfirmationModal(false);
+        // const sales = salesData.filter((item: ISale, i: number) => item._id !== _id);
+        // setActiveConfirmationModal(false);
+        //
+        // // setAddingSale(true);
+        //
+        // const response = await deleteSale(JSON.stringify({_id}));
+        // if (response.status === 204) {
+        //     await getSalesData();
+        //     toast('¡Registro Eliminado Exitosamente!', {type: "default"});
+        //     const productSales = sales.filter(item => item.productId === sale._id);
+        //     setProductSales([...productSales]);
+        // } else {
+        //     toast('¡Error al eliminar!', {type: "error"});
+        // }
 
-        setAddingSale(true);
-
-        const response = await deleteSale(JSON.stringify({_id}));
-        if (response.status === 204) {
-            await getSalesData();
-            toast('¡Registro Eliminado Exitosamente!', {type: "default"});
-            const productSales = sales.filter(item => item.productId === sale._id);
-            setProductSales([...productSales]);
-        } else {
-            toast('¡Error al eliminar!', {type: "error"});
-        }
-
-        setAddingSale(false);
+        // setAddingSale(false);
     };
 
     const handleUpdateSale = async (sales: ISale[]) => {
-        setAddingSale(true);
-        const body = JSON.stringify({
-            salesData: {
-                ...salesData,
-                sales: [
-                    ...sales,
-                ],
-            },
-            date: recordedDate,
-        });
-
-        const response = await updateSales(body);
-        if (response.status === 200) {
-            await getSalesData();
-            toast('¡Registro Eliminado Exitosamente!', {type: "default"});
-
-        } else {
-            toast('¡Error al eliminar!', {type: "error"});
-        }
-
-        setAddingSale(false);
+        // setAddingSale(true);
+        // const body = JSON.stringify({
+        //     salesData: {
+        //         ...salesData,
+        //         sales: [
+        //             ...sales,
+        //         ],
+        //     },
+        //     date: recordedDate,
+        // });
+        //
+        // const response = await updateSales(body);
+        // if (response.status === 200) {
+        //     await getSalesData();
+        //     toast('¡Registro Eliminado Exitosamente!', {type: "default"});
+        //
+        // } else {
+        //     toast('¡Error al eliminar!', {type: "error"});
+        // }
+        //
+        // setAddingSale(false);
     };
 
     const setAllDashboardTotals = () => {
@@ -224,24 +188,8 @@ const Dashboard: React.FunctionComponent<any> = () => {
 
     const toggleAddSale = () => {
         setActiveAddSaleModal(!activeAddSaleModal);
-        setProductSalesActive(false);
-    };
-    const useCommissionChange = (e: any) => {
-        const {checked} = e.target;
-        setUseCommission(checked);
     };
 
-
-    const getAllSalesById = () => {
-        if (salesData) {
-            const newProductSales = salesData.filter((item, i) => item.productId === sale._id);
-            setProductSales([...newProductSales]);
-            setProductSalesActive(true);
-        }
-    };
-
-
-    const toggleProductSales: any = (value?: boolean) => setProductSalesActive(!productSalesActive);
 
     const toggleConfirmation = () => setActiveConfirmationModal(!activeConfirmationModal);
 
@@ -301,17 +249,10 @@ const Dashboard: React.FunctionComponent<any> = () => {
             <CreateSaleModal
                 activeAddSaleModal={activeAddSaleModal}
                 toggleAddSale={toggleAddSale}
-                sale={sale as any}
-                toggleProductSales={toggleProductSales}
-                productSalesActive={productSalesActive}
-                productSales={productSales}
-                addingSale={addingSale}
+                editSale={editSale}
                 handleDeleteSale={handleDeleteSale}
-                onChangeProduct={onChangeSaleDetails}
-                useCommission={useCommission}
-                useCommissionChange={useCommissionChange}
-                getAllSalesById={getAllSalesById}
-                newSale={newSale}
+                salesData={salesData}
+                getSalesData={getSalesData}
             />
             <div
                 className="d-flex align-items-center flex-column"
@@ -392,7 +333,6 @@ const Dashboard: React.FunctionComponent<any> = () => {
                                 onSelect={selectProduct}
                                 salesQuantity={getProductSales(item.name)}
                                 moneyGenerated={getProductMoney(item.name) as number}
-                                addSale={handleAddSale}
                                 key={i}
                             />
                         )}
