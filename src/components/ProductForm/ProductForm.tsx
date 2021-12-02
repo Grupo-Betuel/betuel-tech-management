@@ -9,7 +9,7 @@ import {
     ModalFooter,
     ModalHeader, Spinner, Tooltip,
 } from "reactstrap";
-import React, { useCallback, useRef } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { IProductData } from "../../model/products";
 import { Rnd } from 'react-rnd';
 import logo from "../../assets/images/logo.png";
@@ -19,7 +19,7 @@ import "./ProductForm.scss";
 import { toPng } from 'html-to-image';
 import { dataURItoBlob } from "../../utils/blob";
 import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
-import { addProduct } from "../../services/products";
+import { addProduct, updateProducts } from "../../services/products";
 
 const draggableWidth = 350;
 const draggableHeight = 350;
@@ -34,6 +34,7 @@ export interface IProductFormProps {
     toggle: () => any;
     loadProducts: () => any;
     isOpen?: boolean;
+    editProduct?: Partial<IProductData>;
 }
 
 export interface IProductImageProperties {
@@ -107,25 +108,31 @@ const ProductForm: React.FC<IProductFormProps> = (
         isOpen,
         toggle,
         loadProducts,
+        editProduct,
     }) => {
-    const [product, setProduct] = React.useState<Partial<IProductData>>({
-        name: 'Replica Exacta Clase A - Serie 2',
-        price: 2500
-    });
+    const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
     const [useCommission, setUseCommission] = React.useState(false);
     const [isValidForm, setIsValidForm] = React.useState(false);
     const [productPhotoName, setProductPhotoName] = React.useState('');
     const [isSubmiting, setIsSubmiting] = React.useState(false);
     const [hideChangeProductPhotoIcon, setHideChangeProductPhotoIcon] = React.useState(false);
     const [increaseNameFont, setIncreaseNameFont] = React.useState(nameInitialFontSize);
-    const [productPhoto, setProductPhoto] = React.useState(logo);
-    const [productImageProperties, setProductImageProperties] = React.useState<IProductImageProperties>({
+    const [productPhoto, setProductPhoto] = React.useState( logo);
+    const [productImageFile, setProductImageFile] = React.useState<File | any>();
+    const [productImageChanged, setProductImageChanged] = React.useState(false);
+    const [flyerOptions, setFlyerOptions] = React.useState<IProductImageProperties>({
         width: draggableWidth,
         height: draggableHeight,
         x: 70,
         y: 40
     } as any);
 
+
+    useEffect(() => {
+        setProduct(editProduct || {})
+        setProductPhoto(editProduct && editProduct.productImage || logo)
+        setFlyerOptions(editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions) : flyerOptions);
+    }, [editProduct])
 
     const useCommissionChange = async (e: any) => {
         const {checked} = e.target;
@@ -153,13 +160,42 @@ const ProductForm: React.FC<IProductFormProps> = (
     const onSubmit = async (form: any) => {
         form.preventDefault();
         setIsSubmiting(true);
-        await saveProductPhoto().then(async (photoName?: string) => {
-            await addProduct(JSON.stringify({...product, image: gcloudPublicURL + photoName }));
+        const productImage = productImageChanged ? gcloudPublicURL + productImageFile.name : undefined;
+        if(editProduct) {
+            let photoName;
+            if(true) {
+                photoName = await saveProductPhoto();
+            }
+
+            const completePhotoName = gcloudPublicURL + photoName;
+            const body = JSON.stringify({
+                ...product,
+                productImage,
+                image: photoName ? completePhotoName : undefined,
+                flyerOptions: photoName ? JSON.stringify(flyerOptions): undefined,
+            });
+            const imageSplited = editProduct.image ? editProduct.image.split('/') : [];
+            const productImageSplited = editProduct.productImage ? editProduct.productImage.split('/') : [];
+            const photoToDelete = imageSplited[imageSplited.length - 1];
+            const productPhotoToDelete = productImageSplited[productImageSplited.length - 1];
+            await updateProducts(body, photoName ? photoToDelete || '' : undefined, productImageChanged ? productPhotoToDelete || '' : undefined);
             setIsSubmiting(false);
             loadProducts()
-        });
+        } else {
+            await saveProductPhoto().then(async (photoName?: string) => {
+                const body = JSON.stringify({
+                    ...product,
+                    productImage,
+                    image: gcloudPublicURL + photoName,
+                    flyerOptions: JSON.stringify(flyerOptions),
+                });
+                await addProduct(body);
 
+                setIsSubmiting(false);
+                loadProducts()
+            });
 
+        }
     }
 
     const calculatePrice = (cost: number): ICalculatedPrice => {
@@ -245,8 +281,8 @@ const ProductForm: React.FC<IProductFormProps> = (
     const productImageWrapper = useRef<HTMLDivElement>(null)
 
 
-    const saveProductPhoto = useCallback(async () => {
-        const productURLName = product.name ? product.name.split(' ').join('-'): product.name;
+    const saveProductPhoto = useCallback(async (downloadImage: boolean = false) => {
+        const productURLName = product.name ? product.name.split(' ').join('-'): 'flyer';
         const photoName = `${productURLName}-${Date.now()}.png`;
         setProductPhotoName(photoName)
 
@@ -257,30 +293,47 @@ const ProductForm: React.FC<IProductFormProps> = (
 
         await toPng(productImageWrapper.current, {cacheBust: true,})
             .then(async (dataUrl: string) => {
-                const blob = dataURItoBlob(dataUrl)
-                const file = new File([blob], photoName);
-                await uploadPhoto(file);
+                if(downloadImage) {
+                    const a = document.createElement('a') as any;
+                    a.href= dataUrl;
+                    a.download = photoName;
+                    a.click();
+                } else {
+                    const blob = dataURItoBlob(dataUrl)
+                    const file = new File([blob], photoName);
+                    await uploadPhoto(file);
+
+                    if(productImageChanged && productImageFile) {
+                        await uploadPhoto(productImageFile)
+                    }
+                }
+
                 setHideChangeProductPhotoIcon(false);
             })
             .catch((err: any) => {
                 console.log(err)
             })
         return photoName;
-    }, [productImageWrapper]);
+    }, [productImageWrapper, productImageFile, productImageChanged]);
 
 
 
     const onChangeProductPhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
         const input = event.target;
         const url = event.target.value;
-        const ext = url.substring(url.lastIndexOf('.') + 1).toLowerCase();
+        const ext = '.' + url.substring(url.lastIndexOf('.') + 1).toLowerCase();
         if (input.files && input.files[0]) {
             const reader = new FileReader();
 
             reader.onload = function (e: any) {
                 setProductPhoto(e.target.result)
             }
+
             reader.readAsDataURL(input.files[0]);
+            // renaming file
+            const productFile = new File([input.files[0]], Date.now() + ext,{type: input.files[0].type});
+            setProductImageFile(productFile);
+            setProductImageChanged(true);
         } else {
             setProductPhoto(logo);
         }
@@ -296,9 +349,14 @@ const ProductForm: React.FC<IProductFormProps> = (
         }).reduce((a,b)=> a && b, true));
     };
 
+    const toggleModal = () => {
+        setUseCommission(false);
+        setProductImageChanged(false);
+        toggle();
+    }
     return (
 
-        <Modal isOpen={isOpen} toggle={toggle}>
+        <Modal isOpen={isOpen} toggle={toggleModal}>
             {
                 !isSubmiting ? null :
                     <>
@@ -307,7 +365,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                         </div>
                     </>
             }
-            <ModalHeader toggle={toggle}>{'New Product'}</ModalHeader>
+            <ModalHeader toggle={toggleModal}>{editProduct ? `Editar ${editProduct.name}` : 'Crear Producto'}</ModalHeader>
             <Form onSubmit={onSubmit}>
                 <ProductImageEditor id="product-image-result" ref={productImageWrapper}>
                     <img src={productBackground} alt="bg-image" className="product-background"/>
@@ -321,17 +379,17 @@ const ProductForm: React.FC<IProductFormProps> = (
                         <span>{product.cost && internationalNumberFormat.format(product.price || 0)}</span>
                     </ProductPriceSpan>
 
-                    <GodWordSpan>Dios te bendiga</GodWordSpan>
+                    <GodWordSpan>{product.GodWord || 'Dios te bendiga'}</GodWordSpan>
                     <ProductImageContainer>
                         <Rnd
                             className="rnd-container"
-                            size={{width: productImageProperties.width, height: productImageProperties.height}}
-                            position={{x: productImageProperties.x, y: productImageProperties.y}}
+                            size={{width: flyerOptions.width, height: flyerOptions.height}}
+                            position={{x: flyerOptions.x, y: flyerOptions.y}}
                             onDragStop={(e, d) => {
-                                setProductImageProperties({...productImageProperties, x: d.x, y: d.y});
+                                setFlyerOptions({...flyerOptions, x: d.x, y: d.y});
                             }}
                             onResize={(e, direction, ref, delta, position) => {
-                                setProductImageProperties({
+                                setFlyerOptions({
                                     width: ref.offsetWidth,
                                     height: ref.offsetHeight,
                                     ...position,
@@ -352,7 +410,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                 </ProductImageEditor>
 
                 <ModalBody>
-                    <Button color="primary" outline onClick={saveProductPhoto}>Process Image</Button>
+                    <Button color="primary" className="mb-3" outline onClick={() => saveProductPhoto(true)}>Descargar Imagen</Button>
                     <FormGroup>
                         <Label for="name">Nombre:</Label>
                         <div className="d-flex align-items-center">
@@ -363,6 +421,11 @@ const ProductForm: React.FC<IProductFormProps> = (
                                <i className="bi-dash cursor-pointer" onClick={decreaseIncreaseNameFont(true)}/>
                             </span>
                         </div>
+                    </FormGroup>
+                    <FormGroup>
+                        <Label for="GodWord">Palabra de Dios:</Label>
+                        <Input onChange={onChangeProduct} type="text" name="GodWord" id="GodWord"
+                               value={product.GodWord}/>
                     </FormGroup>
                     <FormGroup>
                         <Label for="cost">Costo:</Label>
@@ -398,8 +461,8 @@ const ProductForm: React.FC<IProductFormProps> = (
                 </ModalBody>
                 <ModalFooter>
                     <Button color={isSubmiting || !isValidForm ? 'dark' : 'primary'} outline type="submit"
-                            disabled={isSubmiting || !isValidForm}>Añadir</Button>{' '}
-                    <Button color="secondary" onClick={toggle} outline>Cancel</Button>
+                            disabled={isSubmiting || !isValidForm}>{editProduct ? 'Actualizar' : 'Añadir'}</Button>{' '}
+                    <Button color="secondary" onClick={toggleModal} outline>Cancel</Button>
                 </ModalFooter>
             </Form>
         </Modal>

@@ -1,6 +1,6 @@
 export interface ISale {
-    _id: number;
-    productId: number;
+    _id: string;
+    productId: string;
     price: number;
     profit: number;
     commission?: number;

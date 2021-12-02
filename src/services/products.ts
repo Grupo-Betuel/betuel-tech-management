@@ -1,3 +1,5 @@
+import { deletePhoto } from "./gcloud";
+
 export const getProducts = async () => {
     try {
         const response = await fetch(`${process.env.REACT_APP_API}products`);
@@ -8,8 +10,22 @@ export const getProducts = async () => {
 
 };
 
-export const updateProducts = async (body: string) => {
+export const updateProducts = async (body: string, filenameToDelete?: string, productImageToDelete?: string) => {
+
     try {
+        if(filenameToDelete) {
+            const deletedResponse = await deletePhoto(filenameToDelete);
+            if (deletedResponse.status !== 204) {
+                throw deletedResponse;
+            }
+        }
+
+        if(productImageToDelete) {
+            const deletedProductImageResponse = await deletePhoto(productImageToDelete);
+            if (deletedProductImageResponse.status !== 204) {
+                throw deletedProductImageResponse;
+            }
+        }
         return await fetch(`${process.env.REACT_APP_API}products`, {
                 method: 'PUT',
                 headers: {
@@ -19,6 +35,7 @@ export const updateProducts = async (body: string) => {
                 body,
             }
         );
+
 
     } catch (e) {
         throw e;

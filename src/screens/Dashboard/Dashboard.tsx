@@ -4,19 +4,18 @@ import {
     Row,
     FormGroup,
     Input,
-    Spinner, CustomInput, Modal
+    Spinner, CustomInput
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
 import Logo from "../../assets/images/logo.png"
 import "./Dashboard.scss";
 import { IProductData } from "../../model/products";
-import { toast } from "react-toastify";
-import { addSales, deleteSale, getRecordedDates, getSales, updateSales } from "../../services/sales";
+import { getRecordedDates, getSales } from "../../services/sales";
 import { ISale } from "../../model/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
-import ProductForm, { IProductImageProperties } from "../../components/ProductForm/ProductForm";
-import { addProduct, getProducts } from "../../services/products";
+import ProductForm from "../../components/ProductForm/ProductForm";
+import { getProducts } from "../../services/products";
 
 const CreateNewProductButton = styled.button`
     position: fixed;
@@ -52,11 +51,21 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [registeredDates, setRegisteredDates] = React.useState<string[]>([]);
     const [products, setProducts] = React.useState<IProductData[]>([]);
     const [filter, setFilter] = React.useState<IProductFilters>("MostProfit");
+    const [editProduct, setEditProduct] = React.useState<Partial<IProductData>>(null as any);
     const [recordedDate, setRecordedDate] = React.useState<string>(`${months[new Date().getMonth()]}-${new Date().getFullYear()}`);
     const tithePercent = 0.10;
     const promotionPercent = 0.30;
 
-    const toggleProductForm = () => setProductFormIsOpen(!productFormIsOpen);
+    const toggleProductForm = () => {
+        setEditProduct(null as any);
+        setProductFormIsOpen(!productFormIsOpen);
+    }
+
+
+    const loadProductDetails = (product: Partial<IProductData>) => {
+        setEditProduct(product);
+        setProductFormIsOpen(true)
+    }
 
     const selectProduct = (product: IProductData) => {
         const profit = product.price - product.cost;
@@ -107,49 +116,6 @@ const Dashboard: React.FunctionComponent<any> = () => {
         setRegisteredDates(dates as any);
     }
 
-    const handleDeleteSale = async (_id: number) => {
-        // const sales = salesData.filter((item: ISale, i: number) => item._id !== _id);
-        // setActiveConfirmationModal(false);
-        //
-        // // setAddingSale(true);
-        //
-        // const response = await deleteSale(JSON.stringify({_id}));
-        // if (response.status === 204) {
-        //     await getSalesData();
-        //     toast('¡Registro Eliminado Exitosamente!', {type: "default"});
-        //     const productSales = sales.filter(item => item.productId === sale._id);
-        //     setProductSales([...productSales]);
-        // } else {
-        //     toast('¡Error al eliminar!', {type: "error"});
-        // }
-
-        // setAddingSale(false);
-    };
-
-    const handleUpdateSale = async (sales: ISale[]) => {
-        // setAddingSale(true);
-        // const body = JSON.stringify({
-        //     salesData: {
-        //         ...salesData,
-        //         sales: [
-        //             ...sales,
-        //         ],
-        //     },
-        //     date: recordedDate,
-        // });
-        //
-        // const response = await updateSales(body);
-        // if (response.status === 200) {
-        //     await getSalesData();
-        //     toast('¡Registro Eliminado Exitosamente!', {type: "default"});
-        //
-        // } else {
-        //     toast('¡Error al eliminar!', {type: "error"});
-        // }
-        //
-        // setAddingSale(false);
-    };
-
     const setAllDashboardTotals = () => {
         const newTotals: ITotals = {} as any;
         (Object.keys({shipping: 0, commission: 0, price: 0, profit: 0} as ITotals) as any)
@@ -175,12 +141,12 @@ const Dashboard: React.FunctionComponent<any> = () => {
             .filter(item => !!item)
             .reduce((a: number, b: number) => a + b, 0);
 
-    const getProductSales = (productName: string) => !salesData ? 0 :
-        salesData.filter(sale => sale.productName === productName).length;
+    const getProductSales = (productId: string) => !salesData ? 0 :
+        salesData.filter(sale => sale.productId === productId).length;
 
-    const getProductMoney = (productName: string) => {
+    const getProductMoney = (productId: string) => {
         if (!salesData) return 0;
-        const totalSold = salesData.filter(sale => sale.productName === productName)
+        const totalSold = salesData.filter(sale => sale.productId === productId)
             .map(item => item.profit).reduce((a, b) => a + b, 0);
 
         return totalSold;
@@ -249,8 +215,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
             <CreateSaleModal
                 activeAddSaleModal={activeAddSaleModal}
                 toggleAddSale={toggleAddSale}
-                editSale={editSale}
-                handleDeleteSale={handleDeleteSale}
+                selectedSale={editSale}
                 salesData={salesData}
                 getSalesData={getSalesData}
             />
@@ -330,9 +295,10 @@ const Dashboard: React.FunctionComponent<any> = () => {
                         products.map((item, i) =>
                             <Product
                                 {...item}
-                                onSelect={selectProduct}
-                                salesQuantity={getProductSales(item.name)}
-                                moneyGenerated={getProductMoney(item.name) as number}
+                                loadSale={selectProduct}
+                                loadProductDetails={loadProductDetails}
+                                salesQuantity={getProductSales(item._id)}
+                                moneyGenerated={getProductMoney(item._id) as number}
                                 key={i}
                             />
                         )}
@@ -345,7 +311,8 @@ const Dashboard: React.FunctionComponent<any> = () => {
             <ProductForm
                 loadProducts={getAllProducts}
                 isOpen={productFormIsOpen}
-                         toggle={toggleProductForm}/>
+                toggle={toggleProductForm}
+                editProduct={editProduct}/>
         </>
     )
 };

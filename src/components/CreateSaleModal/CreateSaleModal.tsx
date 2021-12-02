@@ -11,17 +11,16 @@ import {
     Spinner
 } from "reactstrap";
 import TableComponent, { IAction, IHeader } from "../Table/Table";
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect } from "react";
 import { ISale } from "../../model/interfaces/SalesModel";
-import { addSales } from "../../services/sales";
+import { addSales, deleteSale, updateSales } from "../../services/sales";
 import { toast } from "react-toastify";
 
 export interface ICreateSaleModal {
     activeAddSaleModal?: boolean;
     toggleAddSale: () => any;
-    editSale: ISale;
+    selectedSale: ISale;
     salesData: ISale[];
-    handleDeleteSale: (_id: number) => Promise<any>;
     getSalesData: () => any;
 }
 
@@ -54,29 +53,38 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         activeAddSaleModal,
         toggleAddSale,
         salesData,
-        handleDeleteSale,
         getSalesData,
-        editSale,
+        selectedSale,
     }) => {
     const [confirmationFunction, setConfirmationFunction] = React.useState<() => any>();
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [addingSale, setAddingSale] = React.useState(false);
     const [productSales, setProductSales] = React.useState<ISale[]>([]);
     const [productSalesActive, setProductSalesActive] = React.useState(false);
-    const [sale, setSale] = React.useState<Partial<ISale>>(editSale);
+    const [editSale, setEditSale] = React.useState<Partial<ISale>>(null as any);
+    const [sale, setSale] = React.useState<Partial<ISale>>(selectedSale);
     const [useCommission, setUseCommission] = React.useState(false);
-    console.log(editSale, 'klk');
 
     useEffect(() => {
-        setSale(editSale)
-    }, [editSale])
+        setSale(editSale || selectedSale)
+    }, [selectedSale, editSale])
 
-    const toggleProductSales: any = (value?: boolean) => setProductSalesActive(!productSalesActive);
+    useEffect(() => {
+        getAllSalesById()
+    }, [salesData])
+
+    const goToCreateSale: any = (value?: boolean) => {
+        setProductSalesActive(false);
+        setEditSale(null as any);
+        setUseCommission(false);
+        setSale(selectedSale);
+    }
 
     const useCommissionChange = (e: any) => {
         const {checked} = e.target;
         setUseCommission(checked);
     };
+
 
     const toggleConfirmation = () => setActiveConfirmationModal(!activeConfirmationModal);
     const salesAction: IAction[] = [
@@ -85,7 +93,6 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
             method: (sale: ISale) => () => {
                 toggleConfirmation();
                 setConfirmationFunction(() => async () => {
-                    console.log('hi');
                     await handleDeleteSale(sale._id);
                     setActiveConfirmationModal(false)
                 })
@@ -93,12 +100,29 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         },
         {
             label: 'Editar',
-            method: (item) => () => {
-
+            method: (item: ISale) => () => {
+                setEditSale(item)
+                setUseCommission(!!item.commission)
+                setProductSalesActive(false)
             }
         },
     ];
 
+    const handleDeleteSale = async (_id: string) => {
+        setActiveConfirmationModal(false);
+
+        setAddingSale(true);
+
+        const response = await deleteSale(JSON.stringify({_id}));
+        if (response.status === 204) {
+            await getSalesData();
+            toast('¡Registro Eliminado Exitosamente!', {type: "default"});
+        } else {
+            toast('¡Error al eliminar!', {type: "error"});
+        }
+
+        setAddingSale(false);
+    };
 
     const toggleModal = () => {
         setUseCommission(false);
@@ -106,25 +130,34 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         toggleAddSale();
     };
 
-    const getAllSalesById = () => {
+    const getAllSalesById = (enableProductSales?: boolean) => {
         if (salesData) {
             const newProductSales = salesData.filter((item, i) => item.productId === sale.productId);
             setProductSales([...newProductSales]);
-            setProductSalesActive(true);
+           if(enableProductSales) {
+               setProductSalesActive(true);
+           }
         }
     };
 
-    const newSale = async () => {
+    const handleSubmit = async () => {
         setAddingSale(true);
         const saleData: Partial<ISale> = {
             ...sale,
             commission: useCommission ? sale.commission : 0,
+            profit: useCommission ? (sale as any).profit - (sale as any).commission : (sale as any).price - (sale as any).cost,
         }
         const body = JSON.stringify(saleData);
+        let response: Response = {} as any;
 
-        const response = await addSales(body);
+        if(editSale) {
+            response = await updateSales(body);
 
-        if (response.status === 201) {
+        } else  {
+            response = await addSales(body);
+        }
+
+        if (response.status === 201 || response.status === 200) {
             await getSalesData();
             toast('¡Venta Exitosa!', {type: "default"});
 
@@ -140,9 +173,9 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         let {profit} = sale;
 
         const intValue = Number(value);
-        if(name === "price") {
-            profit = intValue - (sale ? sale.cost || 0 : 0) ;
-        }
+        // if(name === "price") {
+        //     profit = intValue - (sale ? sale.cost || 0 : 0) ;
+        // }
         const newSale = {
             ...sale,
             profit,
@@ -165,7 +198,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                 </ModalFooter>
             </Modal>
             <Modal isOpen={activeAddSaleModal} toggle={toggleModal}>
-                <ModalHeader toggle={toggleModal}>{sale.productName} | Nueva Venta</ModalHeader>
+                <ModalHeader toggle={toggleModal}>{sale.productName} | {editSale ? 'Editar Venta ' + editSale._id : 'Nueva Venta'}</ModalHeader>
                 <ModalBody>
                     {
                         addingSale ?
@@ -174,12 +207,14 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                             </div>
                             : null
                     }
+                    {
+                        productSalesActive || !!editSale ?
+                            <Button color="primary" className="mb-3" type="button" outline onClick={goToCreateSale}>
+                              Ir a Crear Venta
+                            </Button> : null
+                    }
                     {productSalesActive ?
-                        <>
-                            <Button color="primary" className="mb-3" type="button" outline onClick={toggleProductSales}>Crear
-                                Venta</Button>
-                            <TableComponent data={productSales} headers={salesHeader} actions={salesAction}/>
-                        </>
+                        <TableComponent data={productSales} headers={salesHeader} actions={salesAction}/>
                         :
                         <>
                             <FormGroup>
@@ -208,7 +243,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                                id="commissionId" placeholder="Comisión:" value={sale.commission}/>
                                     </FormGroup>
                             }
-                            <Button color="primary" className="mt-3" outline onClick={getAllSalesById}>Todas las
+                            <Button color="primary" className="mt-3" outline onClick={() => getAllSalesById(true)}>Todas las
                                 Ventas</Button>{' '}
                         </>
                     }
@@ -216,8 +251,8 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
 
                 </ModalBody>
                 <ModalFooter>
-                    <Button color={productSalesActive ? 'dark' : 'primary'} outline onClick={newSale}
-                            disabled={productSalesActive}>Añadir</Button>{' '}
+                    <Button color={productSalesActive ? 'dark' : 'primary'} outline onClick={handleSubmit}
+                            disabled={productSalesActive}>{editSale ? 'Actualizar' : 'Añadir'}</Button>{' '}
                     <Button color="secondary" onClick={toggleModal} outline>Cancel</Button>
                 </ModalFooter>
             </Modal>

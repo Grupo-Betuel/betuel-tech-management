@@ -16,3 +16,9 @@ export const uploadPhoto = async (file: File) => {
 
 export const gcloudPublicURL = "https://storage.googleapis.com/betuel-tech-photos/"
 export const gcloudAuthenticatedURL = "https://storage.cloud.google.com/betuel-tech-photos/"
+
+export const deletePhoto = async (filename: string) => {
+    return await fetch(`${process.env.REACT_APP_API}products/product-image/${filename}`, {
+        method: 'DELETE',
+    });
+}
