@@ -1,0 +1,9 @@
+@font-face {
+    font-family: product-font;
+    src: url('assets/fonts/product-detail-text.ttf');
+    font-weight: bold;
+}
+
+.cursor-pointer {
+    cursor: pointer;
+}

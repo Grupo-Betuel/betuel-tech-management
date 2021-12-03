@@ -1,14 +1,14 @@
-import React, {ChangeEvent} from 'react';
+import React, { ChangeEvent } from 'react';
 import "./Product.scss";
-import {IProductData} from "../../model/products";
-import {Button, CustomInput, Input, Spinner} from "reactstrap";
-import {ISale } from "../../screens/Dashboard/Dashboard";
+import { IProductData } from "../../model/products";
+import { Button, CustomInput, Input, Spinner } from "reactstrap";
+import { ISale } from "../../model/interfaces/SalesModel";
 
 export interface IProduct extends IProductData {
-    addSale: (data: ISale) => any;
     salesQuantity?: number;
     moneyGenerated?: number;
-    onSelect: (product: IProductData) => any;
+    loadSale: (product: IProductData) => any;
+    loadProductDetails: (product: IProductData) => any;
 }
 
 export interface ISaleOptions {
@@ -17,7 +17,7 @@ export interface ISaleOptions {
     inputShipping: boolean;
 }
 
-const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, moneyGenerated, onSelect, ...product}) => {
+const Product: React.FunctionComponent<IProduct> = ({salesQuantity, moneyGenerated, loadSale, loadProductDetails, ...product}) => {
 
     const {image} = product;
     const defaultSaleOptions: ISaleOptions = {enableShipping: false, commission: false, inputShipping: false};
@@ -27,8 +27,14 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
 
     const [useShipping, setUseShipping] = React.useState(false);
     const [useComission, setUseCommission] = React.useState(false);
+    const [enableProductOptions, setEnableProductOptions] = React.useState(false);
     const [shippingPrice, setShippingPrice] = React.useState();
     const [isLoading, setIsLoading] = React.useState(false);
+
+
+    const toggleProductOptions = () => {
+        setEnableProductOptions(!enableProductOptions);
+    }
 
     const toggleSaleOptions = (ev: any) => {
         const {id} = ev.target;
@@ -63,13 +69,13 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
     const newSale = async () => {
         const profit = product.price - product.cost;
         const sale: ISale = {
-            id: new Date().getTime(),
-            productId: product.id,
+            productId: product._id,
             price: product.price,
             cost: product.cost,
             profit: profit,
             productName: product.name,
-        };
+
+        } as any;
 
         if (useShipping) {
             sale.shipping = shippingPrice;
@@ -81,17 +87,21 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
         resetSaleOptions();
         setIsLoading(true);
 
-        await addSale(sale);
+        // await addSale(sale);
 
         setIsLoading(false);
     };
 
-    const onSelectProduct = () => {
-        onSelect(product);
+    const handleLoadSale = () => {
+        loadSale(product);
+    };
+
+    const handleLoadProduct = () => {
+        loadProductDetails(product);
     };
 
     return (
-        <div className="card" onClick={onSelectProduct}>
+        <div className="card">
             <div
                 className="card-content"
             >
@@ -104,53 +114,60 @@ const Product: React.FunctionComponent<IProduct> = ({addSale, salesQuantity, mon
                         }}
                     >
                     </div>
-                    <div className="add-sale-container">
-                        <b className="reset-sale" onClick={resetSaleOptions}>X</b>
+                    <div className={`add-sale-container ${enableProductOptions ? 'no-opacity' : ''}`} onClick={toggleProductOptions}>
+                        {/*<b className="reset-sale" onClick={resetSaleOptions}>X</b>*/}
                         {
-                            saleOptions.commission || saleOptions.enableShipping || saleOptions.inputShipping ? null :
-                                <Button type="button" id="enableShipping" onClick={toggleSaleOptions}>
+                            <>
+                                <Button color="success" type="button" className="mb-3" id="enableShipping" outline
+                                        onClick={handleLoadSale}>
                                     Añadir Venta
                                 </Button>
-                        }
-                        {
-                            !saleOptions.enableShipping ? null :
-                                <>
-                                    <CustomInput
-                                        type="switch"
-                                        label="¿Incluye envio?"
-                                        className="customized-switch"
-                                        onChange={shippingOnChange}/>
-                                    <Button className="mt-3" id={useShipping ? "inputShipping" : "commission"}
-                                            onClick={toggleSaleOptions}>Continuar</Button>
-                                </>
-                        }
-                        {
-                            !saleOptions.inputShipping ? null :
-                                <>
-                                    <Input placeholder="Precio de Envio" name="shipping" type="number"
-                                           className="shipping-input" value={shippingPrice}
-                                           onChange={shippingPriceOnChange}/>
-                                    <Button className="mt-3" id="commission"
-                                            onClick={toggleSaleOptions}>Continuar</Button>
-                                </>
-                        }
+                                <Button color="primary" type="button" className="mb-3" id="enableShipping" outline
+                                        onClick={handleLoadProduct}>
+                                    Editar Producto
+                                </Button>
+                            </>
 
-                        {
-                            !saleOptions.commission ? null :
-                                <>
-                                    <CustomInput
-                                        type="switch"
-                                        label="¿Incluye comisión?"
-                                        className="customized-switch"
-                                        onChange={commissionOnChange}/>
-                                    <Button className="mt-3" onClick={newSale}>Fin</Button>
-                                </>
                         }
+                        {/*{*/}
+                        {/*    !saleOptions.enableShipping ? null :*/}
+                        {/*        <>*/}
+                        {/*            <CustomInput*/}
+                        {/*                type="switch"*/}
+                        {/*                label="¿Incluye envio?"*/}
+                        {/*                className="customized-switch"*/}
+                        {/*                onChange={shippingOnChange}/>*/}
+                        {/*            <Button className="mt-3" id={useShipping ? "inputShipping" : "commission"}*/}
+                        {/*                    onClick={toggleSaleOptions}>Continuar</Button>*/}
+                        {/*        </>*/}
+                        {/*}*/}
+                        {/*{*/}
+                        {/*    !saleOptions.inputShipping ? null :*/}
+                        {/*        <>*/}
+                        {/*            <Input placeholder="Precio de Envio" name="shipping" type="number"*/}
+                        {/*                   className="shipping-input" value={shippingPrice}*/}
+                        {/*                   onChange={shippingPriceOnChange}/>*/}
+                        {/*            <Button className="mt-3" id="commission"*/}
+                        {/*                    onClick={toggleSaleOptions}>Continuar</Button>*/}
+                        {/*        </>*/}
+                        {/*}*/}
 
-                        {
-                            !isLoading ? null :
-                                    <Spinner animation="grow" variant="secondary"/>
-                        }
+                        {/*{*/}
+                        {/*    !saleOptions.commission ? null :*/}
+                        {/*        <>*/}
+                        {/*            <CustomInput*/}
+                        {/*                type="switch"*/}
+                        {/*                label="¿Incluye comisión?"*/}
+                        {/*                className="customized-switch"*/}
+                        {/*                onChange={commissionOnChange}/>*/}
+                        {/*            <Button className="mt-3" onClick={newSale}>Fin</Button>*/}
+                        {/*        </>*/}
+                        {/*}*/}
+
+                        {/*{*/}
+                        {/*    !isLoading ? null :*/}
+                        {/*            <Spinner animation="grow" variant="secondary"/>*/}
+                        {/*}*/}
                     </div>
                 </div>
 

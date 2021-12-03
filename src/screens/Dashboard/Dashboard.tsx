@@ -3,37 +3,34 @@ import {
     Col,
     Row,
     FormGroup,
-    Label,
     Input,
-    Modal,
-    ModalHeader,
-    ModalBody,
-    ModalFooter,
-    Button,
     Spinner, CustomInput
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
 import Logo from "../../assets/images/logo.png"
 import "./Dashboard.scss";
-import products, { IProductData } from "../../model/products";
-import { toast } from "react-toastify";
-import TableComponent, { IAction, IHeader } from "../../components/Table/Table";
+import { IProductData } from "../../model/products";
+import { getRecordedDates, getSales } from "../../services/sales";
+import { ISale } from "../../model/interfaces/SalesModel";
+import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
+import styled from "styled-components";
+import ProductForm from "../../components/ProductForm/ProductForm";
+import { getProducts } from "../../services/products";
 
-export interface ISale {
-    id: number;
-    productId: number;
-    price: number;
-    profit: number;
-    commission?: number;
-    shipping?: number;
-    productName: string;
-    cost: number;
-};
-
-export interface ISalesData {
-    sales: ISale[];
-}
-
+const CreateNewProductButton = styled.button`
+    position: fixed;
+    bottom: 30px;
+    right: 30px;
+    border-radius: 50%;
+    height: 70px;
+    width: 70px;
+    background-color: #fff;
+    z-index: 999;
+    padding: 0;
+        i {
+          font-size: 30px;
+        }
+`
 export type ITotals = {
     [N in Exclude<keyof ISale, 'productName'>]: number;
 }
@@ -45,148 +42,79 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [activeAddSaleModal, setActiveAddSaleModal] = React.useState(false);
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [loadingApp, setLoadingApp] = React.useState(false);
-    const [confirmationFunction, setConfirmationFunction] = React.useState<() => any>();
-    const [useCommission, setUseCommission] = React.useState(false);
-    const [addingSale, setAddingSale] = React.useState(false);
-    const [productSalesActive, setProductSalesActive] = React.useState(false);
-    const [productSales, setProductSales] = React.useState<ISale[]>([]);
-    const [product, setProduct] = React.useState<IProductData>({} as any);
-    const [salesData, setSalesData] = React.useState<ISalesData>({} as any);
+    const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
+    const [editSale, setEditSale] = React.useState<ISale>({} as any);
+    const [salesData, setSalesData] = React.useState<ISale[]>([]);
     const [salesTotals, setSalesTotals] = React.useState<ITotals>({} as any);
     const [tithe, setTithe] = React.useState(0);
     const [promotion, setPromotion] = React.useState(0);
     const [registeredDates, setRegisteredDates] = React.useState<string[]>([]);
+    const [products, setProducts] = React.useState<IProductData[]>([]);
     const [filter, setFilter] = React.useState<IProductFilters>("MostProfit");
+    const [editProduct, setEditProduct] = React.useState<Partial<IProductData>>(null as any);
     const [recordedDate, setRecordedDate] = React.useState<string>(`${months[new Date().getMonth()]}-${new Date().getFullYear()}`);
     const tithePercent = 0.10;
     const promotionPercent = 0.30;
 
+    const toggleProductForm = () => {
+        setEditProduct(null as any);
+        setProductFormIsOpen(!productFormIsOpen);
+    }
+
+
+    const loadProductDetails = (product: Partial<IProductData>) => {
+        setEditProduct(product);
+        setProductFormIsOpen(true)
+    }
+
     const selectProduct = (product: IProductData) => {
-        setProduct(product);
+        const profit = product.price - product.cost;
+
+        const sale: Partial<ISale> = {
+            profit,
+            productId: product._id,
+            price: product.price,
+            cost: product.cost,
+            productName: product.name,
+            shipping: 0,
+            commission: product.commission,
+            date: recordedDate,
+        };
+
+        setEditSale(sale as any);
         setActiveAddSaleModal(true);
     };
 
     const getSalesData = (async (date?: string) => {
         setLoadingApp(true);
-        const response = await fetch(`${process.env.REACT_APP_API}get-sales-data?date=Noviembre-2020`);
-        const salesData: ISalesData = await response.json() as any;
+        const salesData = await getSales(date || recordedDate);
         setSalesData(salesData);
         setLoadingApp(false);
-
     });
+
+    const getAllProducts = async () => {
+        setLoadingApp(true);
+        const products = await getProducts();
+        setProducts(products);
+        setLoadingApp(false);
+    }
 
     React.useEffect(() => {
         getSalesData();
         getAllRecordsDates();
+        getAllProducts();
     }, []);
 
-    const newSale = async () => {
-        const profit = product.price - product.cost;
-        const sale: ISale = {
-            id: new Date().getTime(),
-            productId: product.id,
-            price: product.price,
-            profit: profit,
-            cost: product.cost,
-            productName: product.name,
-            shipping: product.shipping || 0,
-            commission: useCommission ? product.commission : 0,
-        };
-
-        await addSale(sale);
-    };
-
-    const onChangeProduct = (ev: React.ChangeEvent<any>) => {
-        const { name, value } = ev.target;
-        const intValue = Number(value);
-        const newProduct = {
-            ...product,
-            [name]: intValue
-        };
-        setProduct(newProduct);
-    };
-
-    const addSale = async (newSale: ISale) => {
-        setAddingSale(true);
-        const sales = salesData.sales || [];
-        const body = JSON.stringify({
-            salesData: {
-                ...salesData,
-                sales: [
-                    ...sales,
-                    newSale,
-                ],
-            },
-            date: recordedDate,
-        });
-
-
-        const response = await fetch(`${process.env.REACT_APP_API}save-sales-data`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body,
-            }
-        );
-
-        if (response.status === 200) {
-            await getSalesData();
-            toast('¡Venta Exitosa!', {type: "default"});
-
-        } else {
-            toast('¡Error en la Venta!', {type: "error"});
-        }
-        setAddingSale(false);
-
-    };
-
-
     const getAllRecordsDates = async () => {
-        const response = await fetch(`${process.env.REACT_APP_API}dates-registered`);
-        const dates: string[] = await response.json() as any || [];
-
+        const dates: string[] = await getRecordedDates();
         const existActualDate = (dates as any).find((item: string) => item === recordedDate);
-        if(!existActualDate) {
+        if (!existActualDate) {
             dates.push(recordedDate);
-        };
+        }
+        ;
 
         setRegisteredDates(dates as any);
     }
-
-    const updateSales = async (sales: ISale[]) => {
-        setAddingSale(true);
-        const body = JSON.stringify({
-            salesData: {
-                ...salesData,
-                sales: [
-                    ...sales,
-                ],
-            },
-            date: recordedDate,
-        });
-
-        const response = await fetch(`${process.env.REACT_APP_API}save-sales-data`, {
-                method: 'POST',
-                headers: {
-                    'Accept': 'application/json',
-                    'Content-Type': 'application/json'
-                },
-                body,
-            }
-        );
-
-        if (response.status === 200) {
-            await getSalesData();
-            toast('¡Registro actualizado Exitosamente!', {type: "default"});
-
-        } else {
-            toast('¡Error en la Actualizacion!', {type: "error"});
-        }
-
-        setAddingSale(false);
-    };
 
     const setAllDashboardTotals = () => {
         const newTotals: ITotals = {} as any;
@@ -204,211 +132,93 @@ const Dashboard: React.FunctionComponent<any> = () => {
     };
 
     React.useEffect(() => {
-        if (salesData.sales) setAllDashboardTotals();
+        if (salesData) setAllDashboardTotals();
     }, [salesData]);
 
 
     const getTotalSumFromSalesDataKey = (key: keyof ISale) =>
-        salesData.sales.map((item: ISale) => !item[key] ? null : item[key] as any)
+        salesData.map((item: ISale) => !item[key] ? null : item[key] as any)
             .filter(item => !!item)
             .reduce((a: number, b: number) => a + b, 0);
 
-    const getProductSales = (productName: string) => !salesData.sales ? 0 :
-        salesData.sales.filter(sale => sale.productName === productName).length;
+    const getProductSales = (productId: string) => !salesData ? 0 :
+        salesData.filter(sale => sale.productId === productId).length;
 
-    const getProductMoney = (productName: string) => {
-        if (!salesData.sales) return 0;
-        const totalSold = salesData.sales.filter(sale => sale.productName === productName)
-            .map(item => item.profit).reduce((a,b) => a + b, 0);
+    const getProductMoney = (productId: string) => {
+        if (!salesData) return 0;
+        const totalSold = salesData.filter(sale => sale.productId === productId)
+            .map(item => item.profit).reduce((a, b) => a + b, 0);
 
         return totalSold;
     };
 
     const toggleAddSale = () => {
         setActiveAddSaleModal(!activeAddSaleModal);
-        setProductSalesActive(false);
-    };
-    const useCommissionChange = (e: any) => {
-        const {checked} = e.target;
-        setUseCommission(checked);
     };
 
-
-    const getAllSalesById = () => {
-        if(salesData.sales) {
-            const newProductSales = salesData.sales.filter((item, i) => item.productId === product.id);
-            setProductSales([...newProductSales]);
-            setProductSalesActive(true);
-        }
-    };
-
-    const salesHeader: IHeader[] = [
-        {
-            label: 'Precio',
-            property: 'price',
-        },
-        {
-            label: 'Costo',
-            property: 'cost',
-        },
-        {
-            label: 'Ganancia',
-            property: 'profit',
-        },
-        {
-            label: 'Costo de Envio',
-            property: 'shipping',
-        },
-        {
-            label: 'Comisión',
-            property: 'commission',
-        },
-    ];
-
-
-    const salesAction: IAction[] = [
-        {
-            label: 'Eliminar',
-            method: (sale: ISale) => () => {
-                toggleConfirmation();
-                setConfirmationFunction(() => deleteSale(sale.id))
-            },
-        },
-        {
-            label: 'Editar',
-            method: () => () => console.log('editando....'),
-        },
-    ];
-
-    const toggleProductSales: any = (value?: boolean) => setProductSalesActive(!productSalesActive);
-
-    const deleteSale = (saleId: number) => async () => {
-        const sales = salesData.sales.filter( (item: ISale, i: number) => item.id !== saleId);
-        setActiveConfirmationModal(false);
-
-        await updateSales(sales);
-        const productSales = sales.filter( item => item.productId === product.id);
-        setProductSales([...productSales]);
-    };
 
     const toggleConfirmation = () => setActiveConfirmationModal(!activeConfirmationModal);
 
     const mostProfitProducts = (sales: ISale[]): IProductData[] => {
-        return products.sort((a: IProductData,b: IProductData) => {
-            const aProfit = sales.map(sale => sale.productId === a.id ? sale.profit : undefined)
-                .filter(item => !!item).reduce((a,b) => Number(a) + Number(b), 0);
+        return products.sort((a: IProductData, b: IProductData) => {
+            const aProfit = sales.map(sale => sale.productId === a._id ? sale.profit : undefined)
+                .filter(item => !!item).reduce((a, b) => Number(a) + Number(b), 0);
 
-            const bProfit = sales.map(sale => sale.productId === b.id ? sale.profit : undefined)
-                .filter(item => !!item).reduce((a,b) => Number(a) + Number(b), 0);
+            const bProfit = sales.map(sale => sale.productId === b._id ? sale.profit : undefined)
+                .filter(item => !!item).reduce((a, b) => Number(a) + Number(b), 0);
             return Number(bProfit) - Number(aProfit);
         });
     }
 
     const mostSalesProducts = (sales: ISale[]): IProductData[] => {
-        return products.sort((a: IProductData,b: IProductData) => {
-            const aSales = sales.filter(sale => sale.productId === a.id).length;
-            const bSales = sales.filter(sale => sale.productId === b.id).length;
+        return products.sort((a: IProductData, b: IProductData) => {
+            const aSales = sales.filter(sale => sale.productId === a._id).length;
+            const bSales = sales.filter(sale => sale.productId === b._id).length;
 
             return Number(bSales) - Number(aSales);
         });
     }
 
     const filterChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { checked }  = e.target;
+        const {checked} = e.target;
         const filter: IProductFilters = checked ? 'MostSales' : 'MostProfit';
         setFilter(filter);
     };
 
     switch (filter) {
         case "MostProfit":
-            mostProfitProducts(salesData.sales || []);
+            mostProfitProducts(salesData || []);
             break;
         case "MostSales":
-            mostSalesProducts(salesData.sales || []);
+            mostSalesProducts(salesData || []);
             break;
         default:
             break;
     }
 
     const onChangeDateRegistered = async (ev: React.ChangeEvent<HTMLInputElement>) => {
-        const { value } = ev.target;
+        const {value} = ev.target;
         setRecordedDate(value);
         getSalesData(value);
-
     }
 
     return (
         <>
             {
                 !loadingApp ? null :
-                    <div className="loading-sale-container">
-                        <Spinner animation="grow" variant="secondary"/>
-                    </div>
+                    <>
+                        <div className="loading-sale-container">
+                            <Spinner animation="grow" variant="secondary"/>
+                        </div>
+                    </>
             }
-            <Modal isOpen={activeConfirmationModal} toggle={toggleConfirmation}>
-                <ModalHeader toggle={toggleConfirmation}>Confirmación</ModalHeader>
-                <ModalBody>
-                    ¿Estas Seguro que deseas realizar esta acción?
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="primary" onClick={confirmationFunction}>Confirmar</Button>{' '}
-                    <Button color="secondary" onClick={toggleConfirmation}>Cancel</Button>
-                </ModalFooter>
-            </Modal>
-            <Modal isOpen={activeAddSaleModal} toggle={toggleAddSale}>
-                <ModalHeader toggle={toggleAddSale}>{product.name} | Nueva Venta</ModalHeader>
-                <ModalBody>
-                    {
-                        addingSale ?
-                            <div className="loading-sale-container">
-                                <Spinner animation="grow" variant="secondary"/>
-                            </div>
-                            : null
-                    }
-                    {productSalesActive ?
-                        <>
-                            <Button color="primary" className="mb-3" type="button" onClick={toggleProductSales} >Crear Venta</Button>
-                        <TableComponent data={productSales} headers={salesHeader} actions={salesAction} />
-                        </>
-                        :
-                        <>
-                            <FormGroup>
-                                <Label for="priceId">Precio:</Label>
-                                <Input onChange={onChangeProduct} type="number" name="price" id="priceId"
-                                       placeholder="Precio:" value={product.price}/>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label for="shippingId">Envio:</Label>
-                                <Input onChange={onChangeProduct} type="number" name="shipping" id="shippingId"
-                                       placeholder="Envio:" value={product.shipping}/>
-                            </FormGroup>
-                            <>
-                                <CustomInput
-                                    type="switch"
-                                    label="¿Incluye Comisión?"
-                                    checked={useCommission}
-                                    className="customized-switch"
-                                    onChange={useCommissionChange}/>
-                            </>
-                            {
-                                !useCommission ? null :
-                                    <FormGroup>
-                                        <Label for="commissionId">Comisión:</Label>
-                                        <Input onChange={onChangeProduct} type="number" name="commission"
-                                               id="commissionId" placeholder="Comisión:" value={product.commission}/>
-                                    </FormGroup>
-                            }
-                            <Button color="primary" className="mt-3" onClick={getAllSalesById}>Todas las Ventas</Button>{' '}
-                        </>
-                    }
-
-
-                </ModalBody>
-                <ModalFooter>
-                    <Button color={productSalesActive ? 'dark' : 'primary' } onClick={newSale} disabled={productSalesActive}>Añadir</Button>{' '}
-                    <Button color="secondary" onClick={toggleAddSale} >Cancel</Button>
-                </ModalFooter>
-            </Modal>
+            <CreateSaleModal
+                activeAddSaleModal={activeAddSaleModal}
+                toggleAddSale={toggleAddSale}
+                selectedSale={editSale}
+                salesData={salesData}
+                getSalesData={getSalesData}
+            />
             <div
                 className="d-flex align-items-center flex-column"
             >
@@ -417,30 +227,31 @@ const Dashboard: React.FunctionComponent<any> = () => {
                 </Col>
                 <Col sm={12} className="d-flex justify-content-center mb-2">
                     <FormGroup>
-                        <Input type="select" name="select" className="select-date" defaultValue={recordedDate} onChange={onChangeDateRegistered}>
-                            { registeredDates ?
+                        <Input type="select" name="select" className="select-date" defaultValue={recordedDate}
+                               onChange={onChangeDateRegistered}>
+                            {registeredDates ?
                                 registeredDates
-                                    .map( (item, i) => {
-                                        const split = item.split("-");
-                                        const selected = item===recordedDate;
-                                        return <option selected={selected} key={i} value={item}>{split[0]}  {split[1]}</option>}
-                                        )
+                                    .map((item, i) => {
+                                            const split = item.split("-");
+                                            const selected = item === recordedDate;
+                                            return <option selected={selected} key={i}
+                                                           value={item}>{split[0]} {split[1]}</option>
+                                        }
+                                    )
                                 :
                                 <option> {months[new Date().getMonth()]} {new Date().getFullYear()}</option>
                             }
 
-
                         </Input>
                     </FormGroup>
-
                 </Col>
                 <Col sm={12} className="d-flex justify-content-center mb-4 align-items-center">
                     <label className="mr-2 mb-0">Más Ingresos</label>
-                <CustomInput
-                    type="switch"
-                    label="Más Vendidos"
-                    className="customize-switch"
-                    onChange={filterChange}
+                    <CustomInput
+                        type="switch"
+                        label="Más Vendidos"
+                        className="customize-switch"
+                        onChange={filterChange}
                     />
 
                 </Col>
@@ -484,47 +295,26 @@ const Dashboard: React.FunctionComponent<any> = () => {
                         products.map((item, i) =>
                             <Product
                                 {...item}
-                                onSelect={selectProduct}
-                                salesQuantity={getProductSales(item.name)}
-                                moneyGenerated={getProductMoney(item.name) as number}
-                                addSale={addSale}
+                                loadSale={selectProduct}
+                                loadProductDetails={loadProductDetails}
+                                salesQuantity={getProductSales(item._id)}
+                                moneyGenerated={getProductMoney(item._id) as number}
                                 key={i}
                             />
                         )}
                 </Col>
             </div>
+            <CreateNewProductButton className="btn btn-outline-danger" onClick={toggleProductForm}>
+                <i className="bi-plus"/>
+            </CreateNewProductButton>
+
+            <ProductForm
+                loadProducts={getAllProducts}
+                isOpen={productFormIsOpen}
+                toggle={toggleProductForm}
+                editProduct={editProduct}/>
         </>
     )
 };
 
 export default Dashboard;
-
-
-// {/*<Col lg={10} md={12}>*/}
-// {/*    <Row className="d-flex justify-content-center">*/}
-// {/*        <Col*/}
-// {/*            {...inputsSizes}*/}
-// {/*        >*/}
-// {/*            <FormGroup>*/}
-// {/*                <Label for="priceInput">Precio</Label>*/}
-// {/*                <Input type="number" name="price" id="priceInput"/>*/}
-// {/*            </FormGroup>*/}
-// {/*        </Col>*/}
-// {/*        <Col*/}
-// {/*            {...inputsSizes}*/}
-// {/*        >*/}
-// {/*            <FormGroup>*/}
-// {/*                <Label for="profitInput">Beneficio</Label>*/}
-// {/*                <Input type="number" name="profit" id="profitInput"/>*/}
-// {/*            </FormGroup>*/}
-// {/*        </Col>*/}
-// {/*        <Col*/}
-// {/*            {...inputsSizes}*/}
-// {/*        >*/}
-// {/*            <FormGroup>*/}
-// {/*                <Label for="shippingInput">Precio de Envio</Label>*/}
-// {/*                <Input type="number" name="shipping" id="shippingInput"/>*/}
-// {/*            </FormGroup>*/}
-// {/*        </Col>*/}
-// {/*    </Row>*/}
-// {/*</Col>*/}

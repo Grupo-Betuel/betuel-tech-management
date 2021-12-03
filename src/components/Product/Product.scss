@@ -66,6 +66,19 @@
   height: 100%;
   opacity: 0;
   top: 0;
+  background-color: rgba(255,255,255, .9);
+  transition: all .3s ease;
+
+  > * {
+    visibility: hidden;
+  }
+}
+
+.no-opacity {
+  opacity: 1;
+  > * {
+    visibility: visible;
+  }
 }
 
 //.card-image-container:hover {
