@@ -16,14 +16,14 @@ export const updateProducts = async (body: string, filenameToDelete?: string, pr
         if(filenameToDelete) {
             const deletedResponse = await deletePhoto(filenameToDelete);
             if (deletedResponse.status !== 204) {
-                throw deletedResponse;
+                console.error(deletedResponse);
             }
         }
 
         if(productImageToDelete) {
             const deletedProductImageResponse = await deletePhoto(productImageToDelete);
             if (deletedProductImageResponse.status !== 204) {
-                throw deletedProductImageResponse;
+                console.error(deletedProductImageResponse);
             }
         }
         return await fetch(`${process.env.REACT_APP_API}products`, {

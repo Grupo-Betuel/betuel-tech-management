@@ -9,4 +9,5 @@ export interface IProductData {
   flyerOptions: string;
   GodWord: string;
   productImage: string;
+  description: string;
 }
