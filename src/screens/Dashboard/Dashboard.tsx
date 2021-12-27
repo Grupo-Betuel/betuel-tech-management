@@ -16,20 +16,23 @@ import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
 import ProductForm from "../../components/ProductForm/ProductForm";
 import { getProducts } from "../../services/products";
+import { publishInFacebookMarketplace } from "../../services/promotions";
+import { IProduct } from "../../components/Product/Product";
 
 const CreateNewProductButton = styled.button`
-    position: fixed;
-    bottom: 30px;
-    right: 30px;
-    border-radius: 50%;
-    height: 70px;
-    width: 70px;
-    background-color: #fff;
-    z-index: 999;
-    padding: 0;
-        i {
-          font-size: 30px;
-        }
+  position: fixed;
+  bottom: 30px;
+  right: 30px;
+  border-radius: 50%;
+  height: 70px;
+  width: 70px;
+  background-color: #fff;
+  z-index: 999;
+  padding: 0;
+
+  i {
+    font-size: 30px;
+  }
 `
 export type ITotals = {
     [N in Exclude<keyof ISale, 'productName'>]: number;
@@ -43,6 +46,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [loadingApp, setLoadingApp] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
+    const [promotionLoading, setPromotionLoading] = React.useState(false);
     const [editSale, setEditSale] = React.useState<ISale>({} as any);
     const [salesData, setSalesData] = React.useState<ISale[]>([]);
     const [salesTotals, setSalesTotals] = React.useState<ITotals>({} as any);
@@ -85,12 +89,12 @@ const Dashboard: React.FunctionComponent<any> = () => {
         setActiveAddSaleModal(true);
     };
 
-    const getSalesData = (async (date?: string) => {
+    const getSalesData =async (date?: string) => {
         setLoadingApp(true);
         const salesData = await getSales(date || recordedDate);
         setSalesData(salesData);
         setLoadingApp(false);
-    });
+    };
 
     const getAllProducts = async () => {
         setLoadingApp(true);
@@ -202,6 +206,21 @@ const Dashboard: React.FunctionComponent<any> = () => {
         getSalesData(value);
     }
 
+    const publishInFacebookM = async () => {
+        try {
+            setPromotionLoading(true)
+            const response: any = await publishInFacebookMarketplace(products as IProduct[]);
+            setPromotionLoading(false)
+            if (!response.success) {
+                console.error('error', response);
+            }
+        } catch (err) {
+            console.error('promotion error: ', err);
+            setPromotionLoading(false)
+        }
+        
+
+    }
     return (
         <>
             {
@@ -245,16 +264,31 @@ const Dashboard: React.FunctionComponent<any> = () => {
                         </Input>
                     </FormGroup>
                 </Col>
-                <Col sm={12} className="d-flex justify-content-center mb-4 align-items-center">
-                    <label className="mr-2 mb-0">Más Ingresos</label>
-                    <CustomInput
-                        type="switch"
-                        label="Más Vendidos"
-                        className="customize-switch"
-                        onChange={filterChange}
-                    />
+                <div className="d-flex justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
+                    <div />
+                    <div className="d-flex align-items-center">
+                        <label className="mr-2 mb-0">Más Ingresos</label>
+                        <CustomInput
+                            type="switch"
+                            label="Más Vendidos"
+                            className="customize-switch"
+                            onChange={filterChange}
+                        />
+                    </div>
+                    <div className="d-flex align-items-center">
+                        <i data-toggle="tooltip"
+                           title="Publicar en Facebook Marketplace"
+                           className="mr-3 bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
+                           onClick={!promotionLoading ? publishInFacebookM : undefined}
+                        />
+                        {
+                            promotionLoading ?
+                                <div>
+                                    <Spinner animation="grow" variant="secondary" size="sm"/>
+                                </div> : null}
+                    </div>
 
-                </Col>
+                </div>
                 <Col lg={10} md={10} sm={12} className="d-flex justify-content-center">
                     <Row className="justify-content-center label-grid col-lg-10">
                         <MoneyStatisticLabel

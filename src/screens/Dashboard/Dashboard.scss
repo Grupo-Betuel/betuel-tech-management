@@ -61,6 +61,19 @@
 th {
   white-space: nowrap;
 }
+
+.promotion-icon {
+  font-size: 24px;
+
+  &:hover {
+    filter: brightness(50%);
+  }
+}
+
+.facebook-icon {
+  filter: brightness(70%);
+
+}
 @media screen and (max-width: 1050px) {
 
   .cards {
