@@ -20,6 +20,7 @@ import { toPng } from 'html-to-image';
 import { dataURItoBlob } from "../../utils/blob";
 import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
 import { addProduct, updateProducts } from "../../services/products";
+import { getWhatsappMessageURL } from "../../services/promotions";
 
 const draggableWidth = 350;
 const draggableHeight = 350;
@@ -374,6 +375,11 @@ const ProductForm: React.FC<IProductFormProps> = (
         setProductImageChanged(false);
         toggle();
     }
+
+    const sendWhatsappMessage = () => {
+        window.open(getWhatsappMessageURL(`Estoy interesado en este producto "${product.name}". ¿Aún está disponible?  \n \n ${product.image}`), '_blank');
+    }
+
     return (
 
         <Modal isOpen={isOpen} toggle={toggleModal}>
@@ -433,8 +439,16 @@ const ProductForm: React.FC<IProductFormProps> = (
                 </ProductImageEditor>
 
                 <ModalBody>
-                    <Button color="primary" className="mb-3" outline onClick={() => saveProductPhoto(true)}>Descargar
+                    <div className="d-flex justify-content-between">
+                        <Button color="primary" className="mb-3" outline onClick={() => saveProductPhoto(true)}>Descargar
                         Imagen</Button>
+                        <Button color="success" className="mb-3 d-flex align-items-center" outline onClick={sendWhatsappMessage}>
+                            <span>
+                                Pedir por Whatsapp
+                            </span>
+                            <i className="bi bi-whatsapp" />
+                        </Button>
+                    </div>
                     <FormGroup>
                         <Label for="name">Nombre:</Label>
                         <div className="d-flex align-items-center">
