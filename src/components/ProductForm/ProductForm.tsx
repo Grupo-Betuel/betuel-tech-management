@@ -20,7 +20,9 @@ import { toPng } from 'html-to-image';
 import { dataURItoBlob } from "../../utils/blob";
 import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
 import { addProduct, updateProducts } from "../../services/products";
-import { getWhatsappMessageURL } from "../../services/promotions";
+import { ECommerceTypes, getWhatsappMessageURL } from "../../services/promotions";
+import CorotosFavicon from "../../assets/images/corotos-favicon.png";
+import FleaFavicon from "../../assets/images/flea-favicon.png";
 
 const draggableWidth = 350;
 const draggableHeight = 350;
@@ -34,7 +36,9 @@ export interface ICalculatedPrice {
 export interface IProductFormProps {
     toggle: () => any;
     loadProducts: () => any;
+    handlePromoteProduct: (ecommerceType: ECommerceTypes, data: Partial<IProductData>[]) => () => any;
     isOpen?: boolean;
+    promotionLoading?: boolean;
     editProduct?: Partial<IProductData>;
 }
 
@@ -47,40 +51,40 @@ export interface IProductImageProperties {
 }
 
 const ProductNameSpan: any = styled.span`
-   position: absolute;
-   bottom: 15px;
-   font-size: ${(props: any) => props.fontSize || nameInitialFontSize}px;
-   z-index: 999;
-   transform: translate(15px, 0px);
-   max-width: 206px;
-   line-height:  ${(props: any) => props.fontSize || nameInitialFontSize}px;
+  position: absolute;
+  bottom: 15px;
+  font-size: ${(props: any) => props.fontSize || nameInitialFontSize}px;
+  z-index: 999;
+  transform: translate(15px, 0px);
+  max-width: 206px;
+  line-height: ${(props: any) => props.fontSize || nameInitialFontSize}px;
 `;
 
 const ChangePhotoLabel: any = styled.label`
-   position: absolute;
-   right: -35px;
-   color: #ababab;
-   cursor: pointer;
-   font-size: 35px;
+  position: absolute;
+  right: -35px;
+  color: #ababab;
+  cursor: pointer;
+  font-size: 35px;
 `;
 const ProductPriceSpan = styled.span`
- position: absolute;
- bottom: 30px;
- font-size: ${(props: any) => props.fontSize || 85}px;
- line-height:  ${(props: any) => props.fontSize || 85}px;
- z-index: 999; 
- right: 15px;
-  
+  position: absolute;
+  bottom: 30px;
+  font-size: ${(props: any) => props.fontSize || 85}px;
+  line-height: ${(props: any) => props.fontSize || 85}px;
+  z-index: 999;
+  right: 15px;
+
 `;
 
 const GodWordSpan = styled.span`
- position: absolute;
- bottom: 15px;
- right: 15px;
- font-size: ${(props: any) => props.fontSize || 25}px;
- z-index: 999;
- color: #c3c3c3;
- 
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  font-size: ${(props: any) => props.fontSize || 25}px;
+  z-index: 999;
+  color: #c3c3c3;
+
 `;
 
 const ProductImageContainer = styled.div`
@@ -88,10 +92,12 @@ const ProductImageContainer = styled.div`
   z-index: 999;
   width: 100%;
   height: 100%;
+
   .rnd-container {
     input[type="file"] {
       z-index: -1;
     }
+
     a:focus > img {
       border: 3px dashed #ababab;
     }
@@ -101,10 +107,11 @@ const ProductImageContainer = styled.div`
 const ProductImageEditor = styled.div`
   height: 500px;
   position: relative;
- .product-background {
+
+  .product-background {
     width: 100%;
     position: absolute;
- }
+  }
 `
 
 const ProductForm: React.FC<IProductFormProps> = (
@@ -113,6 +120,8 @@ const ProductForm: React.FC<IProductFormProps> = (
         toggle,
         loadProducts,
         editProduct,
+        handlePromoteProduct,
+        promotionLoading,
     }) => {
     const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
     const [useCommission, setUseCommission] = React.useState(false);
@@ -124,6 +133,7 @@ const ProductForm: React.FC<IProductFormProps> = (
     const [productPhoto, setProductPhoto] = React.useState(logo);
     const [productImageFile, setProductImageFile] = React.useState<File | any>();
     const [productImageChanged, setProductImageChanged] = React.useState(false);
+
     const [flyerOptions, setFlyerOptions] = React.useState<IProductImageProperties>({
         width: draggableWidth,
         height: draggableHeight,
@@ -268,7 +278,7 @@ const ProductForm: React.FC<IProductFormProps> = (
         let pricePiece: any = dividedPrice[1] || dividedPrice[0];
         // when the number has an cero in front
         let cero = '';
-        if(pricePiece.charAt(0) === '0') {
+        if (pricePiece.charAt(0) === '0') {
             cero = '0';
         }
         const lastTwo = Number(pricePiece.substring(pricePiece.length - 2));
@@ -439,15 +449,46 @@ const ProductForm: React.FC<IProductFormProps> = (
                 </ProductImageEditor>
 
                 <ModalBody>
+                    {
+                        editProduct ?
+                            <div className="d-flex align-items-center justify-content-center my-3">
+                                <i data-toggle="tooltip"
+                                   title={`Publicar ${product.name} en Facebook Marketplace`}
+                                   className="mr-3 bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
+                                   onClick={!promotionLoading ? handlePromoteProduct('facebook', [product]) : undefined}
+                                />
+                                <img
+                                    src={CorotosFavicon}
+                                    data-toggle="tooltip"
+                                    title={`Publicar ${product.name} en Corotos`}
+                                    className="mr-3 text-info cursor-pointer promotion-icon img-promotion-icon"
+                                    onClick={!promotionLoading ? handlePromoteProduct('corotos', [product]) : undefined}
+                                />
+                                <img
+                                    src={FleaFavicon}
+                                    data-toggle="tooltip"
+                                    title={`Publicar ${product.name} en La Pulga Virtual`}
+                                    className="mr-3 text-info cursor-pointer promotion-icon img-promotion-icon"
+                                    onClick={!promotionLoading ? handlePromoteProduct('flea', [product]) : undefined}
+                                />
+                                {
+                                    promotionLoading ?
+                                        <div>
+                                            <Spinner animation="grow" variant="secondary" size="sm"/>
+                                        </div> : null}
+                            </div> : null}
                     <div className="d-flex justify-content-between">
                         <Button color="primary" className="mb-3" outline onClick={() => saveProductPhoto(true)}>Descargar
-                        Imagen</Button>
-                        <Button color="success" className="mb-3 d-flex align-items-center" outline onClick={sendWhatsappMessage}>
-                            <span>
-                                Pedir por Whatsapp
-                            </span>
-                            <i className="bi bi-whatsapp" />
-                        </Button>
+                            Imagen</Button>
+                        {
+                            editProduct ?
+                                <Button color="success" className="mb-3 d-flex align-items-center" outline
+                                        onClick={sendWhatsappMessage}>
+                                        <span className="mr-2">
+                                            Pedir por Whatsapp
+                                        </span>
+                                    <i className="bi bi-whatsapp"/>
+                                </Button> : null}
                     </div>
                     <FormGroup>
                         <Label for="name">Nombre:</Label>

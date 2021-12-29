@@ -8,6 +8,8 @@ import {
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
 import Logo from "../../assets/images/logo.png"
+import CorotosFavicon from "../../assets/images/corotos-favicon.png"
+import FleaFavicon from "../../assets/images/flea-favicon.png"
 import "./Dashboard.scss";
 import { IProductData } from "../../model/products";
 import { getRecordedDates, getSales } from "../../services/sales";
@@ -16,8 +18,9 @@ import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
 import ProductForm from "../../components/ProductForm/ProductForm";
 import { getProducts } from "../../services/products";
-import { publishInFacebookMarketplace } from "../../services/promotions";
+import { ecommerceNames, ECommerceTypes, promoteProduct } from "../../services/promotions";
 import { IProduct } from "../../components/Product/Product";
+import { toast } from "react-toastify";
 
 const CreateNewProductButton = styled.button`
   position: fixed;
@@ -47,6 +50,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [loadingApp, setLoadingApp] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
     const [promotionLoading, setPromotionLoading] = React.useState(false);
+    const [enableSelection, setEnableSelection] = React.useState(false);
     const [editSale, setEditSale] = React.useState<ISale>({} as any);
     const [salesData, setSalesData] = React.useState<ISale[]>([]);
     const [salesTotals, setSalesTotals] = React.useState<ITotals>({} as any);
@@ -89,7 +93,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
         setActiveAddSaleModal(true);
     };
 
-    const getSalesData =async (date?: string) => {
+    const getSalesData = async (date?: string) => {
         setLoadingApp(true);
         const salesData = await getSales(date || recordedDate);
         setSalesData(salesData);
@@ -189,6 +193,11 @@ const Dashboard: React.FunctionComponent<any> = () => {
         setFilter(filter);
     };
 
+    const toggleEnableSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const {checked} = e.target;
+        setEnableSelection(checked);
+    };
+
     switch (filter) {
         case "MostProfit":
             mostProfitProducts(salesData || []);
@@ -206,19 +215,21 @@ const Dashboard: React.FunctionComponent<any> = () => {
         getSalesData(value);
     }
 
-    const publishInFacebookM = async () => {
+    const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = products) => async () => {
         try {
             setPromotionLoading(true)
-            const response: any = await publishInFacebookMarketplace(products as IProduct[]);
+            const response: any = await (await promoteProduct(data as IProduct[], ecommerceType)).json();
             setPromotionLoading(false)
             if (!response.success) {
-                console.error('error', response);
+                toast('Error al Promocionar: ' + response.error, { type: "error" });
+            } else {
+                toast(`¡Excelente! ¡Ya se publicaron los productos en ${ecommerceNames[ecommerceType]}!`, { type: "success" });
             }
         } catch (err) {
             console.error('promotion error: ', err);
             setPromotionLoading(false)
         }
-        
+
 
     }
     return (
@@ -264,8 +275,16 @@ const Dashboard: React.FunctionComponent<any> = () => {
                         </Input>
                     </FormGroup>
                 </Col>
-                <div className="d-flex justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
-                    <div />
+                <div
+                    className="d-flex justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
+                    <div>
+                        <CustomInput
+                            type="switch"
+                            label="Habilitar Selection"
+                            className="customize-switch enable-selection-switch"
+                            onChange={toggleEnableSelection}
+                        />
+                    </div>
                     <div className="d-flex align-items-center">
                         <label className="mr-2 mb-0">Más Ingresos</label>
                         <CustomInput
@@ -277,10 +296,25 @@ const Dashboard: React.FunctionComponent<any> = () => {
                     </div>
                     <div className="d-flex align-items-center">
                         <i data-toggle="tooltip"
-                           title="Publicar en Facebook Marketplace"
+                           title="Publicar Todos en Facebook Marketplace"
                            className="mr-3 bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
-                           onClick={!promotionLoading ? publishInFacebookM : undefined}
+                           onClick={!promotionLoading ? handlePromoteProduct('facebook') : undefined}
                         />
+                        <img
+                            src={CorotosFavicon}
+                            data-toggle="tooltip"
+                            title="Publicar Todos en Corotos"
+                            className="mr-3 text-info cursor-pointer promotion-icon img-promotion-icon"
+                            onClick={!promotionLoading ? handlePromoteProduct('corotos') : undefined}
+                        />
+                        <img
+                            src={FleaFavicon}
+                            data-toggle="tooltip"
+                            title="Publicar Todos en La Pulga"
+                            className="mr-3 text-info cursor-pointer promotion-icon img-promotion-icon"
+                            onClick={!promotionLoading ? handlePromoteProduct('flea') : undefined}
+                        />
+
                         {
                             promotionLoading ?
                                 <div>
@@ -324,11 +358,12 @@ const Dashboard: React.FunctionComponent<any> = () => {
 
                     </Row>
                 </Col>
-                <Col lg={8} md={10} sm={12} className="cards mt-3">
+                <Col lg={8} md={10} sm={12} className={`cards mt-3 ${enableSelection ? 'cards-shrink' : '' }`}>
                     {
                         products.map((item, i) =>
                             <Product
                                 {...item}
+                                // enableSelection={enableSelection}
                                 loadSale={selectProduct}
                                 loadProductDetails={loadProductDetails}
                                 salesQuantity={getProductSales(item._id)}
@@ -343,6 +378,8 @@ const Dashboard: React.FunctionComponent<any> = () => {
             </CreateNewProductButton>
 
             <ProductForm
+                handlePromoteProduct={handlePromoteProduct}
+                promotionLoading={promotionLoading}
                 loadProducts={getAllProducts}
                 isOpen={productFormIsOpen}
                 toggle={toggleProductForm}

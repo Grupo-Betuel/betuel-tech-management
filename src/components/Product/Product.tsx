@@ -101,7 +101,7 @@ const Product: React.FunctionComponent<IProduct> = ({salesQuantity, moneyGenerat
     };
 
     return (
-        <div className="card">
+        <div className="card selected">
             <div
                 className="card-content"
             >
