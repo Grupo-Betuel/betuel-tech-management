@@ -141,7 +141,7 @@ const Product: React.FunctionComponent<IProduct> = ({
                                 </Button>
                                 <Button color="primary" type="button" className="mb-3" id="enableShipping" outline
                                         onClick={handleLoadProduct}>
-                                    Editar Producto
+                                    Ver Producto
                                 </Button>
                             </>
 

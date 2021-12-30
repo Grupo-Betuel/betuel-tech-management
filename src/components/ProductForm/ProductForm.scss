@@ -31,3 +31,8 @@
 /* Don't show shadows when selecting text */
 ::-moz-selection { background: #5af; color: #fff; text-shadow: none; }
 ::selection { background: #5af; color: #fff; text-shadow: none; }
+
+.product-image-editor {
+  -webkit-filter: drop-shadow(5px 10px 6px #7a7a7a);
+  filter: drop-shadow(5px 10px 6px #7a7a7a);
+}

@@ -37,6 +37,19 @@ const CreateNewProductButton = styled.button`
     font-size: 30px;
   }
 `
+
+export const PromotionOption: any = styled.div`
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  margin-right: 15px;
+  .loading-spinner {
+    display: ${(props: any) => props.loading ? 'block' : 'none'};
+    position: absolute;
+    height: 30px;
+    width: 30px;
+  }
+`
 export type ITotals = {
     [N in Exclude<keyof ISale, 'productName'>]: number;
 }
@@ -49,7 +62,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [loadingApp, setLoadingApp] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
-    const [promotionLoading, setPromotionLoading] = React.useState(false);
+    const [promotionLoading, setPromotionLoading] = React.useState<{[N in ECommerceTypes]?: boolean}>({});
     const [enableSelection, setEnableSelection] = React.useState(false);
     const [editSale, setEditSale] = React.useState<ISale>({} as any);
     const [salesData, setSalesData] = React.useState<ISale[]>([]);
@@ -233,19 +246,36 @@ const Dashboard: React.FunctionComponent<any> = () => {
         getSalesData(value);
     }
 
-    const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = products) => async () => {
+    const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => async () => {
+        // do nothing while loading or selection mode isn't active
+        if((data.length > 1 && !enableSelection) || promotionLoading[ecommerceType]) {
+            return;
+        }
         try {
-            setPromotionLoading(true)
+            if(data.length <= 0) {
+                toast('¡Hey! Tienes que seleccionar almenos un producto para promocionar.', { type: 'error' });
+                return;
+            }
+            setPromotionLoading((data) => ({
+                ...data,
+                [ecommerceType]: true
+            }))
             const response: any = await (await promoteProduct(data as IProduct[], ecommerceType)).json();
-            setPromotionLoading(false)
+            setPromotionLoading((data) => ({
+                ...data,
+                [ecommerceType]: false
+            }))
             if (!response.success) {
-                toast('Error al Promocionar: ' + response.error, { type: "error" });
+                toast(`Error al Promocionar en ${ecommerceNames[ecommerceType]}: ${response.error}`, { type: "error" });
             } else {
                 toast(`¡Excelente! ¡Ya se publicaron los productos en ${ecommerceNames[ecommerceType]}!`, { type: "success" });
             }
         } catch (err) {
             console.error('promotion error: ', err);
-            setPromotionLoading(false)
+            setPromotionLoading((data) => ({
+                ...data,
+                [ecommerceType]: false
+            }))
         }
 
 
@@ -314,32 +344,35 @@ const Dashboard: React.FunctionComponent<any> = () => {
                             onChange={filterChange}
                         />
                     </div>
-                    <div className="d-flex align-items-center">
-                        <i data-toggle="tooltip"
-                           title="Publicar Todos en Facebook Marketplace"
-                           className="mr-3 bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
-                           onClick={!promotionLoading ? handlePromoteProduct('facebook') : undefined}
-                        />
-                        <img
-                            src={CorotosFavicon}
-                            data-toggle="tooltip"
-                            title="Publicar Todos en Corotos"
-                            className="mr-3 text-info cursor-pointer promotion-icon img-promotion-icon"
-                            onClick={!promotionLoading ? handlePromoteProduct('corotos') : undefined}
-                        />
-                        <img
-                            src={FleaFavicon}
-                            data-toggle="tooltip"
-                            title="Publicar Todos en La Pulga"
-                            className="mr-3 text-info cursor-pointer promotion-icon img-promotion-icon"
-                            onClick={!promotionLoading ? handlePromoteProduct('flea') : undefined}
-                        />
-
-                        {
-                            promotionLoading ?
-                                <div>
-                                    <Spinner animation="grow" variant="secondary" size="sm"/>
-                                </div> : null}
+                    <div className={`d-flex align-items-center ${!enableSelection ? 'disable-promotions' : ''}`}>
+                        <PromotionOption loading={promotionLoading.facebook}>
+                            <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                            <i data-toggle="tooltip"
+                               title="Publicar Seleccionados en Facebook Marketplace"
+                               className="bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
+                               onClick={handlePromoteProduct('facebook')}
+                            />
+                        </PromotionOption>
+                        <PromotionOption loading={promotionLoading.flea}>
+                            <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                            <img
+                                src={FleaFavicon}
+                                data-toggle="tooltip"
+                                title="Publicar Seleccionados en La Pulga"
+                                className="text-info cursor-pointer promotion-icon img-promotion-icon"
+                                onClick={handlePromoteProduct('flea')}
+                            />
+                        </PromotionOption>
+                        <PromotionOption loading={promotionLoading.corotos}>
+                            <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                            <img
+                                src={CorotosFavicon}
+                                data-toggle="tooltip"
+                                title="Publicar Seleccionados en Corotos"
+                                className="text-info cursor-pointer promotion-icon img-promotion-icon"
+                                onClick={handlePromoteProduct('corotos')}
+                            />
+                        </PromotionOption>
                     </div>
 
                 </div>

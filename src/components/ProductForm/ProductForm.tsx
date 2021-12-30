@@ -23,6 +23,7 @@ import { addProduct, updateProducts } from "../../services/products";
 import { ECommerceTypes, getWhatsappMessageURL } from "../../services/promotions";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
+import { PromotionOption } from "../../screens/Dashboard/Dashboard";
 
 const draggableWidth = 350;
 const draggableHeight = 350;
@@ -38,7 +39,7 @@ export interface IProductFormProps {
     loadProducts: () => any;
     handlePromoteProduct: (ecommerceType: ECommerceTypes, data: Partial<IProductData>[]) => () => any;
     isOpen?: boolean;
-    promotionLoading?: boolean;
+    promotionLoading: {[N in ECommerceTypes]?: boolean};
     editProduct?: Partial<IProductData>;
 }
 
@@ -442,7 +443,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                                 </ChangePhotoLabel>
                                 <input type="file" id="product-photo" className="invisible position-absolute"
                                        onChange={onChangeProductPhoto} accept="image/png, image/gif, image/jpeg"/>
-                                <img src={productPhoto} alt="" width="100%" height="100%"/>
+                                <img src={productPhoto} className="product-image-editor" alt="" width="100%" height="100%"/>
                             </a>
                         </Rnd>
                     </ProductImageContainer>
@@ -452,30 +453,34 @@ const ProductForm: React.FC<IProductFormProps> = (
                     {
                         editProduct ?
                             <div className="d-flex align-items-center justify-content-center my-3">
-                                <i data-toggle="tooltip"
-                                   title={`Publicar ${product.name} en Facebook Marketplace`}
-                                   className="mr-3 bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
-                                   onClick={!promotionLoading ? handlePromoteProduct('facebook', [product]) : undefined}
-                                />
-                                <img
-                                    src={CorotosFavicon}
-                                    data-toggle="tooltip"
-                                    title={`Publicar ${product.name} en Corotos`}
-                                    className="mr-3 text-info cursor-pointer promotion-icon img-promotion-icon"
-                                    onClick={!promotionLoading ? handlePromoteProduct('corotos', [product]) : undefined}
-                                />
-                                <img
-                                    src={FleaFavicon}
-                                    data-toggle="tooltip"
-                                    title={`Publicar ${product.name} en La Pulga Virtual`}
-                                    className="mr-3 text-info cursor-pointer promotion-icon img-promotion-icon"
-                                    onClick={!promotionLoading ? handlePromoteProduct('flea', [product]) : undefined}
-                                />
-                                {
-                                    promotionLoading ?
-                                        <div>
-                                            <Spinner animation="grow" variant="secondary" size="sm"/>
-                                        </div> : null}
+                                <PromotionOption loading={promotionLoading.facebook}>
+                                    <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                                    <i data-toggle="tooltip"
+                                       title={`Publicar ${product.name} en Facebook Marketplace`}
+                                       className="bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
+                                       onClick={!promotionLoading.facebook ? handlePromoteProduct('facebook', [product]) : undefined}
+                                    />
+                                </PromotionOption>
+                                <PromotionOption loading={promotionLoading.flea}>
+                                    <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                                    <img
+                                        src={FleaFavicon}
+                                        data-toggle="tooltip"
+                                        title={`Publicar ${product.name} en La Pulga Virtual`}
+                                        className="text-info cursor-pointer promotion-icon img-promotion-icon"
+                                        onClick={!promotionLoading.flea ? handlePromoteProduct('flea', [product]) : undefined}
+                                    />
+                                </PromotionOption>
+                                <PromotionOption loading={promotionLoading.corotos}>
+                                    <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                                    <img
+                                        src={CorotosFavicon}
+                                        data-toggle="tooltip"
+                                        title={`Publicar ${product.name} en Corotos`}
+                                        className="text-info cursor-pointer promotion-icon img-promotion-icon"
+                                        onClick={!promotionLoading.corotos ? handlePromoteProduct('corotos', [product]) : undefined}
+                                    />
+                                </PromotionOption>
                             </div> : null}
                     <div className="d-flex justify-content-between">
                         <Button color="primary" className="mb-3" outline onClick={() => saveProductPhoto(true)}>Descargar

@@ -1,6 +1,6 @@
-*{
-  transition: all .3s ease;
-}
+//*{
+//  transition: all .3s ease;
+//}
 .cards {
   margin-bottom: 1em;
   align-items: flex-start;
@@ -14,6 +14,7 @@
 
     .card {
       //padding: 5px;
+      border: 3px solid #7a7a7a;
     }
   }
 
@@ -95,6 +96,11 @@ th {
   height: 26px;
 }
 
+.disable-promotions {
+  i, img {
+    opacity: .5;
+  }
+}
 @media screen and (max-width: 1050px) {
 
   .cards {
