@@ -4,7 +4,7 @@ import {
     Row,
     FormGroup,
     Input,
-    Spinner, CustomInput
+    Spinner, CustomInput, Label
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
 import Logo from "../../assets/images/logo.png"
@@ -58,6 +58,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [promotion, setPromotion] = React.useState(0);
     const [registeredDates, setRegisteredDates] = React.useState<string[]>([]);
     const [products, setProducts] = React.useState<IProductData[]>([]);
+    const [selections, setSelections] = React.useState<IProductData[]>([]);
     const [filter, setFilter] = React.useState<IProductFilters>("MostProfit");
     const [editProduct, setEditProduct] = React.useState<Partial<IProductData>>(null as any);
     const [recordedDate, setRecordedDate] = React.useState<string>(`${months[new Date().getMonth()]}-${new Date().getFullYear()}`);
@@ -74,7 +75,21 @@ const Dashboard: React.FunctionComponent<any> = () => {
         setEditProduct(product);
         setProductFormIsOpen(true)
     }
+    const onSelectProduct = (product: IProductData) => {
+        if(enableSelection) {
+            if(selections.find(prod => prod._id === product._id)) {
+                setSelections(selections.filter(prod => prod._id !== product._id));
+            } else {
+                if(selections.length < 5) {
+                    setSelections([...selections, product]);
+                } else {
+                    toast('¡Hey! Solo puedes seleccionar 5 articulos', {type: 'info'});
+                }
+            }
+            return;
 
+        }
+    }
     const selectProduct = (product: IProductData) => {
         const profit = product.price - product.cost;
 
@@ -196,6 +211,9 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const toggleEnableSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {checked} = e.target;
         setEnableSelection(checked);
+        if(!checked) {
+            setSelections([]);
+        }
     };
 
     switch (filter) {
@@ -278,12 +296,14 @@ const Dashboard: React.FunctionComponent<any> = () => {
                 <div
                     className="d-flex justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
                     <div>
-                        <CustomInput
-                            type="switch"
-                            label="Habilitar Selection"
-                            className="customize-switch enable-selection-switch"
-                            onChange={toggleEnableSelection}
-                        />
+                        <Label className="d-flex flex-column align-items-center cursor-pointer">
+                            <CustomInput
+                                type="switch"
+                                className="customize-switch enable-selection-switch d-block"
+                                onChange={toggleEnableSelection}
+                            />
+                            <span>Habilitar Selection</span>
+                        </Label>
                     </div>
                     <div className="d-flex align-items-center">
                         <label className="mr-2 mb-0">Más Ingresos</label>
@@ -363,7 +383,9 @@ const Dashboard: React.FunctionComponent<any> = () => {
                         products.map((item, i) =>
                             <Product
                                 {...item}
-                                // enableSelection={enableSelection}
+                                selected={!!selections.find(prod => prod._id === item._id)}
+                                onSelect={onSelectProduct}
+                                enableSelection={enableSelection}
                                 loadSale={selectProduct}
                                 loadProductDetails={loadProductDetails}
                                 salesQuantity={getProductSales(item._id)}

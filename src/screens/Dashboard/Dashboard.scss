@@ -10,8 +10,10 @@
   grid-gap: 1em;
 
   &.cards-shrink {
+    //grid-gap: 1.5em;
+
     .card {
-      padding: 5px;
+      //padding: 5px;
     }
   }
 

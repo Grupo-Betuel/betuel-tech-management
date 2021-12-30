@@ -9,6 +9,9 @@ export interface IProduct extends IProductData {
     moneyGenerated?: number;
     loadSale: (product: IProductData) => any;
     loadProductDetails: (product: IProductData) => any;
+    selected?: boolean;
+    enableSelection?: boolean;
+    onSelect?: (product: IProductData) => any;
 }
 
 export interface ISaleOptions {
@@ -17,7 +20,16 @@ export interface ISaleOptions {
     inputShipping: boolean;
 }
 
-const Product: React.FunctionComponent<IProduct> = ({salesQuantity, moneyGenerated, loadSale, loadProductDetails, ...product}) => {
+const Product: React.FunctionComponent<IProduct> = ({
+                                                        salesQuantity,
+                                                        onSelect,
+                                                        enableSelection,
+                                                        moneyGenerated,
+                                                        loadSale,
+                                                        loadProductDetails,
+                                                        selected,
+                                                        ...product
+                                                    }) => {
 
     const {image} = product;
     const defaultSaleOptions: ISaleOptions = {enableShipping: false, commission: false, inputShipping: false};
@@ -31,9 +43,13 @@ const Product: React.FunctionComponent<IProduct> = ({salesQuantity, moneyGenerat
     const [shippingPrice, setShippingPrice] = React.useState();
     const [isLoading, setIsLoading] = React.useState(false);
 
-
-    const toggleProductOptions = () => {
-        setEnableProductOptions(!enableProductOptions);
+    React.useEffect(() => setEnableProductOptions(false), [enableSelection])
+    const handleSelectProduct = () => {
+        if (enableSelection) {
+            onSelect && onSelect(product)
+        } else {
+            setEnableProductOptions(!enableProductOptions);
+        }
     }
 
     const toggleSaleOptions = (ev: any) => {
@@ -101,7 +117,7 @@ const Product: React.FunctionComponent<IProduct> = ({salesQuantity, moneyGenerat
     };
 
     return (
-        <div className="card selected">
+        <div className={`card ${selected ? 'selected' : ''}`}>
             <div
                 className="card-content"
             >
@@ -114,7 +130,8 @@ const Product: React.FunctionComponent<IProduct> = ({salesQuantity, moneyGenerat
                         }}
                     >
                     </div>
-                    <div className={`add-sale-container ${enableProductOptions ? 'no-opacity' : ''}`} onClick={toggleProductOptions}>
+                    <div className={`add-sale-container ${enableProductOptions ? 'no-opacity' : ''}`}
+                         onClick={handleSelectProduct}>
                         {/*<b className="reset-sale" onClick={resetSaleOptions}>X</b>*/}
                         {
                             <>
