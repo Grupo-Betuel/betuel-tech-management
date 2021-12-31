@@ -20,7 +20,10 @@ import { toPng } from 'html-to-image';
 import { dataURItoBlob } from "../../utils/blob";
 import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
 import { addProduct, updateProducts } from "../../services/products";
-import { getWhatsappMessageURL } from "../../services/promotions";
+import { ECommerceTypes, getWhatsappMessageURL } from "../../services/promotions";
+import CorotosFavicon from "../../assets/images/corotos-favicon.png";
+import FleaFavicon from "../../assets/images/flea-favicon.png";
+import { PromotionOption } from "../../screens/Dashboard/Dashboard";
 
 const draggableWidth = 350;
 const draggableHeight = 350;
@@ -34,7 +37,10 @@ export interface ICalculatedPrice {
 export interface IProductFormProps {
     toggle: () => any;
     loadProducts: () => any;
+    handlePromoteProduct: (ecommerceType: ECommerceTypes, data: Partial<IProductData>[]) => () => any;
     isOpen?: boolean;
+    portfolioMode?: boolean;
+    promotionLoading: { [N in ECommerceTypes]?: boolean };
     editProduct?: Partial<IProductData>;
 }
 
@@ -44,56 +50,59 @@ export interface IProductImageProperties {
     x: number;
     y: number;
     fontSize?: number;
+    enableShadow?: boolean;
 }
 
 const ProductNameSpan: any = styled.span`
-   position: absolute;
-   bottom: 15px;
-   font-size: ${(props: any) => props.fontSize || nameInitialFontSize}px;
-   z-index: 999;
-   transform: translate(15px, 0px);
-   max-width: 206px;
-   line-height:  ${(props: any) => props.fontSize || nameInitialFontSize}px;
+  position: absolute;
+  bottom: 15px;
+  font-size: ${(props: any) => props.fontSize || nameInitialFontSize}px;
+  z-index: 999;
+  transform: translate(15px, 0px);
+  max-width: 206px;
+  line-height: ${(props: any) => props.fontSize || nameInitialFontSize}px;
 `;
 
 const ChangePhotoLabel: any = styled.label`
-   position: absolute;
-   right: -35px;
-   color: #ababab;
-   cursor: pointer;
-   font-size: 35px;
+  position: absolute;
+  right: -35px;
+  color: #ababab;
+  cursor: pointer;
+  font-size: 35px;
 `;
 const ProductPriceSpan = styled.span`
- position: absolute;
- bottom: 30px;
- font-size: ${(props: any) => props.fontSize || 85}px;
- line-height:  ${(props: any) => props.fontSize || 85}px;
- z-index: 999; 
- right: 15px;
-  
+  position: absolute;
+  bottom: 30px;
+  font-size: ${(props: any) => props.fontSize || 85}px;
+  line-height: ${(props: any) => props.fontSize || 85}px;
+  z-index: 999;
+  right: 15px;
+
 `;
 
 const GodWordSpan = styled.span`
- position: absolute;
- bottom: 15px;
- right: 15px;
- font-size: ${(props: any) => props.fontSize || 25}px;
- z-index: 999;
- color: #c3c3c3;
- 
+  position: absolute;
+  bottom: 15px;
+  right: 15px;
+  font-size: ${(props: any) => props.fontSize || 25}px;
+  z-index: 999;
+  color: #c3c3c3;
+
 `;
 
-const ProductImageContainer = styled.div`
+const ProductImageContainer: any = styled.div`
   position: absolute;
   z-index: 999;
   width: 100%;
   height: 100%;
+
   .rnd-container {
     input[type="file"] {
       z-index: -1;
     }
+
     a:focus > img {
-      border: 3px dashed #ababab;
+      border: ${(props: any) => props.portfolioMode ? 'unset' : '3px dashed #ababab'};
     }
   }
 `
@@ -101,10 +110,11 @@ const ProductImageContainer = styled.div`
 const ProductImageEditor = styled.div`
   height: 500px;
   position: relative;
- .product-background {
+
+  .product-background {
     width: 100%;
     position: absolute;
- }
+  }
 `
 
 const ProductForm: React.FC<IProductFormProps> = (
@@ -113,6 +123,9 @@ const ProductForm: React.FC<IProductFormProps> = (
         toggle,
         loadProducts,
         editProduct,
+        handlePromoteProduct,
+        promotionLoading,
+        portfolioMode,
     }) => {
     const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
     const [useCommission, setUseCommission] = React.useState(false);
@@ -124,6 +137,8 @@ const ProductForm: React.FC<IProductFormProps> = (
     const [productPhoto, setProductPhoto] = React.useState(logo);
     const [productImageFile, setProductImageFile] = React.useState<File | any>();
     const [productImageChanged, setProductImageChanged] = React.useState(false);
+    const [enableDropShadow, setEnableDropShadow] = React.useState(false);
+
     const [flyerOptions, setFlyerOptions] = React.useState<IProductImageProperties>({
         width: draggableWidth,
         height: draggableHeight,
@@ -144,6 +159,16 @@ const ProductForm: React.FC<IProductFormProps> = (
         const {checked} = e.target;
         await setUseCommission(checked);
         validForm(checked);
+    };
+
+    const enableDropShadowChange = async (e: any) => {
+        const {checked} = e.target;
+        await setEnableDropShadow(checked);
+        setFlyerOptions({
+            ...flyerOptions,
+            enableShadow: checked
+        })
+        validForm()
     };
 
     const onChangeProduct = async (ev: React.ChangeEvent<any>) => {
@@ -268,7 +293,7 @@ const ProductForm: React.FC<IProductFormProps> = (
         let pricePiece: any = dividedPrice[1] || dividedPrice[0];
         // when the number has an cero in front
         let cero = '';
-        if(pricePiece.charAt(0) === '0') {
+        if (pricePiece.charAt(0) === '0') {
             cero = '0';
         }
         const lastTwo = Number(pricePiece.substring(pricePiece.length - 2));
@@ -392,7 +417,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                     </>
             }
             <ModalHeader
-                toggle={toggleModal}>{editProduct ? `Editar ${editProduct.name}` : 'Crear Producto'}</ModalHeader>
+                toggle={toggleModal}>{editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}</ModalHeader>
             <Form onSubmit={!isSubmiting && isValidForm ? onSubmit : undefined}>
                 <ProductImageEditor id="product-image-result" ref={productImageWrapper}>
                     <img src={productBackground} alt="bg-image" className="product-background"/>
@@ -407,11 +432,13 @@ const ProductForm: React.FC<IProductFormProps> = (
                     </ProductPriceSpan>
 
                     <GodWordSpan>{product.GodWord || 'Dios te bendiga'}</GodWordSpan>
-                    <ProductImageContainer>
+                    <ProductImageContainer portfolioMode={portfolioMode}>
                         <Rnd
                             className="rnd-container"
                             size={{width: flyerOptions.width, height: flyerOptions.height}}
                             position={{x: flyerOptions.x, y: flyerOptions.y}}
+                            disableDragging={portfolioMode}
+                            enableResizing={!portfolioMode}
                             onDragStop={(e, d) => {
                                 setFlyerOptions({...flyerOptions, x: d.x, y: d.y});
                                 validForm();
@@ -426,57 +453,112 @@ const ProductForm: React.FC<IProductFormProps> = (
                             }}
                         >
                             <a href="#" className="position-relative">
-                                <ChangePhotoLabel htmlFor="product-photo" data-toggle="tooltip" id="change-image"
-                                                  title="Cambiar Foto del Producto">
-                                    {!hideChangeProductPhotoIcon && <i className="bi bi-images"/>}
-                                </ChangePhotoLabel>
-                                <input type="file" id="product-photo" className="invisible position-absolute"
-                                       onChange={onChangeProductPhoto} accept="image/png, image/gif, image/jpeg"/>
-                                <img src={productPhoto} alt="" width="100%" height="100%"/>
+                                {!portfolioMode && <>
+                                  <ChangePhotoLabel htmlFor="product-photo" data-toggle="tooltip" id="change-image"
+                                                    title="Cambiar Foto del Producto">
+                                      {!hideChangeProductPhotoIcon && <i className="bi bi-images"/>}
+                                  </ChangePhotoLabel>
+                                  <input type="file" id="product-photo" className="invisible position-absolute"
+                                         onChange={onChangeProductPhoto} accept="image/png, image/gif, image/jpeg"/>
+                                </>
+                                }
+                                <img src={productPhoto} className={`${enableDropShadow ? 'image-drop-shadow' : ''}`}
+                                     alt="" width="100%"
+                                     height="100%"/>
                             </a>
                         </Rnd>
                     </ProductImageContainer>
                 </ProductImageEditor>
 
                 <ModalBody>
+
+                    {
+                        editProduct && !portfolioMode ?
+                            <div className="d-flex align-items-center justify-content-center my-3">
+                                <PromotionOption loading={promotionLoading.facebook}>
+                                    <Spinner className="loading-spinner" animation="grow" variant="secondary"
+                                             size="sm"/>
+                                    <i data-toggle="tooltip"
+                                       title={`Publicar ${product.name} en Facebook Marketplace`}
+                                       className="bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
+                                       onClick={!promotionLoading.facebook ? handlePromoteProduct('facebook', [product]) : undefined}
+                                    />
+                                </PromotionOption>
+                                <PromotionOption loading={promotionLoading.flea}>
+                                    <Spinner className="loading-spinner" animation="grow" variant="secondary"
+                                             size="sm"/>
+                                    <img
+                                        src={FleaFavicon}
+                                        data-toggle="tooltip"
+                                        title={`Publicar ${product.name} en La Pulga Virtual`}
+                                        className="text-info cursor-pointer promotion-icon img-promotion-icon"
+                                        onClick={!promotionLoading.flea ? handlePromoteProduct('flea', [product]) : undefined}
+                                    />
+                                </PromotionOption>
+                                <PromotionOption loading={promotionLoading.corotos}>
+                                    <Spinner className="loading-spinner" animation="grow" variant="secondary"
+                                             size="sm"/>
+                                    <img
+                                        src={CorotosFavicon}
+                                        data-toggle="tooltip"
+                                        title={`Publicar ${product.name} en Corotos`}
+                                        className="text-info cursor-pointer promotion-icon img-promotion-icon"
+                                        onClick={!promotionLoading.corotos ? handlePromoteProduct('corotos', [product]) : undefined}
+                                    />
+                                </PromotionOption>
+                            </div> : null}
+                    {!portfolioMode &&
+                    <div className="d-flex justify-content-center">
+                      <CustomInput
+                        type="switch"
+                        label="Colocar Sombra"
+                        checked={enableDropShadow}
+                        className="customized-switch"
+                        onChange={enableDropShadowChange}/>
+                    </div>}
                     <div className="d-flex justify-content-between">
                         <Button color="primary" className="mb-3" outline onClick={() => saveProductPhoto(true)}>Descargar
-                        Imagen</Button>
-                        <Button color="success" className="mb-3 d-flex align-items-center" outline onClick={sendWhatsappMessage}>
-                            <span>
-                                Pedir por Whatsapp
-                            </span>
-                            <i className="bi bi-whatsapp" />
-                        </Button>
+                            Imagen</Button>
+                        {
+                            editProduct ?
+                                <Button color="success" className="mb-3 d-flex align-items-center" outline
+                                        onClick={sendWhatsappMessage}>
+                                        <span className="mr-2">
+                                            Pedir por Whatsapp
+                                        </span>
+                                    <i className="bi bi-whatsapp"/>
+                                </Button> : null}
                     </div>
-                    <FormGroup>
+                    {portfolioMode && <pre className="mt-3">{product.description}</pre>}
+                    {!portfolioMode && <>
+                      <FormGroup>
                         <Label for="name">Nombre:</Label>
                         <div className="d-flex align-items-center">
-                            <Input onChange={onChangeProduct} name="name" id="name"
-                                   value={product.name}/>
-                            <span className="d-flex align-items-center" style={{fontSize: '21px'}}>
+                          <Input onChange={onChangeProduct} name="name" id="name"
+                                 value={product.name}/>
+                          <span className="d-flex align-items-center" style={{fontSize: '21px'}}>
                                 <i className="bi-dash mx-3 cursor-pointer" onClick={decreaseIncreaseNameFont(true)}/>
                                 <i className="bi-plus cursor-pointer" onClick={decreaseIncreaseNameFont()}/>
                             </span>
                         </div>
-                    </FormGroup>
-                    <FormGroup>
+                      </FormGroup>
+                      <FormGroup>
                         <Label for="GodWord">Palabra de Dios:</Label>
                         <Input onChange={onChangeProduct} type="text" name="GodWord" id="GodWord"
                                value={product.GodWord}/>
-                    </FormGroup>
-                    <FormGroup>
+                      </FormGroup>
+                      <FormGroup>
                         <Label for="cost">Costo:</Label>
                         <Input onChange={onChangeProduct} type="number" name="cost" id="cost"
                                value={product.cost}/>
-                    </FormGroup>
-                    <FormGroup>
+                      </FormGroup>
+                      <FormGroup>
                         <Label for="priceId">Precio:</Label>
                         <Input disabled={!product.cost} onChange={onChangeProduct} type="number" name="price"
                                id="priceId"
                                value={product.cost ? product.price : 0}/>
-                    </FormGroup>
-                    <FormGroup>
+                      </FormGroup>
+                      <FormGroup>
                         <Label for="productImage">Descripción:</Label>
                         <textarea rows={5}
                                   name="description"
@@ -484,29 +566,32 @@ const ProductForm: React.FC<IProductFormProps> = (
                                   className="form-control"
                                   value={product.description}
                                   onChange={onChangeProduct}/>
-                    </FormGroup>
-                    <>
+                      </FormGroup>
+                      <>
                         <CustomInput
-                            type="switch"
-                            label="¿Agregar Comisión Manualmente?"
-                            checked={useCommission}
-                            className="customized-switch"
-                            onChange={useCommissionChange}/>
-                    </>
-                    {
-                        !useCommission ? null :
-                            <FormGroup>
-                                <Label for="commissionId">Comisión:</Label>
-                                <Input onChange={onChangeProduct} type="number" name="commission"
-                                       id="commissionId" placeholder="Comisión:" value={product.commission}/>
-                            </FormGroup>
-                    }
+                          type="switch"
+                          label="¿Agregar Comisión Manualmente?"
+                          checked={useCommission}
+                          className="customized-switch"
+                          onChange={useCommissionChange}/>
+                      </>
+                        {
+                            !useCommission ? null :
+                                <FormGroup>
+                                    <Label for="commissionId">Comisión:</Label>
+                                    <Input onChange={onChangeProduct} type="number" name="commission"
+                                           id="commissionId" placeholder="Comisión:" value={product.commission}/>
+                                </FormGroup>
+                        }
+                    </>}
                 </ModalBody>
+                {!portfolioMode &&
                 <ModalFooter>
-                    <Button color={isSubmiting || !isValidForm ? 'dark' : 'primary'} outline type="submit"
-                            disabled={isSubmiting || !isValidForm}>{editProduct ? 'Actualizar' : 'Añadir'}</Button>{' '}
-                    <Button color="danger" onClick={toggleModal} outline>Cancel</Button>
+                  <Button color={isSubmiting || !isValidForm ? 'dark' : 'primary'} outline type="submit"
+                          disabled={isSubmiting || !isValidForm}>{editProduct ? 'Actualizar' : 'Añadir'}</Button>{' '}
+                  <Button color="danger" onClick={toggleModal} outline>Cancel</Button>
                 </ModalFooter>
+                }
             </Form>
         </Modal>
     )

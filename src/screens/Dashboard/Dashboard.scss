@@ -1,3 +1,6 @@
+//*{
+//  transition: all .3s ease;
+//}
 .cards {
   margin-bottom: 1em;
   align-items: flex-start;
@@ -5,6 +8,20 @@
   grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
   grid-template-rows: 1fr;
   grid-gap: 1em;
+
+  &.cards-shrink {
+    //grid-gap: 1.5em;
+
+    .card {
+      //padding: 5px;
+      border: 3px solid #7a7a7a;
+    }
+  }
+
+  .card.selected {
+    border: 3px solid #dc3545;
+    box-shadow: 0 0 5px #dc3545;
+  }
 }
 .total-label {
   position: relative;
@@ -73,6 +90,22 @@ th {
 .facebook-icon {
   filter: brightness(70%);
 
+}
+
+.img-promotion-icon {
+  height: 26px;
+}
+
+.disable-promotions {
+  i, img {
+    opacity: .5;
+  }
+}
+
+.go-to-portfolio {
+  width: 50px !important;
+  height: 50px !important;
+  top: 100px !important;
 }
 @media screen and (max-width: 1050px) {
 
