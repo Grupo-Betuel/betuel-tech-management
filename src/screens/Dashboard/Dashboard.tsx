@@ -21,6 +21,7 @@ import { getProducts } from "../../services/products";
 import { ecommerceNames, ECommerceTypes, promoteProduct } from "../../services/promotions";
 import { IProduct } from "../../components/Product/Product";
 import { toast } from "react-toastify";
+import { useHistory } from "react-router";
 
 const CreateNewProductButton = styled.button`
   position: fixed;
@@ -37,12 +38,18 @@ const CreateNewProductButton = styled.button`
     font-size: 30px;
   }
 `
+export const LogOutButton = styled(CreateNewProductButton)`
+  position: absolute;
+  top: 15px;
+  bottom: unset;
+`
 
 export const PromotionOption: any = styled.div`
   display: flex;
   align-items: center;
   justify-content: center;
   margin-right: 15px;
+
   .loading-spinner {
     display: ${(props: any) => props.loading ? 'block' : 'none'};
     position: absolute;
@@ -57,12 +64,12 @@ export type ITotals = {
 export type IProductFilters = "MostProfit" | "MostSales";
 const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
-const Dashboard: React.FunctionComponent<any> = () => {
+const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
     const [activeAddSaleModal, setActiveAddSaleModal] = React.useState(false);
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [loadingApp, setLoadingApp] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
-    const [promotionLoading, setPromotionLoading] = React.useState<{[N in ECommerceTypes]?: boolean}>({});
+    const [promotionLoading, setPromotionLoading] = React.useState<{ [N in ECommerceTypes]?: boolean }>({});
     const [enableSelection, setEnableSelection] = React.useState(false);
     const [editSale, setEditSale] = React.useState<ISale>({} as any);
     const [salesData, setSalesData] = React.useState<ISale[]>([]);
@@ -77,6 +84,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const [recordedDate, setRecordedDate] = React.useState<string>(`${months[new Date().getMonth()]}-${new Date().getFullYear()}`);
     const tithePercent = 0.10;
     const promotionPercent = 0.30;
+    const history = useHistory();
 
     const toggleProductForm = () => {
         setEditProduct(null as any);
@@ -89,11 +97,11 @@ const Dashboard: React.FunctionComponent<any> = () => {
         setProductFormIsOpen(true)
     }
     const onSelectProduct = (product: IProductData) => {
-        if(enableSelection) {
-            if(selections.find(prod => prod._id === product._id)) {
+        if (enableSelection) {
+            if (selections.find(prod => prod._id === product._id)) {
                 setSelections(selections.filter(prod => prod._id !== product._id));
             } else {
-                if(selections.length < 5) {
+                if (selections.length < 5) {
                     setSelections([...selections, product]);
                 } else {
                     toast('¡Hey! Solo puedes seleccionar 5 articulos', {type: 'info'});
@@ -224,7 +232,7 @@ const Dashboard: React.FunctionComponent<any> = () => {
     const toggleEnableSelection = (e: React.ChangeEvent<HTMLInputElement>) => {
         const {checked} = e.target;
         setEnableSelection(checked);
-        if(!checked) {
+        if (!checked) {
             setSelections([]);
         }
     };
@@ -248,12 +256,12 @@ const Dashboard: React.FunctionComponent<any> = () => {
 
     const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => async () => {
         // do nothing while loading or selection mode isn't active
-        if((data.length > 1 && !enableSelection) || promotionLoading[ecommerceType]) {
+        if ((data.length > 1 && !enableSelection) || promotionLoading[ecommerceType]) {
             return;
         }
         try {
-            if(data.length <= 0) {
-                toast('¡Hey! Tienes que seleccionar almenos un producto para promocionar.', { type: 'error' });
+            if (data.length <= 0) {
+                toast('¡Hey! Tienes que seleccionar almenos un producto para promocionar.', {type: 'error'});
                 return;
             }
             setPromotionLoading((data) => ({
@@ -266,9 +274,9 @@ const Dashboard: React.FunctionComponent<any> = () => {
                 [ecommerceType]: false
             }))
             if (!response.success) {
-                toast(`Error al Promocionar en ${ecommerceNames[ecommerceType]}: ${response.error}`, { type: "error" });
+                toast(`Error al Promocionar en ${ecommerceNames[ecommerceType]}: ${response.error}`, {type: "error"});
             } else {
-                toast(`¡Excelente! ¡Ya se publicaron los productos en ${ecommerceNames[ecommerceType]}!`, { type: "success" });
+                toast(`¡Excelente! ¡Ya se publicaron los productos en ${ecommerceNames[ecommerceType]}!`, {type: "success"});
             }
         } catch (err) {
             console.error('promotion error: ', err);
@@ -279,6 +287,19 @@ const Dashboard: React.FunctionComponent<any> = () => {
         }
 
 
+    }
+
+    const logOut = () => {
+        localStorage.setItem('authToken', '');
+        setToken('');
+    }
+
+    const togglePortfolioDashboard = () => {
+        if(portfolioMode) {
+            history.push('/dashboard');
+        } else {
+            history.push('/portfolio');
+        }
     }
     return (
         <>
@@ -300,122 +321,134 @@ const Dashboard: React.FunctionComponent<any> = () => {
             <div
                 className="d-flex align-items-center flex-column"
             >
+                {localStorage.getItem('authToken') && <Col sm={8} className="position-relative">
+                    <LogOutButton className="btn btn-outline-danger" title="Salir" onClick={logOut}>
+                        <i className="bi bi-box-arrow-right"/>
+                    </LogOutButton>
+                    <LogOutButton className="btn btn-outline-danger go-to-portfolio" title={`Ir al ${portfolioMode ? 'Dashboard' : 'al Portafolio'}`} onClick={togglePortfolioDashboard}>
+                        <i className={`bi ${ portfolioMode ? 'bi-skip-backward-fill' : 'bi-skip-forward-fill' } `}/>
+                    </LogOutButton>
+                </Col>}
                 <Col lg={2} md={4} sm={4} className="p-4">
                     <img src={Logo} alt="Logo AudSongs" className="w-100"/>
                 </Col>
-                <Col sm={12} className="d-flex justify-content-center mb-2">
+                {!portfolioMode && <>
+                  <Col sm={12} className="d-flex justify-content-center mb-2">
                     <FormGroup>
-                        <Input type="select" name="select" className="select-date" defaultValue={recordedDate}
-                               onChange={onChangeDateRegistered}>
-                            {registeredDates ?
-                                registeredDates
-                                    .map((item, i) => {
-                                            const split = item.split("-");
-                                            const selected = item === recordedDate;
-                                            return <option selected={selected} key={i}
-                                                           value={item}>{split[0]} {split[1]}</option>
-                                        }
-                                    )
-                                :
-                                <option> {months[new Date().getMonth()]} {new Date().getFullYear()}</option>
-                            }
+                      <Input type="select" name="select" className="select-date" defaultValue={recordedDate}
+                             onChange={onChangeDateRegistered}>
+                          {registeredDates ?
+                              registeredDates
+                                  .map((item, i) => {
+                                          const split = item.split("-");
+                                          const selected = item === recordedDate;
+                                          return <option selected={selected} key={i}
+                                                         value={item}>{split[0]} {split[1]}</option>
+                                      }
+                                  )
+                              :
+                              <option> {months[new Date().getMonth()]} {new Date().getFullYear()}</option>
+                          }
 
-                        </Input>
+                      </Input>
                     </FormGroup>
-                </Col>
-                <div
+                  </Col>
+                  <div
                     className="d-flex justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
                     <div>
-                        <Label className="d-flex flex-column align-items-center cursor-pointer">
-                            <CustomInput
-                                type="switch"
-                                className="customize-switch enable-selection-switch d-block"
-                                onChange={toggleEnableSelection}
-                            />
-                            <span>Habilitar Selection</span>
-                        </Label>
+                      <Label className="d-flex flex-column align-items-center cursor-pointer">
+                        <CustomInput
+                          type="switch"
+                          className="customize-switch enable-selection-switch d-block"
+                          onChange={toggleEnableSelection}
+                        />
+                        <span>Habilitar Selection</span>
+                      </Label>
                     </div>
                     <div className="d-flex align-items-center">
-                        <label className="mr-2 mb-0">Más Ingresos</label>
-                        <CustomInput
-                            type="switch"
-                            label="Más Vendidos"
-                            className="customize-switch"
-                            onChange={filterChange}
-                        />
+                      <label className="mr-2 mb-0">Más Ingresos</label>
+                      <CustomInput
+                        type="switch"
+                        label="Más Vendidos"
+                        className="customize-switch"
+                        onChange={filterChange}
+                      />
                     </div>
                     <div className={`d-flex align-items-center ${!enableSelection ? 'disable-promotions' : ''}`}>
-                        <PromotionOption loading={promotionLoading.facebook}>
-                            <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
-                            <i data-toggle="tooltip"
-                               title="Publicar Seleccionados en Facebook Marketplace"
-                               className="bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
-                               onClick={handlePromoteProduct('facebook')}
-                            />
-                        </PromotionOption>
-                        <PromotionOption loading={promotionLoading.flea}>
-                            <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
-                            <img
-                                src={FleaFavicon}
-                                data-toggle="tooltip"
-                                title="Publicar Seleccionados en La Pulga"
-                                className="text-info cursor-pointer promotion-icon img-promotion-icon"
-                                onClick={handlePromoteProduct('flea')}
-                            />
-                        </PromotionOption>
-                        <PromotionOption loading={promotionLoading.corotos}>
-                            <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
-                            <img
-                                src={CorotosFavicon}
-                                data-toggle="tooltip"
-                                title="Publicar Seleccionados en Corotos"
-                                className="text-info cursor-pointer promotion-icon img-promotion-icon"
-                                onClick={handlePromoteProduct('corotos')}
-                            />
-                        </PromotionOption>
+                      <PromotionOption loading={promotionLoading.facebook}>
+                        <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                        <i data-toggle="tooltip"
+                           title="Publicar Seleccionados en Facebook Marketplace"
+                           className="bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
+                           onClick={handlePromoteProduct('facebook')}
+                        />
+                      </PromotionOption>
+                      <PromotionOption loading={promotionLoading.flea}>
+                        <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                        <img
+                          src={FleaFavicon}
+                          data-toggle="tooltip"
+                          title="Publicar Seleccionados en La Pulga"
+                          className="text-info cursor-pointer promotion-icon img-promotion-icon"
+                          onClick={handlePromoteProduct('flea')}
+                        />
+                      </PromotionOption>
+                      <PromotionOption loading={promotionLoading.corotos}>
+                        <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                        <img
+                          src={CorotosFavicon}
+                          data-toggle="tooltip"
+                          title="Publicar Seleccionados en Corotos"
+                          className="text-info cursor-pointer promotion-icon img-promotion-icon"
+                          onClick={handlePromoteProduct('corotos')}
+                        />
+                      </PromotionOption>
                     </div>
 
-                </div>
-                <Col lg={10} md={10} sm={12} className="d-flex justify-content-center">
+                  </div>
+
+                  <Col lg={10} md={10} sm={12} className="d-flex justify-content-center">
                     <Row className="justify-content-center label-grid col-lg-10">
-                        <MoneyStatisticLabel
-                            label="Vendido"
-                            amount={salesTotals.price}
-                            className="total-label"
-                        />
-                        <MoneyStatisticLabel
-                            label="Beneficio"
-                            amount={salesTotals.profit}
-                            className="total-label"
-                        />
-                        <MoneyStatisticLabel
-                            label="Comisiones"
-                            amount={salesTotals.commission}
-                            className="total-label"
-                        />
-                        <MoneyStatisticLabel
-                            label="Envios"
-                            amount={salesTotals.shipping}
-                            className="total-label"
-                        />
-                        <MoneyStatisticLabel
-                            label="Promoción"
-                            amount={promotion}
-                            className="total-label"
-                        />
-                        <MoneyStatisticLabel
-                            label="Diezmo"
-                            amount={tithe}
-                            className="total-label"
-                        />
+                      <MoneyStatisticLabel
+                        label="Vendido"
+                        amount={salesTotals.price}
+                        className="total-label"
+                      />
+                      <MoneyStatisticLabel
+                        label="Beneficio"
+                        amount={salesTotals.profit}
+                        className="total-label"
+                      />
+                      <MoneyStatisticLabel
+                        label="Comisiones"
+                        amount={salesTotals.commission}
+                        className="total-label"
+                      />
+                      <MoneyStatisticLabel
+                        label="Envios"
+                        amount={salesTotals.shipping}
+                        className="total-label"
+                      />
+                      <MoneyStatisticLabel
+                        label="Promoción"
+                        amount={promotion}
+                        className="total-label"
+                      />
+                      <MoneyStatisticLabel
+                        label="Diezmo"
+                        amount={tithe}
+                        className="total-label"
+                      />
 
                     </Row>
-                </Col>
-                <Col lg={8} md={10} sm={12} className={`cards mt-3 ${enableSelection ? 'cards-shrink' : '' }`}>
+                  </Col>
+                </>}
+                <Col lg={8} md={10} sm={12} className={`cards mt-3 ${enableSelection ? 'cards-shrink' : ''}`}>
                     {
                         products.map((item, i) =>
                             <Product
                                 {...item}
+                                portfolioMode={portfolioMode}
                                 selected={!!selections.find(prod => prod._id === item._id)}
                                 onSelect={onSelectProduct}
                                 enableSelection={enableSelection}
@@ -428,11 +461,13 @@ const Dashboard: React.FunctionComponent<any> = () => {
                         )}
                 </Col>
             </div>
-            <CreateNewProductButton className="btn btn-outline-danger" onClick={toggleProductForm}>
-                <i className="bi-plus"/>
-            </CreateNewProductButton>
+
+            {!portfolioMode && <CreateNewProductButton className="btn btn-outline-danger" onClick={toggleProductForm}>
+              <i className="bi-plus"/>
+            </CreateNewProductButton>}
 
             <ProductForm
+                portfolioMode={portfolioMode}
                 handlePromoteProduct={handlePromoteProduct}
                 promotionLoading={promotionLoading}
                 loadProducts={getAllProducts}

@@ -1,6 +1,6 @@
 import { IProduct } from "../components/Product/Product";
 
-export const promotionsApi = 'http://10.0.0.13:5000/api/';
+export const localPromotionsApi = 'http://10.0.0.13:5000/api/';
 export const whatsappPhone = '+18298937075';
 export type ECommerceTypes = 'facebook' | 'corotos' | 'flea';
 export const ecommerceNames: { [N in ECommerceTypes]: string } = {
@@ -13,7 +13,7 @@ export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceT
     const body = JSON.stringify(products);
 
     try {
-        return await fetch(`${promotionsApi}${eCommerce}`, {
+        return await fetch(`${eCommerce !== 'facebook' ? process.env.REACT_APP_PROMOTION_API : localPromotionsApi}${eCommerce}`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',

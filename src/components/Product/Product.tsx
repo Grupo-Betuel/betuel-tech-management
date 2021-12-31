@@ -10,6 +10,7 @@ export interface IProduct extends IProductData {
     loadSale: (product: IProductData) => any;
     loadProductDetails: (product: IProductData) => any;
     selected?: boolean;
+    portfolioMode?: boolean;
     enableSelection?: boolean;
     onSelect?: (product: IProductData) => any;
 }
@@ -21,6 +22,7 @@ export interface ISaleOptions {
 }
 
 const Product: React.FunctionComponent<IProduct> = ({
+                                                        portfolioMode,
                                                         salesQuantity,
                                                         onSelect,
                                                         enableSelection,
@@ -131,7 +133,7 @@ const Product: React.FunctionComponent<IProduct> = ({
                     >
                     </div>
                     <div className={`add-sale-container ${enableProductOptions ? 'no-opacity' : ''}`}
-                         onClick={handleSelectProduct}>
+                         onClick={portfolioMode ?  handleLoadProduct : handleSelectProduct}>
                         {/*<b className="reset-sale" onClick={resetSaleOptions}>X</b>*/}
                         {
                             <>
@@ -146,54 +148,18 @@ const Product: React.FunctionComponent<IProduct> = ({
                             </>
 
                         }
-                        {/*{*/}
-                        {/*    !saleOptions.enableShipping ? null :*/}
-                        {/*        <>*/}
-                        {/*            <CustomInput*/}
-                        {/*                type="switch"*/}
-                        {/*                label="¿Incluye envio?"*/}
-                        {/*                className="customized-switch"*/}
-                        {/*                onChange={shippingOnChange}/>*/}
-                        {/*            <Button className="mt-3" id={useShipping ? "inputShipping" : "commission"}*/}
-                        {/*                    onClick={toggleSaleOptions}>Continuar</Button>*/}
-                        {/*        </>*/}
-                        {/*}*/}
-                        {/*{*/}
-                        {/*    !saleOptions.inputShipping ? null :*/}
-                        {/*        <>*/}
-                        {/*            <Input placeholder="Precio de Envio" name="shipping" type="number"*/}
-                        {/*                   className="shipping-input" value={shippingPrice}*/}
-                        {/*                   onChange={shippingPriceOnChange}/>*/}
-                        {/*            <Button className="mt-3" id="commission"*/}
-                        {/*                    onClick={toggleSaleOptions}>Continuar</Button>*/}
-                        {/*        </>*/}
-                        {/*}*/}
 
-                        {/*{*/}
-                        {/*    !saleOptions.commission ? null :*/}
-                        {/*        <>*/}
-                        {/*            <CustomInput*/}
-                        {/*                type="switch"*/}
-                        {/*                label="¿Incluye comisión?"*/}
-                        {/*                className="customized-switch"*/}
-                        {/*                onChange={commissionOnChange}/>*/}
-                        {/*            <Button className="mt-3" onClick={newSale}>Fin</Button>*/}
-                        {/*        </>*/}
-                        {/*}*/}
-
-                        {/*{*/}
-                        {/*    !isLoading ? null :*/}
-                        {/*            <Spinner animation="grow" variant="secondary"/>*/}
-                        {/*}*/}
                     </div>
                 </div>
 
-                <div className="card-title">
-                    <div className="title">
+                {
+                    !portfolioMode &&
+                    <div className="card-title">
+                      <div className="title">
                         <h4>Ventas: {salesQuantity}</h4>
                         <h4>Ingresos: RD$ {moneyGenerated && moneyGenerated.toLocaleString('en-US')}</h4>
-                    </div>
-                </div>
+                      </div>
+                    </div>}
             </div>
         </div>
     )
