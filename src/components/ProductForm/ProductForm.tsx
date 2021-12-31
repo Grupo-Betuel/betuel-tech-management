@@ -107,13 +107,13 @@ const ProductImageContainer: any = styled.div`
   }
 `
 
-const ProductImageEditor = styled.div`
-  height: 500px;
+const ProductImageEditor: any = styled.div`
+  height: ${ (props: any) => props.portfolioMode ? 'auto' : '500px' };
   position: relative;
 
   .product-background {
     width: 100%;
-    position: absolute;
+    position: ${ (props: any) => props.portfolioMode ? 'relative' : 'absolute' };
   }
 `
 
@@ -340,7 +340,7 @@ const ProductForm: React.FC<IProductFormProps> = (
             .then(async (dataUrl: string) => {
                 if (downloadImage) {
                     const a = document.createElement('a') as any;
-                    a.href = dataUrl;
+                    a.href = portfolioMode ? product.image : dataUrl;
                     a.download = photoName;
                     a.click();
                 } else {
@@ -419,55 +419,59 @@ const ProductForm: React.FC<IProductFormProps> = (
             <ModalHeader
                 toggle={toggleModal}>{editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}</ModalHeader>
             <Form onSubmit={!isSubmiting && isValidForm ? onSubmit : undefined}>
-                <ProductImageEditor id="product-image-result" ref={productImageWrapper}>
-                    <img src={productBackground} alt="bg-image" className="product-background"/>
-                    <ProductNameSpan fontSize={increaseNameFont}
-                                     className="product-detail-text inset-text">
-                        <span>{product.name}</span>
-                    </ProductNameSpan>
+                <ProductImageEditor portfolioMode={portfolioMode} id="product-image-result" ref={productImageWrapper}>
+                    <img src={portfolioMode ? product.image : productBackground} alt="bg-image"
+                         className="product-background"/>
+                    {!portfolioMode && <>
 
-                    <ProductPriceSpan className="product-detail-text inset-text">
+                      <ProductNameSpan fontSize={increaseNameFont}
+                                       className="product-detail-text inset-text">
+                        <span>{product.name}</span>
+                      </ProductNameSpan>
+
+                      <ProductPriceSpan className="product-detail-text inset-text">
                         <span style={{fontSize: '40px'}}>RD$</span>
                         <span>{product.cost && internationalNumberFormat.format(product.price || 0)}</span>
-                    </ProductPriceSpan>
+                      </ProductPriceSpan>
+                      <GodWordSpan>{product.GodWord || 'Dios te bendiga'}</GodWordSpan>
 
-                    <GodWordSpan>{product.GodWord || 'Dios te bendiga'}</GodWordSpan>
-                    <ProductImageContainer portfolioMode={portfolioMode}>
+                      <ProductImageContainer portfolioMode={portfolioMode}>
                         <Rnd
-                            className="rnd-container"
-                            size={{width: flyerOptions.width, height: flyerOptions.height}}
-                            position={{x: flyerOptions.x, y: flyerOptions.y}}
-                            disableDragging={portfolioMode}
-                            enableResizing={!portfolioMode}
-                            onDragStop={(e, d) => {
-                                setFlyerOptions({...flyerOptions, x: d.x, y: d.y});
-                                validForm();
-                            }}
-                            onResize={(e, direction, ref, delta, position) => {
-                                setFlyerOptions({
-                                    width: ref.offsetWidth,
-                                    height: ref.offsetHeight,
-                                    ...position,
-                                });
-                                validForm();
-                            }}
+                          className="rnd-container"
+                          size={{width: flyerOptions.width, height: flyerOptions.height}}
+                          position={{x: flyerOptions.x, y: flyerOptions.y}}
+                          disableDragging={portfolioMode}
+                          enableResizing={!portfolioMode}
+                          onDragStop={(e, d) => {
+                              setFlyerOptions({...flyerOptions, x: d.x, y: d.y});
+                              validForm();
+                          }}
+                          onResize={(e, direction, ref, delta, position) => {
+                              setFlyerOptions({
+                                  width: ref.offsetWidth,
+                                  height: ref.offsetHeight,
+                                  ...position,
+                              });
+                              validForm();
+                          }}
                         >
-                            <a href="#" className="position-relative">
-                                {!portfolioMode && <>
-                                  <ChangePhotoLabel htmlFor="product-photo" data-toggle="tooltip" id="change-image"
-                                                    title="Cambiar Foto del Producto">
-                                      {!hideChangeProductPhotoIcon && <i className="bi bi-images"/>}
-                                  </ChangePhotoLabel>
-                                  <input type="file" id="product-photo" className="invisible position-absolute"
-                                         onChange={onChangeProductPhoto} accept="image/png, image/gif, image/jpeg"/>
-                                </>
-                                }
-                                <img src={productPhoto} className={`${enableDropShadow ? 'image-drop-shadow' : ''}`}
-                                     alt="" width="100%"
-                                     height="100%"/>
-                            </a>
+                          <a href="#" className="position-relative">
+
+                            <ChangePhotoLabel htmlFor="product-photo" data-toggle="tooltip" id="change-image"
+                                              title="Cambiar Foto del Producto">
+                                {!hideChangeProductPhotoIcon && <i className="bi bi-images"/>}
+                            </ChangePhotoLabel>
+                            <input type="file" id="product-photo" className="invisible position-absolute"
+                                   onChange={onChangeProductPhoto} accept="image/png, image/gif, image/jpeg"/>
+
+                            <img src={productPhoto} className={`${enableDropShadow ? 'image-drop-shadow' : ''}`}
+                                 alt="" width="100%"
+                                 height="100%"/>
+                          </a>
                         </Rnd>
-                    </ProductImageContainer>
+                      </ProductImageContainer>
+                    </>
+                    }
                 </ProductImageEditor>
 
                 <ModalBody>
