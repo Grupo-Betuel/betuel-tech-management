@@ -13,7 +13,8 @@ export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceT
     const body = JSON.stringify(products);
 
     try {
-        return await fetch(`${eCommerce !== 'facebook' ? process.env.REACT_APP_PROMOTION_API : localPromotionsApi}${eCommerce}`, {
+        // `${eCommerce !== 'facebook' ? process.env.REACT_APP_PROMOTION_API : localPromotionsApi}${eCommerce}`
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}${eCommerce}`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
