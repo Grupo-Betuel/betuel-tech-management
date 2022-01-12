@@ -269,7 +269,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                 [ecommerceType]: true
             }))
             toast(`Los productos terminarán de publicarse en ${ecommerceNames[ecommerceType]} pronto...`,
-                { type: 'default', autoClose: 45000 * data.length, pauseOnHover: false, closeButton: false })
+                { type: 'default', autoClose: 45000 * data.length, pauseOnHover: false, closeButton: false, pauseOnFocusLoss: false })
             const response: any = {}
             setPromotionLoading((data) => ({
                 ...data,
