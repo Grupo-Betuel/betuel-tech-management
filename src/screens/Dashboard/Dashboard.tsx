@@ -268,15 +268,20 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                 ...data,
                 [ecommerceType]: true
             }))
-            const response: any = await (await promoteProduct(data as IProduct[], ecommerceType)).json();
+            toast(`Los productos terminarán de publicarse en ${ecommerceNames[ecommerceType]} pronto...`,
+                { type: 'default', autoClose: 45000 * data.length, pauseOnHover: false, closeButton: false })
+            const response: any = {}
             setPromotionLoading((data) => ({
                 ...data,
                 [ecommerceType]: false
             }))
+
             if (!response.success) {
                 toast(`Error al Promocionar en ${ecommerceNames[ecommerceType]}: ${response.error}`, {type: "error"});
             } else {
-                toast(`¡Excelente! ¡Ya se publicaron los productos en ${ecommerceNames[ecommerceType]}!`, {type: "success"});
+                toast(`¡Excelente! ¡Ya se publicaron los productos en ${ecommerceNames[ecommerceType]}!`, {
+                    type: "success",
+                });
             }
         } catch (err) {
             console.error('promotion error: ', err);
