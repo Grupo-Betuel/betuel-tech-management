@@ -591,9 +591,9 @@ const ProductForm: React.FC<IProductFormProps> = (
                 </ModalBody>
                 {!portfolioMode &&
                 <ModalFooter>
+                  <Button color="danger" onClick={toggleModal} outline>Cancel</Button>{' '}
                   <Button color={isSubmiting || !isValidForm ? 'dark' : 'primary'} outline type="submit"
-                          disabled={isSubmiting || !isValidForm}>{editProduct ? 'Actualizar' : 'Añadir'}</Button>{' '}
-                  <Button color="danger" onClick={toggleModal} outline>Cancel</Button>
+                          disabled={isSubmiting || !isValidForm}>{editProduct ? 'Actualizar' : 'Añadir'}</Button>
                 </ModalFooter>
                 }
             </Form>
