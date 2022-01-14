@@ -150,8 +150,10 @@ const ProductForm: React.FC<IProductFormProps> = (
     useEffect(() => {
         setProduct(editProduct || {})
         setProductPhoto(editProduct && editProduct.productImage || logo)
-        setFlyerOptions(editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions) : flyerOptions);
-        setIncreaseNameFont(editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions).fontSize || nameInitialFontSize : nameInitialFontSize);
+        const flyerOptionItem = editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions) : flyerOptions;
+        setFlyerOptions(flyerOptionItem);
+        setIncreaseNameFont(flyerOptionItem.fontSize || nameInitialFontSize);
+        setEnableDropShadow(!!flyerOptionItem.enableShadow);
         validForm()
     }, [editProduct])
 
