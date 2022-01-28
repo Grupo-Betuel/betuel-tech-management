@@ -1,13 +1,13 @@
 import {
     Button,
-    CustomInput, Form,
+    Form,
     FormGroup,
     Input,
     Label,
     Modal,
     ModalBody,
     ModalFooter,
-    ModalHeader, Spinner, Tooltip,
+    ModalHeader, Spinner, Tooltip, CustomInput,
 } from "reactstrap";
 import React, { useCallback, useEffect, useRef } from "react";
 import { IProductData } from "../../model/products";
@@ -15,7 +15,7 @@ import { Rnd } from 'react-rnd';
 import logo from "../../assets/images/logo.png";
 import productBackground from "../../assets/images/product-background.png";
 import styled from "styled-components";
-import "./ProductForm.scss";
+import "./ProductModalForm.scss";
 import { toPng } from 'html-to-image';
 import { dataURItoBlob } from "../../utils/blob";
 import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
@@ -117,7 +117,7 @@ const ProductImageEditor: any = styled.div`
   }
 `
 
-const ProductForm: React.FC<IProductFormProps> = (
+const ProductModalForm: React.FC<IProductFormProps> = (
     {
         isOpen,
         toggle,
@@ -516,6 +516,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                     {!portfolioMode &&
                     <div className="d-flex justify-content-center">
                       <CustomInput
+                        id="first2"
                         type="switch"
                         label="Colocar Sombra"
                         checked={enableDropShadow}
@@ -575,6 +576,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                       </FormGroup>
                       <>
                         <CustomInput
+                          id="first"
                           type="switch"
                           label="¿Agregar Comisión Manualmente?"
                           checked={useCommission}
@@ -603,4 +605,4 @@ const ProductForm: React.FC<IProductFormProps> = (
     )
 }
 
-export default ProductForm;
+export default ProductModalForm;

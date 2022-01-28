@@ -229,6 +229,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                             </FormGroup>
                             <>
                                 <CustomInput
+                                    id="commission"
                                     type="switch"
                                     label="¿Incluye Comisión?"
                                     checked={useCommission}

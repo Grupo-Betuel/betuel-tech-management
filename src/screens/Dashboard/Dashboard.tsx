@@ -16,12 +16,13 @@ import { getRecordedDates, getSales } from "../../services/sales";
 import { ISale } from "../../model/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
-import ProductForm from "../../components/ProductForm/ProductForm";
+import ProductModalForm from "../../components/ProductModalForm/ProductModalForm";
 import { getProducts } from "../../services/products";
 import { ecommerceNames, ECommerceTypes, promoteProduct } from "../../services/promotions";
 import { IProduct } from "../../components/Product/Product";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router";
+import ClientModalForm from "../../components/ClientModalForm/ClientModalForm";
 
 const CreateNewProductButton = styled.button`
   position: fixed;
@@ -68,6 +69,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
     const [activeAddSaleModal, setActiveAddSaleModal] = React.useState(false);
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [loadingApp, setLoadingApp] = React.useState(false);
+    const [clientModalIsOpen, setClientModalIsOpen] = React.useState(true);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
     const [promotionLoading, setPromotionLoading] = React.useState<{ [N in ECommerceTypes]?: boolean }>({});
     const [enableSelection, setEnableSelection] = React.useState(false);
@@ -269,7 +271,13 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                 [ecommerceType]: true
             }))
             toast(`Los productos terminarán de publicarse en ${ecommerceNames[ecommerceType]} pronto...`,
-                { type: 'default', autoClose: 45000 * data.length, pauseOnHover: false, closeButton: false, pauseOnFocusLoss: false })
+                {
+                    type: 'default',
+                    autoClose: 45000 * data.length,
+                    pauseOnHover: false,
+                    closeButton: false,
+                    pauseOnFocusLoss: false
+                })
             const response: any = await (await promoteProduct(data as IProduct[], ecommerceType)).json();
             setPromotionLoading((data) => ({
                 ...data,
@@ -300,12 +308,19 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
     }
 
     const togglePortfolioDashboard = () => {
-        if(portfolioMode) {
+        if (portfolioMode) {
             history.push('/dashboard');
         } else {
             history.push('/portfolio');
         }
     }
+
+    const toggleClientFormModal = () => setClientModalIsOpen(!clientModalIsOpen);
+
+    const handleWhatsappPromotion = () => {
+        toggleClientFormModal();
+    }
+
     return (
         <>
             {
@@ -327,12 +342,14 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                 className="d-flex align-items-center flex-column"
             >
                 {localStorage.getItem('authToken') && <Col sm={8} className="position-relative">
-                    <LogOutButton className="btn btn-outline-danger" title="Salir" onClick={logOut}>
-                        <i className="bi bi-box-arrow-right"/>
-                    </LogOutButton>
-                    <LogOutButton className="btn btn-outline-danger go-to-portfolio" title={`Ir al ${portfolioMode ? 'Dashboard' : 'al Portafolio'}`} onClick={togglePortfolioDashboard}>
-                        <i className={`bi ${ portfolioMode ? 'bi-skip-backward-fill' : 'bi-skip-forward-fill' } `}/>
-                    </LogOutButton>
+                  <LogOutButton className="btn btn-outline-danger" title="Salir" onClick={logOut}>
+                    <i className="bi bi-box-arrow-right"/>
+                  </LogOutButton>
+                  <LogOutButton className="btn btn-outline-danger go-to-portfolio"
+                                title={`Ir al ${portfolioMode ? 'Dashboard' : 'al Portafolio'}`}
+                                onClick={togglePortfolioDashboard}>
+                    <i className={`bi ${portfolioMode ? 'bi-skip-backward-fill' : 'bi-skip-forward-fill'} `}/>
+                  </LogOutButton>
                 </Col>}
                 <Col lg={2} md={4} sm={4} className="p-4">
                     <img src={Logo} alt="Logo AudSongs" className="w-100"/>
@@ -363,6 +380,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     <div>
                       <Label className="d-flex flex-column align-items-center cursor-pointer">
                         <CustomInput
+                          id="selection"
                           type="switch"
                           className="customize-switch enable-selection-switch d-block"
                           onChange={toggleEnableSelection}
@@ -373,6 +391,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     <div className="d-flex align-items-center">
                       <label className="mr-2 mb-0">Más Ingresos</label>
                       <CustomInput
+                        id="sales"
                         type="switch"
                         label="Más Vendidos"
                         className="customize-switch"
@@ -380,6 +399,15 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                       />
                     </div>
                     <div className={`d-flex align-items-center ${!enableSelection ? 'disable-promotions' : ''}`}>
+                      <PromotionOption loading={promotionLoading.facebook}>
+                        <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                        <i data-toggle="tooltip"
+                           title="Enviar Seleccionados por Whatsapp"
+                           className="bi bi-whatsapp text-success cursor-pointer promotion-icon facebook-icon"
+                           onClick={handleWhatsappPromotion}
+                        />
+                      </PromotionOption>
+
                       <PromotionOption loading={promotionLoading.facebook}>
                         <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
                         <i data-toggle="tooltip"
@@ -471,7 +499,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
               <i className="bi-plus"/>
             </CreateNewProductButton>}
 
-            <ProductForm
+            <ProductModalForm
                 portfolioMode={portfolioMode}
                 handlePromoteProduct={handlePromoteProduct}
                 promotionLoading={promotionLoading}
@@ -479,6 +507,13 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                 isOpen={productFormIsOpen}
                 toggle={toggleProductForm}
                 editProduct={editProduct}/>
+
+            <ClientModalForm
+                promotionLoading={promotionLoading}
+                isOpen={clientModalIsOpen}
+                loadClients={getAllProducts}
+                toggle={toggleClientFormModal}
+            />
         </>
     )
 };
