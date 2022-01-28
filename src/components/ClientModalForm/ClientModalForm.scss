@@ -1,6 +1,7 @@
-.client-form-container {
-  .modal-content {
-
-  }
+.tags-container {
+  display: flex;
+  align-items: center;
+  flex-wrap: nowrap;
+  overflow: scroll;
+  width: 100%;
 }
-

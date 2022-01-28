@@ -518,7 +518,6 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
             <ClientModalForm
                 promotionLoading={promotionLoading}
                 isOpen={clientModalIsOpen}
-                loadClients={getAllProducts}
                 toggle={toggleClientFormModal}
             />
         </>

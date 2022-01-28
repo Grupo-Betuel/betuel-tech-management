@@ -7,11 +7,13 @@ import { addClient, deleteClient, updateClients } from "../../services/clients";
 
 export interface IClientList {
     clientList: IClient[];
+    maxItems?: number;
 }
 
 const ClientList: React.FC<IClientList> = (
     {
         clientList,
+        maxItems = 5,
     }
 ) => {
     const [editableList, setEditableList] = React.useState<boolean[]>([false]);
@@ -24,7 +26,7 @@ const ClientList: React.FC<IClientList> = (
 
     React.useEffect(() => {
         setClients(clientList || [])
-        setCheckedClients(clientList || [])
+        !checkedClients.length && setCheckedClients(clientList || [])
     }, [clientList])
 
     const toggleEditable = (index: number) => () => {
@@ -139,7 +141,7 @@ const ClientList: React.FC<IClientList> = (
                         </div>
                     </>
             }
-            {clients.length && clients.map((client, index) => (
+            {clients.length && clients.slice(0, maxItems).map((client, index) => (
                 <div className="d-flex align-items-center w-100 mb-3">
                     { editableList[index] ?
                         <i className="bi bi-dash-circle-fill cursor-pointer text-danger mr-3" onClick={handleDeleteClient(client, index)} />
