@@ -403,7 +403,14 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                         <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
                         <i data-toggle="tooltip"
                            title="Enviar Seleccionados por Whatsapp"
-                           className="bi bi-whatsapp text-success cursor-pointer promotion-icon facebook-icon"
+                           className="bi bi-instagram instagram-icon cursor-pointer promotion-icon"
+                        />
+                      </PromotionOption>
+                      <PromotionOption loading={promotionLoading.whatsapp}>
+                        <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                        <i data-toggle="tooltip"
+                           title="Enviar Seleccionados por Whatsapp"
+                           className="bi bi-whatsapp text-success cursor-pointer promotion-icon"
                            onClick={handleWhatsappPromotion}
                         />
                       </PromotionOption>

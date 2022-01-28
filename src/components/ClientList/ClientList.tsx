@@ -3,7 +3,7 @@ import { ClientItem } from "..";
 import { IClient } from "../../model/interfaces/ClientModel";
 import { Pagination, Spinner, Modal, ModalBody, ModalFooter, Button, Input } from "reactstrap";
 import { toast } from "react-toastify";
-import { addClient } from "../../services/clients";
+import { addClient, deleteClient, updateClients } from "../../services/clients";
 
 export interface IClientList {
     clientList: IClient[];
@@ -20,6 +20,7 @@ const ClientList: React.FC<IClientList> = (
     const [checkedClients, setCheckedClients] = React.useState<IClient[]>([]);
     const [deleteClientIsOpen, setDeleteClientIsOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
+    const [deleteId, setDeleteId] = React.useState();
 
     React.useEffect(() => {
         setClients(clientList || [])
@@ -50,7 +51,8 @@ const ClientList: React.FC<IClientList> = (
     }
 
     const handleDeleteClient = (client: IClient, index: number) => () => {
-        if (client && client.number) {
+        if (client && client._id) {
+            setDeleteId(client._id)
             toggleDeleteClient();
         } else {
             removeClientFromList(index);
@@ -66,19 +68,37 @@ const ClientList: React.FC<IClientList> = (
         setClients([...data]);
     }
 
-    const deleteClient = () => {
+    const acceptDeleteClient = async () => {
+        setLoading(true);
+        toggleDeleteClient();
+        const index = clients.indexOf(clients.find(item => item._id === deleteId) || {} as any)
+        const response = await deleteClient(JSON.stringify({ _id: deleteId }));
+        if(response.status === 204) {
+            removeClientFromList(index)
+        } else {
+            toast('Error mientras eliminaba', {type: 'error'})
+        }
+        setLoading(false);
 
     }
 
     const saveClient = (index: number) => async () => {
         setLoading(true);
-        if (tempClients[index]) {
-            if (tempClients[index].number) {
-                clients[index] = tempClients[index];
-                setClients([...clients]);
-                const response = await addClient(JSON.stringify(tempClients[index]));
-                if(response.status === 201) {
-                    toast('¡Cliente Agregado Correctamente!', {type: 'success'})
+        const temp = tempClients[index];
+        if (temp) {
+            if (temp.number) {
+                let response;
+                if(temp._id) {
+                    response = await updateClients(JSON.stringify(temp));
+                } else {
+                    response = await addClient(JSON.stringify(temp));
+                }
+
+                if(response.status === 201 || response.status === 200) {
+                    clients[index] = response.status === 200 ? temp : (await response.json() as any);
+                    console.log(clients[index], 'klk');
+                    setClients([...clients]);
+                    toast(`¡Cliente ${temp._id ? 'Actualizado' : 'Agregado'} Correctamente!`, {type: 'success'})
                 } else {
                     console.log(response, 'error');
                     toast('error', {type: 'error'})
@@ -98,11 +118,11 @@ const ClientList: React.FC<IClientList> = (
     }
 
     const onCheckClient = (client: IClient, index: number) => (e: any) => {
-        let data = checkedClients;
+        let data = [...checkedClients];
         if(e.target.checked) {
             data[index] = client;
         } else {
-            data = data.filter((item, i) => i !== index);
+            delete data[index];
         }
         setCheckedClients(() => [...data]);
 
@@ -160,7 +180,7 @@ const ClientList: React.FC<IClientList> = (
                     <h4 className="text-center">¿Seguro que quieres eliminar este cliente?</h4>
                     <div className="mt-4 d-flex align-items-center justify-content-center">
                         <Button color="info" onClick={toggleDeleteClient} className="mr-4" outline>Cancel</Button>{' '}
-                        <Button outline onClick={deleteClient}>Eliminar</Button>
+                        <Button color="danger" outline onClick={acceptDeleteClient}>Eliminar</Button>
                     </div>
                 </ModalBody>
             </Modal>
