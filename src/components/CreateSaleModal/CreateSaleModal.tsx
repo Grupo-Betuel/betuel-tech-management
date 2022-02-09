@@ -1,6 +1,5 @@
 import {
     Button,
-    CustomInput,
     FormGroup,
     Input,
     Label,
@@ -228,7 +227,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                        placeholder="Envio:" value={sale.shipping}/>
                             </FormGroup>
                             <>
-                                <CustomInput
+                                <Input
                                     id="commission"
                                     type="switch"
                                     label="¿Incluye Comisión?"

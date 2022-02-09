@@ -97,6 +97,7 @@ const ClientItem: React.FC<IClientItem> = (
                     name="number"
                     id="number"
                     value={client.number}
+                    maxLength={10}
                 />
                 <span className="client-item-data">{client.number}</span>
             </FormGroup>

@@ -1,7 +1,7 @@
 import React, { ChangeEvent } from 'react';
 import "./Product.scss";
 import { IProductData } from "../../model/products";
-import { Button, CustomInput, Input, Spinner } from "reactstrap";
+import { Button } from "reactstrap";
 import { ISale } from "../../model/interfaces/SalesModel";
 
 export interface IProduct extends IProductData {
@@ -42,7 +42,7 @@ const Product: React.FunctionComponent<IProduct> = ({
     const [useShipping, setUseShipping] = React.useState(false);
     const [useComission, setUseCommission] = React.useState(false);
     const [enableProductOptions, setEnableProductOptions] = React.useState(false);
-    const [shippingPrice, setShippingPrice] = React.useState();
+    const [shippingPrice, setShippingPrice] = React.useState<any>();
     const [isLoading, setIsLoading] = React.useState(false);
 
     React.useEffect(() => setEnableProductOptions(false), [enableSelection])

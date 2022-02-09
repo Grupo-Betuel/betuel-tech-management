@@ -1,7 +1,28 @@
-.tags-container {
-  display: flex;
-  align-items: center;
-  flex-wrap: nowrap;
-  overflow: scroll;
-  width: 100%;
+.client-form-container {
+  width: 60vw !important;
+  max-width: unset !important;
 }
+
+
+@media screen and (max-width: 800px) {
+  .client-form-container {
+    width: 80vw !important;
+  }
+
+}
+
+@media screen and (max-width: 500px) {
+  .client-form-container {
+    width: 100vw !important;
+  }
+
+}
+
+//@media screen and (max-width: 400px) {
+//  .client-form-container {
+//    .modal-dialog {
+//      width: 100vw;
+//    }
+//  }
+//
+//}

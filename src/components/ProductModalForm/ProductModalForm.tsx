@@ -7,7 +7,7 @@ import {
     Modal,
     ModalBody,
     ModalFooter,
-    ModalHeader, Spinner, Tooltip, CustomInput,
+    ModalHeader, Spinner, Tooltip,
 } from "reactstrap";
 import React, { useCallback, useEffect, useRef } from "react";
 import { IProductData } from "../../model/products";
@@ -515,7 +515,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                             </div> : null}
                     {!portfolioMode &&
                     <div className="d-flex justify-content-center">
-                      <CustomInput
+                      <Input
                         id="first2"
                         type="switch"
                         label="Colocar Sombra"
@@ -530,7 +530,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                             editProduct ?
                                 <Button color="success" className="mb-3 d-flex align-items-center" outline
                                         onClick={sendWhatsappMessage}>
-                                        <span className="mr-2">
+                                        <span className="me-2">
                                             Pedir por Whatsapp
                                         </span>
                                     <i className="bi bi-whatsapp"/>
@@ -575,7 +575,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                   onChange={onChangeProduct}/>
                       </FormGroup>
                       <>
-                        <CustomInput
+                        <Input
                           id="first"
                           type="switch"
                           label="¿Agregar Comisión Manualmente?"

@@ -4,7 +4,7 @@ import {
     Row,
     FormGroup,
     Input,
-    Spinner, CustomInput, Label
+    Spinner, Label
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
 import Logo from "../../assets/images/logo.png"
@@ -379,7 +379,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     className="d-flex justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
                     <div>
                       <Label className="d-flex flex-column align-items-center cursor-pointer">
-                        <CustomInput
+                        <Input
                           id="selection"
                           type="switch"
                           className="customize-switch enable-selection-switch d-block"
@@ -389,8 +389,8 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                       </Label>
                     </div>
                     <div className="d-flex align-items-center">
-                      <label className="mr-2 mb-0">Más Ingresos</label>
-                      <CustomInput
+                      <label className="me-2 mb-0">Más Ingresos</label>
+                      <Input
                         id="sales"
                         type="switch"
                         label="Más Vendidos"
