@@ -93,7 +93,6 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
         setProductFormIsOpen(!productFormIsOpen);
     }
 
-
     const loadProductDetails = (product: Partial<IProductData>) => {
         setEditProduct(product);
         setProductFormIsOpen(true)

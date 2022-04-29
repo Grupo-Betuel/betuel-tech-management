@@ -19,9 +19,10 @@ import { getTags } from "../../services/tags";
 import { ITag } from "../../model/interfaces/TagModel";
 
 export interface IClientList {
+    onSelectClient?: (data: IClient[]) => any;
 }
 
-const ClientList: React.FC<IClientList> = () => {
+const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
     const [editableList, setEditableList] = React.useState<boolean[]>([false]);
     const [clients, setClients] = React.useState<IClient[]>([]);
     const [tempClients, setTempClients] = React.useState<IClient[]>([]);
@@ -168,7 +169,7 @@ const ClientList: React.FC<IClientList> = () => {
             delete data[index];
         }
         setCheckedClients(() => [...data]);
-
+        onSelectClient && onSelectClient(data);
     };
 
     const setTagToClient = (client: IClient, tag: ITag) => async (e: any) => {

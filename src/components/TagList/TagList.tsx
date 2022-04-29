@@ -1,6 +1,6 @@
 import React from "react";
 import styled from "styled-components";
-import { Modal, ModalBody, Button } from "reactstrap";
+import { Modal, ModalBody, Button, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { addTag, deleteTag, getTags } from "../../services/tags";
 import { ITag } from "../../model/interfaces/TagModel";
@@ -79,7 +79,7 @@ const TagList: React.FC<ITagList> = ({
     }
 
     React.useEffect(() => {
-        getAllTags();
+        getAllTags().then();
     }, []);
 
     const onChangeTagTitle = (e: any) => {
@@ -147,7 +147,15 @@ const TagList: React.FC<ITagList> = ({
 
     return (
         <>
-            <TagContainer className="mb-1">
+            <TagContainer className="mb-1 position-relative">
+                {
+                    !loading ? null :
+                        <>
+                            <div className="loading-sale-container">
+                                <Spinner animation="grow" variant="secondary"/>
+                            </div>
+                        </>
+                }
                 <i className="bi bi-plus-lg text-danger cursor-pointer add-tag-icon" onClick={toggleTagNameModal}/>
                 {
                     tags.map((tag, itag) => (

@@ -11,6 +11,7 @@ import './ClientModalForm.scss';
 import { ECommerceTypes } from '../../services/promotions';
 import ClientList from "../ClientList/ClientList";
 import { IClient } from "../../model/interfaces/ClientModel";
+import { Messaging } from "../index";
 
 export interface IClientFormProps {
     toggle: () => any;
@@ -28,8 +29,10 @@ const ClientModalForm: React.FC<IClientFormProps> = (
     },
 ) => {
     const [client, setClient] = React.useState<Partial<any>>(editClient || {});
+    const [clients, setClients] = React.useState<IClient[]>([]);
     const [isValidForm, setIsValidForm] = React.useState(false);
     const [isSubmiting, setIsSubmiting] = React.useState(false);
+    const [step, setStep] = React.useState(1);
 
     useEffect(() => {
         setClient(editClient || {});
@@ -59,16 +62,30 @@ const ClientModalForm: React.FC<IClientFormProps> = (
         setIsValidForm(['name', 'cost', 'price', 'commission'].map((key: any) => !!(client as any)[key]).reduce((a, b) => a && b, true));
     };
 
-    return (
+    const handleSubmit = () => {
+        if (step === 1) {
+            setStep(2);
 
+        } else {
+            setStep(1);
+        }
+
+    }
+
+    const onSelectClient = (data: IClient[]) => {
+        setClients(data)
+    }
+
+    return (
         <Modal isOpen={isOpen} toggle={toggleModal} className="client-form-container">
+
             {
                 isSubmiting ?
-                     (
+                    (
                         <div className="loading-sale-container">
                             <Spinner animation="grow" variant="secondary"/>
                         </div>
-                    ): null
+                    ) : null
             }
             <ModalHeader
                 toggle={toggleModal}
@@ -77,17 +94,22 @@ const ClientModalForm: React.FC<IClientFormProps> = (
             </ModalHeader>
             <ModalBody>
                 <Form onSubmit={!isSubmiting && isValidForm ? onSubmit : undefined}>
-                    <ClientList />
+                    <div className={step === 2 ? 'd-block' : 'd-none'}>
+                        <ClientList onSelectClient={onSelectClient}/>
+                    </div>
+                    <div className={step === 1 ? 'd-block' : 'd-none'}>
+                        <Messaging contacts={clients}/>
+                    </div>
                     <ModalFooter>
-                        <Button color="info" onClick={toggleModal} outline>Añadir Etiqueta</Button>
+                        {step === 1 && <Button color="info" onClick={toggleModal} outline>Añadir Etiqueta</Button>}
                         {' '}
                         <Button
-                            color={isSubmiting || !isValidForm ? 'dark' : 'primary'}
+                            color="success"
                             outline
-                            type="submit"
-                            disabled={isSubmiting || !isValidForm}
+                            type="button"
+                            onClick={handleSubmit}
                         >
-                            Siguiente
+                            {step === 1 ? 'Siguiente' : 'Volver'}
                         </Button>
                     </ModalFooter>
                 </Form>

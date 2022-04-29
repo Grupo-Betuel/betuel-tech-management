@@ -54,29 +54,6 @@ const Product: React.FunctionComponent<IProduct> = ({
         }
     }
 
-    const toggleSaleOptions = (ev: any) => {
-        const {id} = ev.target;
-        setSaleOptions({
-            ...defaultSaleOptions,
-            [id]: true,
-        })
-    };
-
-    const shippingOnChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const {checked} = e.target;
-        setUseShipping(checked);
-    };
-
-    const commissionOnChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const {checked} = e.target;
-        setUseCommission(checked);
-    };
-
-    const shippingPriceOnChange = (e: ChangeEvent<HTMLInputElement>) => {
-        const {value} = e.target;
-
-        setShippingPrice(value ? Number(value) : value);
-    };
 
     const resetSaleOptions = () => {
         setUseCommission(false);
