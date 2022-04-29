@@ -48,9 +48,7 @@ const Messaging: React.FC<IMessaging> = (
     }, []);
 
     return (
-
         <MessagingContainer className="position-relative">
-            {console.log('logged', logged, loading)}
             {logged && <LogOutButton
               title="Cerrar Sesión"
               className="bi bi-power text-danger log-out-icon cursor-pointer"

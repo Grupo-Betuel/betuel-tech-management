@@ -45,18 +45,15 @@ const useWhatsapp = () => {
 
     // handling whatsapp service
     React.useEffect(() => {
-        console.log('initializing.......')
         if(socket) {
             generateQr('init');
             socket.on('connect', () => {
                 onSocketOnce(socket,'whatsapp-loading', ({loading}) => {
-                    console.log('loading', loading);
                     setLoading(loading)
                 })
                 // generating qr code
                 onSocketOnce(socket,'whatsapp-qr-code', ({qrCode}) => {
                     generateQr(qrCode);
-                    console.log('qrCode', qrCode);
                     setLoading(false);
                 });
 
