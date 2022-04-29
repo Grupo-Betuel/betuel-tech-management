@@ -3,17 +3,17 @@ import React from "react";
 import QRCode from 'qrcode';
 import { startWhatsappServices, sendWhatsappMessage } from "../../services/promotions";
 import { toast } from "react-toastify";
-import { DEV_SOCKET_URL, onSocketOnce } from "../../utils/socket.io";
+import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce, PROD_SOCKET_URL } from "../../utils/socket.io";
 import styled from "styled-components";
 import * as io from "socket.io-client";
-import { WhatsappClientIds } from "../../model/interfaces/WhatsappModels";
+import { WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
 
 export const QrCanvas = styled.canvas`
   width: 100% !important;
   height: 100% !important;
 `
 
-const useWhatsapp = () => {
+const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     const [logged, setLogged] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
     const [socket, setSocket] = React.useState<io.Socket>()
@@ -24,14 +24,23 @@ const useWhatsapp = () => {
         }
     }, [])
 
-    const startWhatsapp = async (start = true) => {
-        const response: any = await (await startWhatsappServices(start, WhatsappClientIds.BETUEL_TECH)).json();
+    const handleWhatsapp = async (start: boolean, sessionId:WhatsappSessionTypes) => {
+        const response: any = await (await startWhatsappServices(start, sessionId)).json();
         return response;
     }
 
-    const logOut = async () => {
-       return await startWhatsapp(false);
-        // return await startWhatsapp();
+
+    const login = async (sessionId: WhatsappSessionTypes) => {
+        return handleWhatsapp(true, sessionId).then(res => {
+            const { status } = res;
+            toast(`Whatsapp is ${status}`);
+            setLogged(status === 'logged')
+            setLoading(status !== 'logged')
+        });
+    }
+
+    const logOut = async (sessionId: WhatsappSessionTypes) => {
+        return handleWhatsapp(false, sessionId);
     };
 
     const generateQr = (data: any) => {
@@ -47,7 +56,7 @@ const useWhatsapp = () => {
     React.useEffect(() => {
         if(socket) {
             generateQr('init');
-            socket.on('connect', () => {
+            socket.on(CONNECTED_EVENT, () => {
                 onSocketOnce(socket,'whatsapp-loading', ({loading}) => {
                     setLoading(loading)
                 })
@@ -63,7 +72,6 @@ const useWhatsapp = () => {
                 });
 
                 onSocketOnce(socket,'whatsapp-auth-fail', async () => {
-                    await startWhatsapp();
                     setLogged(false)
                     setLoading(false);
                 });
@@ -76,14 +84,8 @@ const useWhatsapp = () => {
                 onSocketOnce(socket,'whatsapp-logged-out', () => {
                     toast('Sesión de Whatsapp Cerrada');
                     setLogged(false);
-                    startWhatsapp();
                 });
-
-                startWhatsapp().then(res => {
-                    toast(`Whatsapp is ${res.status}`);
-                    setLogged(!!res.logged);
-                });
-
+                login(whatsappSessionId)
             })
         }
 
@@ -97,15 +99,17 @@ const useWhatsapp = () => {
         }
     }
 
-    const sendMessage = (contacts: IClient[]) => async () => await sendWhatsappMessage(contacts)
+    const sendMessage = (sessionId: WhatsappSessionTypes, contacts: IClient[]) => async () => await sendWhatsappMessage(sessionId, contacts)
 
     return {
         logged,
         loading,
-        startWhatsapp,
+        login,
         logOut,
         handleWhatsappMessaging,
         sendMessage,
+        setLogged,
+        setLoading,
         qrElement: <QrCanvas id="canvas-qr" />
     };
 

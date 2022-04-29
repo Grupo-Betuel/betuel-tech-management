@@ -94,10 +94,10 @@ const ClientModalForm: React.FC<IClientFormProps> = (
             </ModalHeader>
             <ModalBody>
                 <Form onSubmit={!isSubmiting && isValidForm ? onSubmit : undefined}>
-                    <div className={step === 1 ? 'd-block' : 'd-none'}>
+                    <div className={step === 2 ? 'd-block' : 'd-none'}>
                         <ClientList onSelectClient={onSelectClient}/>
                     </div>
-                    <div className={step === 2 ? 'd-block' : 'd-none'}>
+                    <div className={step === 1 ? 'd-block' : 'd-none'}>
                         <Messaging contacts={clients}/>
                     </div>
                     <ModalFooter>

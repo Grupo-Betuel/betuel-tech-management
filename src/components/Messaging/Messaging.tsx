@@ -1,9 +1,16 @@
 import { IClient } from "../../model/interfaces/ClientModel";
-import React from "react";
+import React, { useState } from "react";
 import styled from "styled-components";
 import { Button, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import useWhatsapp from "../hooks/UseWhatsapp";
+import { TagContainer, TagItem } from "../Tag/Tag";
+import {
+    whatsappSessionKeys,
+    whatsappSessionList,
+    whatsappSessionNames,
+    WhatsappSessionTypes
+} from "../../model/interfaces/WhatsappModels";
 
 export interface IMessaging {
     contacts: IClient[]
@@ -18,11 +25,13 @@ export const LogOutButton = styled.i`
 
 export const MessagingContainer = styled.div`
 `
+
 const Messaging: React.FC<IMessaging> = (
     {
         contacts,
     }
 ) => {
+    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.betueltgroup)
 
     const {
         logged,
@@ -30,8 +39,11 @@ const Messaging: React.FC<IMessaging> = (
         logOut,
         handleWhatsappMessaging,
         sendMessage,
-        qrElement
-    } = useWhatsapp();
+        qrElement,
+        login,
+        setLogged,
+        setLoading,
+    } = useWhatsapp(selectedSession);
 
     const onMessageSent = (contact: IClient) => {
         console.log('contact', contact)
@@ -47,12 +59,31 @@ const Messaging: React.FC<IMessaging> = (
         handleWhatsappMessaging(onMessageSent, onMessageEnd);
     }, []);
 
+    const changeSession = (sessionKey: WhatsappSessionTypes) => {
+        login(sessionKey)
+    }
+
+    const selectSession = (sessionKey: WhatsappSessionTypes) => () => {
+        setSelectedSession(sessionKey)
+        changeSession(sessionKey)
+    }
+
     return (
         <MessagingContainer className="position-relative">
+            <TagContainer className="d-flex w-100">
+                {
+                    whatsappSessionList.map((sessionKey, key) => (
+                        <TagItem onClick={selectSession(sessionKey)}
+                                 selected={selectedSession === sessionKey} key={key}>
+                            <span>{whatsappSessionNames[sessionKey]}</span>
+                        </TagItem>
+                    ))
+                }
+            </TagContainer>
             {logged && <LogOutButton
               title="Cerrar Sesión"
               className="bi bi-power text-danger log-out-icon cursor-pointer"
-              onClick={logOut}/>}
+              onClick={() => logOut(selectedSession)}/>}
             {
                 loading ?
                     (
@@ -65,7 +96,6 @@ const Messaging: React.FC<IMessaging> = (
                 <div>
                     <h3 className="text-center mb-3">Escanear con Whatsapp</h3>
                     {qrElement}
-                    {/*<QrElement id="canvas-qr" className="whatsapp-qr"/>*/}
                 </div>
                 :
 
@@ -75,7 +105,7 @@ const Messaging: React.FC<IMessaging> = (
                         className="mb-3 w-100"
                         rows={10}
                     />
-                    <Button color="success" outline onClick={sendMessage(contacts)}>Send Message</Button>
+                    <Button color="success" outline onClick={sendMessage(selectedSession, contacts)}>Send Message</Button>
                 </div>
             }
         </MessagingContainer>

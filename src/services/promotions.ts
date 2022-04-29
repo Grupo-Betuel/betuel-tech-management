@@ -1,6 +1,6 @@
 import { IProduct } from "../components/Product/Product";
 import { IClient } from "../model/interfaces/ClientModel";
-import { WhatsappClientIdsTypes } from "../model/interfaces/WhatsappModels";
+import { WhatsappSessionTypes } from "../model/interfaces/WhatsappModels";
 
 export const localPromotionsApi = 'http://10.0.0.13:5000/api/';
 export const whatsappPhone = '+18298937075';
@@ -12,6 +12,8 @@ export const ecommerceNames: { [N in ECommerceTypes]: string } = {
     whatsapp: 'Whatsapp Messenger',
 }
 export const getWhatsappMessageURL = (message: string) => `https://wa.me/${whatsappPhone}?text=${encodeURI(message)}`;
+
+
 
 export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceTypes) => {
     const body = JSON.stringify(products);
@@ -33,7 +35,7 @@ export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceT
 }
 
 
-export const startWhatsappServices = async (start = true, clientId: WhatsappClientIdsTypes) => {
+export const startWhatsappServices = async (start = true, sessionId: WhatsappSessionTypes) => {
     try {
         return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp`, {
                 method: 'POST',
@@ -41,7 +43,7 @@ export const startWhatsappServices = async (start = true, clientId: WhatsappClie
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({start, clientId}),
+                body: JSON.stringify({start, sessionId}),
             }
         );
     } catch (e) {
@@ -49,7 +51,7 @@ export const startWhatsappServices = async (start = true, clientId: WhatsappClie
     }
 }
 
-export const sendWhatsappMessage = async (contacts: IClient[]) => {
+export const sendWhatsappMessage = async (sessionId: WhatsappSessionTypes, contacts: IClient[]) => {
     console.log(contacts, 'clients');
     try {
         return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/message`, {
@@ -58,7 +60,10 @@ export const sendWhatsappMessage = async (contacts: IClient[]) => {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({contacts: contacts.filter(item => !!item)}),
+                body: JSON.stringify({
+                    sessionId,
+                    contacts: contacts.filter(item => !!item),
+                }),
             }
         );
     } catch (e) {
