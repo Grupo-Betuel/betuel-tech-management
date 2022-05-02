@@ -5,6 +5,10 @@ export const whatsappSessionKeys: {[K in WhatsappSessionTypes]: WhatsappSessionT
     betueltgroup: 'betueltgroup',
     betueltravel: 'betueltravel',
 }
+export interface IWhatsappMessage {
+    text?: string;
+    photo?: Blob;
+}
 export const whatsappSessionNames: {[K in WhatsappSessionTypes]: string} = {
     betueltgroup: 'Betuel Group',
     betueltravel: 'Betuel Travel',

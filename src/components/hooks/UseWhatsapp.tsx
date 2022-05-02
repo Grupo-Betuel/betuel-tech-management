@@ -6,7 +6,7 @@ import { toast } from "react-toastify";
 import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce, PROD_SOCKET_URL } from "../../utils/socket.io";
 import styled from "styled-components";
 import * as io from "socket.io-client";
-import { WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
+import { IWhatsappMessage, WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
 
 export const QrCanvas = styled.canvas`
   width: 100% !important;
@@ -99,7 +99,8 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         }
     }
 
-    const sendMessage = (sessionId: WhatsappSessionTypes, contacts: IClient[]) => async () => await sendWhatsappMessage(sessionId, contacts)
+    const sendMessage = async (sessionId: WhatsappSessionTypes, contacts: IClient[], message: IWhatsappMessage) =>
+        await sendWhatsappMessage(sessionId, contacts, message)
 
     return {
         logged,

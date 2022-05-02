@@ -1,6 +1,6 @@
 import { IProduct } from "../components/Product/Product";
 import { IClient } from "../model/interfaces/ClientModel";
-import { WhatsappSessionTypes } from "../model/interfaces/WhatsappModels";
+import { IWhatsappMessage, WhatsappSessionTypes } from "../model/interfaces/WhatsappModels";
 
 export const localPromotionsApi = 'http://10.0.0.13:5000/api/';
 export const whatsappPhone = '+18298937075';
@@ -51,7 +51,7 @@ export const startWhatsappServices = async (start = true, sessionId: WhatsappSes
     }
 }
 
-export const sendWhatsappMessage = async (sessionId: WhatsappSessionTypes, contacts: IClient[]) => {
+export const sendWhatsappMessage = async (sessionId: WhatsappSessionTypes, contacts: IClient[], message: IWhatsappMessage) => {
     console.log(contacts, 'clients');
     try {
         return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/message`, {
@@ -62,6 +62,7 @@ export const sendWhatsappMessage = async (sessionId: WhatsappSessionTypes, conta
                 },
                 body: JSON.stringify({
                     sessionId,
+                    message,
                     contacts: contacts.filter(item => !!item),
                 }),
             }

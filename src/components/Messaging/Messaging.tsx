@@ -1,5 +1,5 @@
 import { IClient } from "../../model/interfaces/ClientModel";
-import React, { useState } from "react";
+import React, { ChangeEvent, useState } from "react";
 import styled from "styled-components";
 import { Button, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
@@ -31,7 +31,9 @@ const Messaging: React.FC<IMessaging> = (
         contacts,
     }
 ) => {
-    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.betueltgroup)
+    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.wpadilla)
+    const [message, setMessage] = useState<string>('')
+    const [photo, setPhoto] = useState<any>()
 
     const {
         logged,
@@ -41,8 +43,6 @@ const Messaging: React.FC<IMessaging> = (
         sendMessage,
         qrElement,
         login,
-        setLogged,
-        setLoading,
     } = useWhatsapp(selectedSession);
 
     const onMessageSent = (contact: IClient) => {
@@ -66,6 +66,42 @@ const Messaging: React.FC<IMessaging> = (
     const selectSession = (sessionKey: WhatsappSessionTypes) => () => {
         setSelectedSession(sessionKey)
         changeSession(sessionKey)
+    }
+    const handleSendMessage = (sessionId: WhatsappSessionTypes, contacts: IClient[]) => async () => {
+        const contactList = [
+            {
+                firstName: 'Luz',
+                lastName: 'De Padilla',
+                number: '8493846548',
+            },
+            {
+                firstName: 'Williams',
+                lastName: 'De Pena',
+                number: '8094055531',
+            },
+        ]
+
+        sendMessage(sessionId, contacts, {text: message, photo})
+    }
+
+    const onChangeMessage = (e: any) => {
+        const {value} = e.target;
+        setMessage(value);
+    }
+
+    const onSelectPhoto = async (event: any) => {
+
+        const {files} = event.target;
+        if (FileReader && files.length) {
+            const fr = new FileReader();
+
+            fr.onload = async () => {
+                console.log(fr.result);
+                setPhoto(fr.result);
+            }
+
+            fr.readAsDataURL(files[0]);
+        }
     }
 
     return (
@@ -98,14 +134,25 @@ const Messaging: React.FC<IMessaging> = (
                     {qrElement}
                 </div>
                 :
-
                 <div>
                     <h3 className="text-center mb-3">Enviar Mensaje</h3>
+                    <p className="mt-2">Puedes usar @firstName, @lastName y @number para personalizar el mensaje</p>
                     <textarea
                         className="mb-3 w-100"
+                        onChange={onChangeMessage}
                         rows={10}
                     />
-                    <Button color="success" outline onClick={sendMessage(selectedSession, contacts)}>Send Message</Button>
+
+                    <div>
+                        <input
+                            onChange={onSelectPhoto}
+                            type="file"
+                            name="file"
+                            accept="image/png,image/jpg,image/gif,image/jpeg"
+                        />
+                    </div>
+                    <Button color="success" outline onClick={handleSendMessage(selectedSession, contacts)}>Send
+                        Message</Button>
                 </div>
             }
         </MessagingContainer>
