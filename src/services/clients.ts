@@ -1,8 +1,6 @@
-import { CompanyTypes } from "../model/common";
-
-export const getSales = async (company: CompanyTypes, date: string) => {
+export const getClients = async (page: number) => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}sales/${company}/${date}`);
+        const response = await fetch(`${process.env.REACT_APP_API}clients/?page=${page}`);
         return await response.json() as any;
     } catch (e) {
         throw e;
@@ -10,18 +8,10 @@ export const getSales = async (company: CompanyTypes, date: string) => {
 
 };
 
-export const getRecordedDates = async () => {
-    try {
-        const response = await fetch(`${process.env.REACT_APP_API}sales/months`);
-        return await response.json() as any || [];
-    } catch (e) {
-        throw e;
-    }
-}
 
-export const updateSales = async (body: string) => {
+export const updateClients = async (body: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}clients`, {
                 method: 'PUT',
                 headers: {
                     'Accept': 'application/json',
@@ -30,15 +20,31 @@ export const updateSales = async (body: string) => {
                 body,
             }
         );
-
     } catch (e) {
         throw e;
     }
 }
 
-export const deleteSale = async (body: string) => {
+
+export const addTagsToClients = async (body: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}clients/add-tags-to-clients`, {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            }
+        );
+    } catch (e) {
+        throw e;
+    }
+}
+
+export const deleteClient = async (body: string) => {
+    try {
+        return await fetch(`${process.env.REACT_APP_API}clients`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',
@@ -53,9 +59,9 @@ export const deleteSale = async (body: string) => {
     }
 }
 
-export const addSales = async (body: string) => {
+export const addClient = async (body: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}clients`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',

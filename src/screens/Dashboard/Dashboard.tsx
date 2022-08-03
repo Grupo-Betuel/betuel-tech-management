@@ -4,10 +4,12 @@ import {
     Row,
     FormGroup,
     Input,
-    Spinner, CustomInput, Label
+    Spinner, Label
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
-import Logo from "../../assets/images/logo.png"
+import BetuelTechLogo from "../../assets/images/betueltech.png"
+import BetuelDanceLogo from "../../assets/images/betueldance.png"
+import BetuelTravelLogo from "../../assets/images/betueltravel.png"
 import CorotosFavicon from "../../assets/images/corotos-favicon.png"
 import FleaFavicon from "../../assets/images/flea-favicon.png"
 import "./Dashboard.scss";
@@ -16,12 +18,21 @@ import { getRecordedDates, getSales } from "../../services/sales";
 import { ISale } from "../../model/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
-import ProductForm from "../../components/ProductForm/ProductForm";
+import ProductModalForm from "../../components/ProductModalForm/ProductModalForm";
 import { getProducts } from "../../services/products";
 import { ecommerceNames, ECommerceTypes, promoteProduct } from "../../services/promotions";
 import { IProduct } from "../../components/Product/Product";
 import { toast } from "react-toastify";
 import { useHistory } from "react-router";
+import ClientModalForm from "../../components/ClientModalForm/ClientModalForm";
+import { ecommerceMessages, errorMessages } from "../../model/messages";
+import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce } from "../../utils/socket.io";
+import * as io from "socket.io-client";
+import { EcommerceEvents } from "../../model/socket-events";
+import { CompanyTypes, ECommerceResponse } from "../../model/common";
+import { Socket } from "socket.io-client";
+
+// export const accountLogos: { [N in ]} ;
 
 const CreateNewProductButton = styled.button`
   position: fixed;
@@ -57,6 +68,18 @@ export const PromotionOption: any = styled.div`
     width: 30px;
   }
 `
+
+const AccountsWrapper = styled.div`
+  position: absolute;
+  max-width: 5rem;
+  z-index: 999;
+  top: 100%;
+  
+  img {
+    padding-bottom: 1.25rem;
+    cursor: pointer;
+  }
+`
 export type ITotals = {
     [N in Exclude<keyof ISale, 'productName'>]: number;
 }
@@ -64,10 +87,20 @@ export type ITotals = {
 export type IProductFilters = "MostProfit" | "MostSales";
 const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
+const companyLogos:  {[N in CompanyTypes]: any} = {
+    betueldance: BetuelTravelLogo,
+    betueltech: BetuelTechLogo,
+}
+
+const companyStorageKey = 'betuelGroup:company';
+
 const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
     const [activeAddSaleModal, setActiveAddSaleModal] = React.useState(false);
+    const [selectedCompany, setSelectedCompany] = React.useState<CompanyTypes>(localStorage.getItem(companyStorageKey) as CompanyTypes || 'betueltech');
+    const [showAccounts, setShowAccounts] = React.useState(false);
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [loadingApp, setLoadingApp] = React.useState(false);
+    const [clientModalIsOpen, setClientModalIsOpen] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
     const [promotionLoading, setPromotionLoading] = React.useState<{ [N in ECommerceTypes]?: boolean }>({});
     const [enableSelection, setEnableSelection] = React.useState(false);
@@ -81,16 +114,18 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
     const [selections, setSelections] = React.useState<IProductData[]>([]);
     const [filter, setFilter] = React.useState<IProductFilters>("MostProfit");
     const [editProduct, setEditProduct] = React.useState<Partial<IProductData>>(null as any);
+    const [selectedECommerce, setSelectedECommerce] = React.useState<ECommerceTypes>();
     const [recordedDate, setRecordedDate] = React.useState<string>(`${months[new Date().getMonth()]}-${new Date().getFullYear()}`);
+    const [logo, setLogo] = React.useState(companyLogos[localStorage.getItem(companyStorageKey) as CompanyTypes] || BetuelTechLogo)
     const tithePercent = 0.10;
     const promotionPercent = 0.30;
     const history = useHistory();
+    const [socket, setSocket] = React.useState<io.Socket>()
 
     const toggleProductForm = () => {
         setEditProduct(null as any);
         setProductFormIsOpen(!productFormIsOpen);
     }
-
 
     const loadProductDetails = (product: Partial<IProductData>) => {
         setEditProduct(product);
@@ -129,16 +164,17 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
         setActiveAddSaleModal(true);
     };
 
+
     const getSalesData = async (date?: string) => {
         setLoadingApp(true);
-        const salesData = await getSales(date || recordedDate);
+        const salesData = await getSales(selectedCompany, date || recordedDate);
         setSalesData(salesData);
         setLoadingApp(false);
     };
 
     const getAllProducts = async () => {
         setLoadingApp(true);
-        const products = await getProducts();
+        const products = await getProducts(selectedCompany);
         setProducts(products);
         setLoadingApp(false);
     }
@@ -155,7 +191,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
         if (!existActualDate) {
             dates.push(recordedDate);
         }
-        ;
+
 
         setRegisteredDates(dates as any);
     }
@@ -254,35 +290,89 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
         getSalesData(value);
     }
 
-    const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => async () => {
+    const destroyUnusedSocket = () => {
+        const isPromotionRunning = Object.keys(promotionLoading)
+            .map((key: any) => !!(promotionLoading as any)[key as any])
+            .reduce((a,b) => a && b, true);
+
+        if(!isPromotionRunning) {
+            socket?.removeAllListeners()
+            socket?.disconnect();
+            socket?.close()
+        }
+    }
+
+
+    React.useEffect(() => {
+        if (socket) {
+            if (socket.connected) {
+                promoteSelectedProduct(selectedECommerce as ECommerceTypes as ECommerceTypes, selections)
+            } else {
+                socket.on(CONNECTED_EVENT, async () => {
+                    onSocketOnce(socket, EcommerceEvents.ON_PUBLISHING, (response: ECommerceResponse) => {
+                        setPromotionLoading((data) => ({
+                            ...data,
+                            [response.ecommerce]: true
+                        }))
+                        toast(ecommerceMessages.START_PUBLISHING(response.ecommerce),
+                            {
+                                type: 'default',
+                            })
+                    })
+
+                    onSocketOnce(socket, EcommerceEvents.ON_PUBLISHED, (response: ECommerceResponse) => {
+                        toast(ecommerceMessages.PUBLISHED_ITEM(
+                                response.ecommerce,
+                                response.publication || {} as IProductData),
+                            {
+                                type: "success",
+                                autoClose: false,
+                            });
+                    })
+
+                    onSocketOnce(socket, EcommerceEvents.ON_COMPLETED, (response: ECommerceResponse) => {
+                        setPromotionLoading((data) => ({
+                            ...data,
+                            [response.ecommerce]: false
+                        }))
+                        toast(ecommerceMessages.COMPLETED_PUBLISHING(response.ecommerce), {
+                            type: "success",
+                            autoClose: false,
+                        });
+                        destroyUnusedSocket()
+                    })
+
+                    onSocketOnce(socket, EcommerceEvents.ON_FAILED, (response: ECommerceResponse) => {
+                        setPromotionLoading((data) => ({
+                            ...data,
+                            [response.ecommerce]: false,
+                            autoClose: false,
+                        }))
+                        toast(errorMessages.ECOMMERCE_ERROR(response.ecommerce, response.error || 'indefinido'), {type: "error"});
+                    })
+
+                    promoteSelectedProduct(selectedECommerce as ECommerceTypes, selections)
+                });
+
+            }
+
+
+        }
+    }, [socket, selectedECommerce])
+
+    const promoteSelectedProduct = async (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => {
         // do nothing while loading or selection mode isn't active
         if ((data.length > 1 && !enableSelection) || promotionLoading[ecommerceType]) {
             return;
         }
         try {
             if (data.length <= 0) {
-                toast('¡Hey! Tienes que seleccionar almenos un producto para promocionar.', {type: 'error'});
+                toast(errorMessages.SELECT_AT_LEAST_ONE_PRODUCT, {type: 'error'});
                 return;
             }
-            setPromotionLoading((data) => ({
-                ...data,
-                [ecommerceType]: true
-            }))
-            toast(`Los productos terminarán de publicarse en ${ecommerceNames[ecommerceType]} pronto...`,
-                { type: 'default', autoClose: 45000 * data.length, pauseOnHover: false, closeButton: false, pauseOnFocusLoss: false })
-            const response: any = await (await promoteProduct(data as IProduct[], ecommerceType)).json();
-            setPromotionLoading((data) => ({
-                ...data,
-                [ecommerceType]: false
-            }))
 
-            if (!response.success) {
-                toast(`Error al Promocionar en ${ecommerceNames[ecommerceType]}: ${response.error}`, {type: "error"});
-            } else {
-                toast(`¡Excelente! ¡Ya se publicaron los productos en ${ecommerceNames[ecommerceType]}!`, {
-                    type: "success",
-                });
-            }
+            await promoteProduct(data as IProduct[], ecommerceType);
+
         } catch (err) {
             console.error('promotion error: ', err);
             setPromotionLoading((data) => ({
@@ -293,6 +383,10 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
 
 
     }
+    const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => async () => {
+        !socket && setSocket(() => io.connect(DEV_SOCKET_URL));
+        setSelectedECommerce(ecommerceType)
+    }
 
     const logOut = () => {
         localStorage.setItem('authToken', '');
@@ -300,12 +394,40 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
     }
 
     const togglePortfolioDashboard = () => {
-        if(portfolioMode) {
+        if (portfolioMode) {
             history.push('/dashboard');
         } else {
             history.push('/portfolio');
         }
     }
+
+    const toggleClientFormModal = () => setClientModalIsOpen(!clientModalIsOpen);
+
+
+    const handleWhatsappPromotion = () => {
+        toggleClientFormModal();
+    }
+    const toggleCompanies = () => setShowAccounts(!showAccounts);
+
+    React.useEffect(() => {
+        const getProds = async () => {
+            await getAllProducts();
+        }
+        getProds();
+        const getSales = async () => {
+            await  getSalesData();
+        }
+        getSales();
+    }, [selectedCompany]);
+
+
+    const selectCompany = (company: CompanyTypes) => async () => {
+        setSelectedCompany(company);
+        localStorage.setItem(companyStorageKey, company);
+        toggleCompanies();
+        setLogo(companyLogos[company]);
+    }
+
     return (
         <>
             {
@@ -322,20 +444,33 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                 selectedSale={editSale}
                 salesData={salesData}
                 getSalesData={getSalesData}
+                company={selectedCompany}
             />
             <div
                 className="d-flex align-items-center flex-column"
             >
                 {localStorage.getItem('authToken') && <Col sm={8} className="position-relative">
-                    <LogOutButton className="btn btn-outline-danger" title="Salir" onClick={logOut}>
-                        <i className="bi bi-box-arrow-right"/>
-                    </LogOutButton>
-                    <LogOutButton className="btn btn-outline-danger go-to-portfolio" title={`Ir al ${portfolioMode ? 'Dashboard' : 'al Portafolio'}`} onClick={togglePortfolioDashboard}>
-                        <i className={`bi ${ portfolioMode ? 'bi-skip-backward-fill' : 'bi-skip-forward-fill' } `}/>
-                    </LogOutButton>
+                  <LogOutButton className="btn btn-outline-danger" title="Salir" onClick={logOut}>
+                    <i className="bi bi-box-arrow-right"/>
+                  </LogOutButton>
+                  <LogOutButton className="btn btn-outline-danger go-to-portfolio"
+                                title={`Ir al ${portfolioMode ? 'Dashboard' : 'al Portafolio'}`}
+                                onClick={togglePortfolioDashboard}>
+                    <i className={`bi ${portfolioMode ? 'bi-skip-backward-fill' : 'bi-skip-forward-fill'} `}/>
+                  </LogOutButton>
                 </Col>}
-                <Col lg={2} md={4} sm={4} className="p-4">
-                    <img src={Logo} alt="Logo AudSongs" className="w-100"/>
+                <Col lg={2} md={4} sm={4} className="p-4  logo-container">
+                    <img src={logo} alt="Logo AudSongs" className="w-100 logo" onClick={toggleCompanies}/>
+                    { showAccounts &&
+                      <AccountsWrapper>
+                          {
+                              selectedCompany === 'betueldance' ?
+                              <img src={BetuelTechLogo} onClick={selectCompany('betueltech')} alt="Logo Betuel Dance"
+                                className="w-100"/>
+                              : <img src={BetuelTravelLogo} onClick={selectCompany('betueldance')} alt="Logo Betuel Dance" className="w-100"/>
+                          }
+                      </AccountsWrapper>
+                    }
                 </Col>
                 {!portfolioMode && <>
                   <Col sm={12} className="d-flex justify-content-center mb-2">
@@ -362,7 +497,8 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     className="d-flex justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
                     <div>
                       <Label className="d-flex flex-column align-items-center cursor-pointer">
-                        <CustomInput
+                        <Input
+                          id="selection"
                           type="switch"
                           className="customize-switch enable-selection-switch d-block"
                           onChange={toggleEnableSelection}
@@ -371,8 +507,9 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                       </Label>
                     </div>
                     <div className="d-flex align-items-center">
-                      <label className="mr-2 mb-0">Más Ingresos</label>
-                      <CustomInput
+                      <label className="me-2 mb-0">Más Ingresos</label>
+                      <Input
+                        id="sales"
                         type="switch"
                         label="Más Vendidos"
                         className="customize-switch"
@@ -380,6 +517,22 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                       />
                     </div>
                     <div className={`d-flex align-items-center ${!enableSelection ? 'disable-promotions' : ''}`}>
+                      <PromotionOption loading={promotionLoading.facebook}>
+                        <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                        <i data-toggle="tooltip"
+                           title="Enviar Seleccionados por Whatsapp"
+                           className="bi bi-instagram instagram-icon cursor-pointer promotion-icon"
+                        />
+                      </PromotionOption>
+                      <PromotionOption loading={promotionLoading.whatsapp}>
+                        <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
+                        <i data-toggle="tooltip"
+                           title="Enviar Seleccionados por Whatsapp"
+                           className="bi bi-whatsapp text-success cursor-pointer promotion-icon"
+                           onClick={handleWhatsappPromotion}
+                        />
+                      </PromotionOption>
+
                       <PromotionOption loading={promotionLoading.facebook}>
                         <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
                         <i data-toggle="tooltip"
@@ -471,14 +624,22 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
               <i className="bi-plus"/>
             </CreateNewProductButton>}
 
-            <ProductForm
+            <ProductModalForm
                 portfolioMode={portfolioMode}
                 handlePromoteProduct={handlePromoteProduct}
                 promotionLoading={promotionLoading}
                 loadProducts={getAllProducts}
                 isOpen={productFormIsOpen}
                 toggle={toggleProductForm}
+                company={selectedCompany}
                 editProduct={editProduct}/>
+
+            <ClientModalForm
+                promotionLoading={promotionLoading}
+                isOpen={clientModalIsOpen}
+
+                toggle={toggleClientFormModal}
+            />
         </>
     )
 };

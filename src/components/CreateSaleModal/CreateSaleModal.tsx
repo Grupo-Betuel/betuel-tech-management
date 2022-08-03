@@ -1,6 +1,5 @@
 import {
     Button,
-    CustomInput,
     FormGroup,
     Input,
     Label,
@@ -15,6 +14,7 @@ import React, { useCallback, useEffect } from "react";
 import { ISale } from "../../model/interfaces/SalesModel";
 import { addSales, deleteSale, updateSales } from "../../services/sales";
 import { toast } from "react-toastify";
+import { CompanyTypes } from "../../model/common";
 
 export interface ICreateSaleModal {
     activeAddSaleModal?: boolean;
@@ -22,6 +22,7 @@ export interface ICreateSaleModal {
     selectedSale: ISale;
     salesData: ISale[];
     getSalesData: () => any;
+    company: CompanyTypes;
 }
 
 
@@ -55,6 +56,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         salesData,
         getSalesData,
         selectedSale,
+        company,
     }) => {
     const [confirmationFunction, setConfirmationFunction] = React.useState<() => any>();
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
@@ -144,6 +146,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         setAddingSale(true);
         const saleData: Partial<ISale> = {
             ...sale,
+            company,
             commission: useCommission ? sale.commission : 0,
             profit: useCommission ? (sale as any).profit - (sale as any).commission : (sale as any).price - (sale as any).cost,
         }
@@ -228,7 +231,8 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                        placeholder="Envio:" value={sale.shipping}/>
                             </FormGroup>
                             <>
-                                <CustomInput
+                                <Input
+                                    id="commission"
                                     type="switch"
                                     label="¿Incluye Comisión?"
                                     checked={useCommission}

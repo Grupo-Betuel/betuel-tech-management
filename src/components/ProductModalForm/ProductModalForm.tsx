@@ -1,6 +1,6 @@
 import {
     Button,
-    CustomInput, Form,
+    Form,
     FormGroup,
     Input,
     Label,
@@ -12,10 +12,10 @@ import {
 import React, { useCallback, useEffect, useRef } from "react";
 import { IProductData } from "../../model/products";
 import { Rnd } from 'react-rnd';
-import logo from "../../assets/images/logo.png";
+import logo from "../../assets/images/betueltech.png";
 import productBackground from "../../assets/images/product-background.png";
 import styled from "styled-components";
-import "./ProductForm.scss";
+import "./ProductModalForm.scss";
 import { toPng } from 'html-to-image';
 import { dataURItoBlob } from "../../utils/blob";
 import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
@@ -24,6 +24,7 @@ import { ECommerceTypes, getWhatsappMessageURL } from "../../services/promotions
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
 import { PromotionOption } from "../../screens/Dashboard/Dashboard";
+import { CompanyTypes } from "../../model/common";
 
 const draggableWidth = 350;
 const draggableHeight = 350;
@@ -42,6 +43,7 @@ export interface IProductFormProps {
     portfolioMode?: boolean;
     promotionLoading: { [N in ECommerceTypes]?: boolean };
     editProduct?: Partial<IProductData>;
+    company: CompanyTypes;
 }
 
 export interface IProductImageProperties {
@@ -117,7 +119,7 @@ const ProductImageEditor: any = styled.div`
   }
 `
 
-const ProductForm: React.FC<IProductFormProps> = (
+const ProductModalForm: React.FC<IProductFormProps> = (
     {
         isOpen,
         toggle,
@@ -126,6 +128,7 @@ const ProductForm: React.FC<IProductFormProps> = (
         handlePromoteProduct,
         promotionLoading,
         portfolioMode,
+        company,
     }) => {
     const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
     const [useCommission, setUseCommission] = React.useState(false);
@@ -204,6 +207,7 @@ const ProductForm: React.FC<IProductFormProps> = (
             const body = JSON.stringify({
                 ...product,
                 productImage,
+                company,
                 image: photoName ? completePhotoName : undefined,
                 flyerOptions: photoName ? JSON.stringify(flyerOptions) : undefined,
             });
@@ -219,6 +223,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                 const body = JSON.stringify({
                     ...product,
                     productImage,
+                    company,
                     image: gcloudPublicURL + photoName,
                     flyerOptions: JSON.stringify(flyerOptions),
                 });
@@ -515,7 +520,8 @@ const ProductForm: React.FC<IProductFormProps> = (
                             </div> : null}
                     {!portfolioMode &&
                     <div className="d-flex justify-content-center">
-                      <CustomInput
+                      <Input
+                        id="first2"
                         type="switch"
                         label="Colocar Sombra"
                         checked={enableDropShadow}
@@ -529,7 +535,7 @@ const ProductForm: React.FC<IProductFormProps> = (
                             editProduct ?
                                 <Button color="success" className="mb-3 d-flex align-items-center" outline
                                         onClick={sendWhatsappMessage}>
-                                        <span className="mr-2">
+                                        <span className="me-2">
                                             Pedir por Whatsapp
                                         </span>
                                     <i className="bi bi-whatsapp"/>
@@ -574,7 +580,8 @@ const ProductForm: React.FC<IProductFormProps> = (
                                   onChange={onChangeProduct}/>
                       </FormGroup>
                       <>
-                        <CustomInput
+                        <Input
+                          id="first"
                           type="switch"
                           label="¿Agregar Comisión Manualmente?"
                           checked={useCommission}
@@ -603,4 +610,4 @@ const ProductForm: React.FC<IProductFormProps> = (
     )
 }
 
-export default ProductForm;
+export default ProductModalForm;

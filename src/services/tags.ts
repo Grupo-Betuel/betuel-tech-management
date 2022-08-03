@@ -1,8 +1,6 @@
-import { CompanyTypes } from "../model/common";
-
-export const getSales = async (company: CompanyTypes, date: string) => {
+export const getTags = async () => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}sales/${company}/${date}`);
+        const response = await fetch(`${process.env.REACT_APP_API}tags`);
         return await response.json() as any;
     } catch (e) {
         throw e;
@@ -10,18 +8,9 @@ export const getSales = async (company: CompanyTypes, date: string) => {
 
 };
 
-export const getRecordedDates = async () => {
+export const updateTags = async (body: string) => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}sales/months`);
-        return await response.json() as any || [];
-    } catch (e) {
-        throw e;
-    }
-}
-
-export const updateSales = async (body: string) => {
-    try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}tags`, {
                 method: 'PUT',
                 headers: {
                     'Accept': 'application/json',
@@ -30,15 +19,14 @@ export const updateSales = async (body: string) => {
                 body,
             }
         );
-
     } catch (e) {
         throw e;
     }
 }
 
-export const deleteSale = async (body: string) => {
+export const deleteTag = async (body: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}tags`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',
@@ -53,9 +41,9 @@ export const deleteSale = async (body: string) => {
     }
 }
 
-export const addSales = async (body: string) => {
+export const addTag = async (body: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}tags`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
