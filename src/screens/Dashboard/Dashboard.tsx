@@ -8,8 +8,7 @@ import {
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
 import BetuelTechLogo from "../../assets/images/betueltech.png"
-import BetuelDanceLogo from "../../assets/images/betueldance.png"
-import BetuelTravelLogo from "../../assets/images/betueltravel.png"
+import BetuelDanceLogo from "../../assets/images/betueldance/logo.png"
 import CorotosFavicon from "../../assets/images/corotos-favicon.png"
 import FleaFavicon from "../../assets/images/flea-favicon.png"
 import "./Dashboard.scss";
@@ -76,8 +75,10 @@ const AccountsWrapper = styled.div`
   top: 100%;
   
   img {
-    padding-bottom: 1.25rem;
+    margin-bottom: 1.25rem;
     cursor: pointer;
+    border-radius: 50px;
+    box-shadow: 0 0 10px rgba(0,0,0,.7);
   }
 `
 export type ITotals = {
@@ -88,7 +89,7 @@ export type IProductFilters = "MostProfit" | "MostSales";
 const months = ["Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio", "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"];
 
 const companyLogos:  {[N in CompanyTypes]: any} = {
-    betueldance: BetuelTravelLogo,
+    betueldance: BetuelDanceLogo,
     betueltech: BetuelTechLogo,
 }
 
@@ -467,7 +468,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                               selectedCompany === 'betueldance' ?
                               <img src={BetuelTechLogo} onClick={selectCompany('betueltech')} alt="Logo Betuel Dance"
                                 className="w-100"/>
-                              : <img src={BetuelTravelLogo} onClick={selectCompany('betueldance')} alt="Logo Betuel Dance" className="w-100"/>
+                              : <img src={BetuelDanceLogo} onClick={selectCompany('betueldance')} alt="Logo Betuel Dance" className="w-100"/>
                           }
                       </AccountsWrapper>
                     }

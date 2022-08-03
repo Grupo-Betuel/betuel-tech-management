@@ -6,6 +6,14 @@
   text-stroke: 1px #cdcdcd;
   font-weight: bold;
   paint-order: stroke fill;
+
+  &.betueldance {
+    -webkit-text-stroke: 1px #d9d9d9;
+    -moz-text-stroke: 1px #d9d9d9;
+    -ms-text-stroke: 1px #d9d9d9;
+    text-stroke: 1px #d9d9d9;
+    color: white;
+  }
 }
 
 
@@ -27,6 +35,11 @@
   /* Shadows are visible under slightly transparent text color */
   color: rgba(171,171,171, 0.4);
   text-shadow: -2px 2px 3px #f9f9f2, 0 0 0 #979797, -2px 2px 3px #f9f9f2;
+
+  &.betueldance {
+    text-shadow: -2px 2px 3px #6e6e6d, 0 0 0 #979797, -2px 2px 3px #d5d5d5;
+  }
+
 }
 /* Don't show shadows when selecting text */
 ::-moz-selection { background: #5af; color: #fff; text-shadow: none; }
