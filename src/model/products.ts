@@ -1,3 +1,5 @@
+import { CompanyTypes } from "./common";
+
 export interface IProductData {
   _id: string;
   name: string;
@@ -10,4 +12,8 @@ export interface IProductData {
   GodWord: string;
   productImage: string;
   description: string;
+}
+
+export type IProductBackground = {
+  [N in CompanyTypes]: { [R in 1 | 2 | 3 | 4]?: any }
 }

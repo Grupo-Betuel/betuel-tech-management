@@ -10,10 +10,15 @@ import {
     ModalHeader, Spinner, Tooltip,
 } from "reactstrap";
 import React, { useCallback, useEffect, useRef } from "react";
-import { IProductData } from "../../model/products";
+import { IProductBackground, IProductData } from "../../model/products";
 import { Rnd } from 'react-rnd';
 import logo from "../../assets/images/betueltech.png";
-import productBackground from "../../assets/images/product-background.png";
+import btBackground1 from "../../assets/images/product-background.png";
+import bdBackground1 from "../../assets/images/betueldance/Fondo1.png";
+import bdBackground2 from "../../assets/images/betueldance/Fondo2.png";
+import bdBackground3 from "../../assets/images/betueldance/Fondo3.png";
+import bdBackground4 from "../../assets/images/betueldance/Fondo4.png";
+
 import styled from "styled-components";
 import "./ProductModalForm.scss";
 import { toPng } from 'html-to-image';
@@ -26,9 +31,13 @@ import FleaFavicon from "../../assets/images/flea-favicon.png";
 import { PromotionOption } from "../../screens/Dashboard/Dashboard";
 import { CompanyTypes } from "../../model/common";
 
-const draggableWidth = 350;
-const draggableHeight = 350;
-const nameInitialFontSize = 30;
+
+const draggableWidth = 300;
+const draggableHeight = 300;
+const nameInitialFontSize: { [N in CompanyTypes]: number} = {
+    betueldance: 80,
+    betueltech: 30,
+};
 
 export interface ICalculatedPrice {
     price: number;
@@ -53,16 +62,28 @@ export interface IProductImageProperties {
     y: number;
     fontSize?: number;
     enableShadow?: boolean;
+    selectedBackground: number;
 }
 
 const ProductNameSpan: any = styled.span`
   position: absolute;
   bottom: 15px;
-  font-size: ${(props: any) => props.fontSize || nameInitialFontSize}px;
+  font-size: ${(props: any) => props.fontSize}px;
   z-index: 999;
   transform: translate(15px, 0px);
   max-width: 206px;
-  line-height: ${(props: any) => props.fontSize || nameInitialFontSize}px;
+  line-height: ${(props: any) => props.fontSize}px;
+  
+  &.betueldance {
+    bottom: unset;
+    top: 20px;
+    width: 100%;
+    text-align: center;
+    max-width: unset;
+    font-size: 'anisha';
+    font-size: ${(props: any) => props.fontSize}px;
+    font-family: betueldance-font;
+  }
 `;
 
 const ChangePhotoLabel: any = styled.label`
@@ -71,15 +92,25 @@ const ChangePhotoLabel: any = styled.label`
   color: #ababab;
   cursor: pointer;
   font-size: 35px;
+  
+  &.betueldance {
+    color: white;
+  }
 `;
 const ProductPriceSpan = styled.span`
   position: absolute;
-  bottom: 30px;
+  bottom: 10px;
   font-size: ${(props: any) => props.fontSize || 85}px;
   line-height: ${(props: any) => props.fontSize || 85}px;
   z-index: 999;
   right: 15px;
-
+  
+  &.betueldance {
+    right: unset;
+    width: 100%;
+    text-align: center;
+    font-size: ${(props: any) => props.fontSize || 60}px;
+  }
 `;
 
 const GodWordSpan = styled.span`
@@ -89,6 +120,14 @@ const GodWordSpan = styled.span`
   font-size: ${(props: any) => props.fontSize || 25}px;
   z-index: 999;
   color: #c3c3c3;
+  
+  &.betueldance {
+    background: white;
+    padding: 0 10px;
+    border-radius: 20px;
+    color: rgba(0,0,0,.6);
+    font-size: 14px;
+  }
 
 `;
 
@@ -107,6 +146,34 @@ const ProductImageContainer: any = styled.div`
       border: ${(props: any) => props.portfolioMode ? 'unset' : '3px dashed #ababab'};
     }
   }
+
+  .product-arrows {
+    position: absolute;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 0 10px;
+    .bi {
+      cursor: pointer;
+      font-size: 21px;
+      border-radius: 21px;
+      height: 40px;
+      width: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      transition: all .3s ease;
+      
+      &:hover {
+        background: rgba(255,255,255, 0.5);
+      }
+    }
+  }
+
 `
 
 const ProductImageEditor: any = styled.div`
@@ -118,6 +185,21 @@ const ProductImageEditor: any = styled.div`
     position: ${ (props: any) => props.portfolioMode ? 'relative' : 'absolute' };
   }
 `
+
+const selectedBackgroundKey = 'betuelgroup:selected-product-background';
+
+
+const productBackgrounds: IProductBackground = {
+    betueldance: {
+        1: bdBackground1,
+        2: bdBackground2,
+        3: bdBackground3,
+        4: bdBackground4,
+    },
+    betueltech: {
+        1: btBackground1,
+    }
+};
 
 const ProductModalForm: React.FC<IProductFormProps> = (
     {
@@ -136,26 +218,37 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     const [productPhotoName, setProductPhotoName] = React.useState('');
     const [isSubmiting, setIsSubmiting] = React.useState(false);
     const [hideChangeProductPhotoIcon, setHideChangeProductPhotoIcon] = React.useState(false);
-    const [increaseNameFont, setIncreaseNameFont] = React.useState(nameInitialFontSize);
+    const [increaseNameFont, setIncreaseNameFont] = React.useState(nameInitialFontSize[company]);
     const [productPhoto, setProductPhoto] = React.useState(logo);
     const [productImageFile, setProductImageFile] = React.useState<File | any>();
     const [productImageChanged, setProductImageChanged] = React.useState(false);
     const [enableDropShadow, setEnableDropShadow] = React.useState(false);
+    const [selectedBackground, setSelectedBackground] = React.useState();
+
+    const selectBackground = (bg: 1 | 2 | 3 | 4) => () => {
+        setSelectedBackground(productBackgrounds[company][bg]);
+        setFlyerOptions({
+            ...flyerOptions,
+            selectedBackground: bg,
+        })
+    }
 
     const [flyerOptions, setFlyerOptions] = React.useState<IProductImageProperties>({
         width: draggableWidth,
         height: draggableHeight,
-        x: 70,
-        y: 40
+        x: 90,
+        y: 90
     } as any);
 
 
     useEffect(() => {
         setProduct(editProduct || {})
         setProductPhoto(editProduct && editProduct.productImage || logo)
-        const flyerOptionItem = editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions) : flyerOptions;
+        const flyerOptionItem: IProductImageProperties = editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions) : flyerOptions;
         setFlyerOptions(flyerOptionItem);
-        setIncreaseNameFont(flyerOptionItem.fontSize || nameInitialFontSize);
+        const background = (productBackgrounds[company] as any)[flyerOptionItem.selectedBackground || 1];
+        setSelectedBackground(background);
+        setIncreaseNameFont(flyerOptionItem.fontSize || nameInitialFontSize[company]);
         setEnableDropShadow(!!flyerOptionItem.enableShadow);
         validForm()
     }, [editProduct])
@@ -427,23 +520,29 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 toggle={toggleModal}>{editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}</ModalHeader>
             <Form onSubmit={!isSubmiting && isValidForm ? onSubmit : undefined}>
                 <ProductImageEditor portfolioMode={portfolioMode} id="product-image-result" ref={productImageWrapper}>
-                    <img src={portfolioMode ? product.image : productBackground} alt="bg-image"
+                    <img src={portfolioMode ? product.image : selectedBackground} alt="bg-image"
                          className="product-background"/>
                     {!portfolioMode && <>
 
                       <ProductNameSpan fontSize={increaseNameFont}
-                                       className="product-detail-text inset-text">
+                                       className={`product-detail-text inset-text ${company}`}>
                         <span>{product.name}</span>
                       </ProductNameSpan>
 
-                      <ProductPriceSpan className="product-detail-text inset-text">
-                        <span style={{fontSize: '40px'}}>RD$</span>
+                      <ProductPriceSpan className={`product-detail-text inset-text ${company}`}>
+                        <span style={{fontSize: '35px'}}>RD$</span>
                         <span>{product.cost && internationalNumberFormat.format(product.price || 0)}</span>
                       </ProductPriceSpan>
-                      <GodWordSpan>{product.GodWord || 'Dios te bendiga'}</GodWordSpan>
+                      <GodWordSpan className={company} >{product.GodWord || 'Dios te bendiga'}</GodWordSpan>
 
                       <ProductImageContainer portfolioMode={portfolioMode}>
-                        <Rnd
+                          {!hideChangeProductPhotoIcon && <div className="product-arrows">
+                              <i className="bi bi-chevron-left"
+                                 onClick={selectBackground(flyerOptions.selectedBackground - 1 > 0 ? flyerOptions.selectedBackground - 1 : 4 as any)}/>
+                              <i className="bi bi-chevron-right"
+                                 onClick={selectBackground(flyerOptions.selectedBackground + 1 <= 4 ? flyerOptions.selectedBackground + 1 : 1 as any)}/>
+                          </div>}
+                          <Rnd
                           className="rnd-container"
                           size={{width: flyerOptions.width, height: flyerOptions.height}}
                           position={{x: flyerOptions.x, y: flyerOptions.y}}
@@ -455,6 +554,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                           }}
                           onResize={(e, direction, ref, delta, position) => {
                               setFlyerOptions({
+                                  ...flyerOptions,
                                   width: ref.offsetWidth,
                                   height: ref.offsetHeight,
                                   ...position,
@@ -464,7 +564,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                         >
                           <a href="#" className="position-relative">
 
-                            <ChangePhotoLabel htmlFor="product-photo" data-toggle="tooltip" id="change-image"
+                            <ChangePhotoLabel  className={company} htmlFor="product-photo" data-toggle="tooltip" id="change-image"
                                               title="Cambiar Foto del Producto">
                                 {!hideChangeProductPhotoIcon && <i className="bi bi-images"/>}
                             </ChangePhotoLabel>

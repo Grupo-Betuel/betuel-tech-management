@@ -4,6 +4,12 @@
     font-weight: bold;
 }
 
+@font-face {
+    font-family: betueldance-font;
+    src: url('assets/fonts/betueldance-font.otf');
+    font-weight: bold;
+}
+
 .cursor-pointer {
     cursor: pointer;
 }
