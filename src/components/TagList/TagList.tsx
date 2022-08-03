@@ -9,15 +9,21 @@ import { TagContainer, TagItem, TagNameInput } from "../Tag/Tag";
 export interface ITagList {
     onSelectTag?: (tags: ITag[]) => any;
     onUpdateTags?: (tags: ITag[]) => any;
+    enableClientsToAddTags?: () => any;
+    tagClient?: () => any;
 }
+
 const TagList: React.FC<ITagList> = ({
+                                         enableClientsToAddTags,
                                          onSelectTag,
                                          onUpdateTags,
+                                         tagClient,
                                      }) => {
-    const [selectedTags, setSelectedTags] = React.useState<string[]>(['']);
+    const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
     const [tagNameIsOpen, setTagNameIsOpen] = React.useState(false);
     const [tagTitle, setTagTitle] = React.useState('');
     const [loading, setLoading] = React.useState(false);
+    const [enableTagClient, setEnableTagClient] = React.useState(false);
     const [modalRemoveTag, setModalRemoveTag] = React.useState(false);
     const [allTags, setAllTags] = React.useState<ITag[]>([]);
     const [tags, setTags] = React.useState([]);
@@ -38,7 +44,7 @@ const TagList: React.FC<ITagList> = ({
     }, []);
 
     const onChangeTagTitle = (e: any) => {
-        const { value } = e.target;
+        const {value} = e.target;
         setTagTitle(value);
     }
     const selectTag = (tag: string) => () => {
@@ -56,16 +62,16 @@ const TagList: React.FC<ITagList> = ({
     }
 
     const handleAddTag = async () => {
-        if(!tagTitle) return;
+        if (!tagTitle) return;
         try {
             setLoading(true);
-            await addTag(JSON.stringify({ title: tagTitle }))
+            await addTag(JSON.stringify({title: tagTitle}))
             setLoading(false);
             getAllTags()
             toggleTagNameModal();
             toast('Etiqueta Agregada');
-        } catch(err: any) {
-            toast(err.message, { type: 'error'});
+        } catch (err: any) {
+            toast(err.message, {type: 'error'});
 
         }
 
@@ -74,7 +80,7 @@ const TagList: React.FC<ITagList> = ({
     const toggleTagNameModal = () => setTagNameIsOpen(!tagNameIsOpen);
     const toggleRemoveTag = (item?: any) => (e?: any) => {
         e && e.stopPropagation();
-        if(item) {
+        if (item) {
             const tag: any = allTags.find((ell: any) => ell.title === item) || {};
             setTagToRemove(tag)
         }
@@ -85,19 +91,24 @@ const TagList: React.FC<ITagList> = ({
         // if(!tagToRemove) return;
         try {
             setLoading(true);
-            if(tagToRemove) {
-                await deleteTag(JSON.stringify({ _id: tagToRemove._id }))
+            if (tagToRemove) {
+                await deleteTag(JSON.stringify({_id: tagToRemove._id}))
                 selectTag(tagToRemove.title)()
             }
             setLoading(false);
             getAllTags()
             toggleRemoveTag()();
             toast('Etiqueta Eliminada!');
-        } catch(err: any) {
-            toast(err.message, { type: 'error'});
+        } catch (err: any) {
+            toast(err.message, {type: 'error'});
 
         }
 
+    }
+
+    const toggleAddClient = () => {
+        setEnableTagClient(!enableTagClient)
+        enableClientsToAddTags && enableClientsToAddTags()
     }
 
     return (
@@ -111,7 +122,15 @@ const TagList: React.FC<ITagList> = ({
                             </div>
                         </>
                 }
-                <i className="bi bi-plus-lg text-danger cursor-pointer add-tag-icon" onClick={toggleTagNameModal}/>
+                <div className="actions-tag-wrapper">
+                    {!!selectedTags.length &&
+                      <i className={`bi bi-person-plus ${!enableTagClient ? 'text-danger' : 'text-info font-weigth-bold'} cursor-pointer me-3`}
+                         onClick={enableTagClient ? tagClient : toggleAddClient}/>}
+                    {enableTagClient ?
+                        <i className="bi bi-x-lg text-danger cursor-pointer" onClick={toggleAddClient}/> :
+                        <i className="bi bi-plus-lg text-danger cursor-pointer" onClick={toggleTagNameModal}/>
+                    }
+                </div>
                 {
                     tags.map((tag, itag) => (
                         <TagItem onClick={selectTag(tag)}
@@ -125,7 +144,8 @@ const TagList: React.FC<ITagList> = ({
             <Modal centered isOpen={tagNameIsOpen} toggle={toggleTagNameModal}>
                 <ModalBody>
                     <div className="w-100 d-flex align-items-center">
-                        <TagNameInput onChange={onChangeTagTitle} type="text" placeholder="Nombre de la etiqueta" className="tag-name"/>
+                        <TagNameInput onChange={onChangeTagTitle} type="text" placeholder="Nombre de la etiqueta"
+                                      className="tag-name"/>
                         <i className="bi bi-send text-info cursor-pointer" onClick={handleAddTag}/>
                     </div>
                 </ModalBody>
@@ -134,9 +154,9 @@ const TagList: React.FC<ITagList> = ({
             <Modal centered isOpen={modalRemoveTag} toggle={toggleRemoveTag()}>
                 <ModalBody>
                     <div className="w-100 d-flex align-items-center">
-                       <h4>
-                           ¿Seguro que quieres eliminar la etiqueta {tagToRemove ? tagToRemove.title : ''}?
-                       </h4>
+                        <h4>
+                            ¿Seguro que quieres eliminar la etiqueta {tagToRemove ? tagToRemove.title : ''}?
+                        </h4>
                     </div>
 
                     <div className="d-flex justify-content-around mt-3">

@@ -63,6 +63,7 @@ const ClientModalForm: React.FC<IClientFormProps> = (
     };
 
     const handleSubmit = () => {
+         console.log('selected clients', clients)
         if (step === 1) {
             setStep(2);
 

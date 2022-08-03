@@ -15,8 +15,8 @@ export const getWhatsappMessageURL = (message: string) => `https://wa.me/${whats
 
 
 
-export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceTypes) => {
-    const body = JSON.stringify(products);
+export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceTypes, sessionKey: string = 'betueltech') => {
+    const body = JSON.stringify({ data: products, sessionKey });
 
     try {
         // `${eCommerce !== 'facebook' ? process.env.REACT_APP_PROMOTION_API : localPromotionsApi}${eCommerce}`

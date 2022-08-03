@@ -9,6 +9,11 @@ export const TagItem: any = styled.div`
   padding: 3px 10px;
   margin-right: 10px;
   cursor: pointer;
+  transition: all .3s ease;
+  
+  &:hover {
+    background-color: #ffe1e4;
+  }
 `
 
 export const TagContainer: any = styled.div`
@@ -20,7 +25,7 @@ export const TagContainer: any = styled.div`
   width: 100%;
   padding-bottom: 15px;
 
-  .add-tag-icon {
+  .actions-tag-wrapper {
     position: absolute;
     right: 0;
     top: 0;
@@ -28,6 +33,7 @@ export const TagContainer: any = styled.div`
     padding: 10px;
     display: flex;
     align-items: center;
+    
     justify-content: center;
     font-size: 18px;
     z-index: 9;

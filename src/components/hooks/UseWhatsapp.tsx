@@ -7,6 +7,7 @@ import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce, PROD_SOCKET_URL } from "
 import styled from "styled-components";
 import * as io from "socket.io-client";
 import { IWhatsappMessage, WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
+import { WhatsappEvents } from "../../model/socket-events";
 
 export const QrCanvas = styled.canvas`
   width: 100% !important;
@@ -57,31 +58,31 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         if(socket) {
             generateQr('init');
             socket.on(CONNECTED_EVENT, () => {
-                onSocketOnce(socket,'whatsapp-loading', ({loading}) => {
+                onSocketOnce(socket,WhatsappEvents.ON_LOADING, ({loading}) => {
                     setLoading(loading)
                 })
                 // generating qr code
-                onSocketOnce(socket,'whatsapp-qr-code', ({qrCode}) => {
+                onSocketOnce(socket,WhatsappEvents.ON_QR, ({qrCode}) => {
                     generateQr(qrCode);
                     setLoading(false);
                 });
 
-                onSocketOnce(socket,'whatsapp-auth-success', () => {
+                onSocketOnce(socket,WhatsappEvents.ON_AUTH_SUCCESS, () => {
                     setLogged(true)
                     setLoading(false)
                 });
 
-                onSocketOnce(socket,'whatsapp-auth-fail', async () => {
+                onSocketOnce(socket,WhatsappEvents.ON_AUTH_FAILED, async () => {
                     setLogged(false)
                     setLoading(false);
                 });
 
-                onSocketOnce(socket,'whatsapp-ready', () => {
+                onSocketOnce(socket,WhatsappEvents.ON_READY, () => {
                     toast('¡Whatsapp listo para usar!');
                     setLoading(false);
                 });
 
-                onSocketOnce(socket,'whatsapp-logged-out', () => {
+                onSocketOnce(socket,WhatsappEvents.ON_LOGOUT, () => {
                     toast('Sesión de Whatsapp Cerrada');
                     setLogged(false);
                 });

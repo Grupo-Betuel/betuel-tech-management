@@ -89,6 +89,7 @@ const Messaging: React.FC<IMessaging> = (
         setMessage(value);
     }
 
+    /* onSelectPhoto, select the photo to set it in order  we can send it*/
     const onSelectPhoto = async (event: any) => {
 
         const {files} = event.target;

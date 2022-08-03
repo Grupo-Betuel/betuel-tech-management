@@ -1,4 +1,4 @@
-import React, { useEffect } from "react";
+import React, { useCallback, useEffect, useRef } from "react";
 import { ClientItem, TagList } from "..";
 import { IClient } from "../../model/interfaces/ClientModel";
 import {
@@ -13,9 +13,8 @@ import {
     DropdownItem
 } from "reactstrap";
 import { toast } from "react-toastify";
-import { addClient, deleteClient, getClients, updateClients } from "../../services/clients";
+import { addClient, addTagsToClients, deleteClient, getClients, updateClients } from "../../services/clients";
 import "./ClientList.scss"
-import { getTags } from "../../services/tags";
 import { ITag } from "../../model/interfaces/TagModel";
 
 export interface IClientList {
@@ -23,37 +22,59 @@ export interface IClientList {
 }
 
 const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
-    const [editableList, setEditableList] = React.useState<boolean[]>([false]);
+    const [editableList, setEditableList] = React.useState<IClient[]>([]);
     const [clients, setClients] = React.useState<IClient[]>([]);
+    const [selectedTags, setSelectedTags] = React.useState<string[]>([]);
     const [tempClients, setTempClients] = React.useState<IClient[]>([]);
-    const [checkedClients, setCheckedClients] = React.useState<IClient[]>([]);
+    const [checkedClients, setCheckedClients] = React.useState<IClient[]>([] as IClient[]);
     const [deleteClientIsOpen, setDeleteClientIsOpen] = React.useState(false);
     const [loading, setLoading] = React.useState(false);
     const [deleteId, setDeleteId] = React.useState<string>();
     const [tagDropdownIsOpen, setTagDropdownIsOpen] = React.useState<boolean[]>([]);
     const [allClients, setAllClients] = React.useState<IClient[]>([]);
     const [tags, setTags] = React.useState<ITag[]>([]);
+    const [clientPage, setClientPage] = React.useState(1);
+    const clientWrapper = useRef(null);
+
 
     React.useEffect(() => {
         setClients(allClients || [])
-        !checkedClients.length && setCheckedClients(allClients || [])
+        // !checkedClients.length && setCheckedClients(allClients || [])
     }, [allClients])
+
+
+    React.useEffect(() => {
+        loadClients()
+    }, [clientPage])
+
+    const handleObserver = useCallback((entries) => {
+        const target = entries[0];
+        if (target.isIntersecting) {
+            setClientPage((prev) => prev + 1);
+        }
+    }, []);
+
+    useEffect(() => {
+        const option = {
+            root: null,
+            rootMargin: "20px",
+            threshold: 0
+        };
+        const observer = new IntersectionObserver(handleObserver, option);
+        if (clientWrapper.current) observer.observe(clientWrapper.current);
+    }, [handleObserver]);
 
 
     const loadClients = async () => {
         setLoading(true);
         try {
-            const res = await getClients();
+            const res = await getClients(clientPage);
             setAllClients(res);
         } catch (error: any) {
             toast('Error mientras cargaba los clientes: ' + error.message, {type: 'error'})
         }
         setLoading(false);
     }
-
-    useEffect(() => {
-        loadClients();
-    }, [])
 
     const toggleTagDropdown = (index: number) => () => {
         const tagsDropdown: boolean[] = [...tagDropdownIsOpen];
@@ -66,39 +87,51 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
         const value = e.target.value ? e.target.value.toLowerCase() : '';
         setClients(allClients.filter((item: any) => !value || JSON.stringify(item).toLowerCase().includes(value)))
     }
-    const toggleEditable = (index: number) => () => {
-        editableList[index] = !editableList[index];
-        setEditableList([...editableList]);
-        setTempClients([]);
+    const toggleEditable = (client: IClient) => () => {
+        let data = editableList;
+        if (data.find(item => client._id === item._id)) {
+            data = data.filter(item => client._id !== item._id);
+        } else {
+            data.push(client)
+        }
+
+        setEditableList(() => [...data]);
+        // setTempClients([]);
     }
 
-    const handleRemoveClient = (index: number) => () => {
-        if (clients[index] && clients[index].number) {
-            toggleEditable(index)()
+    const handleRemoveClient = (client: IClient) => () => {
+        if (client && client.number) {
+            toggleEditable(client)()
         } else {
-            removeClientFromList(index)
+            removeClientFromList(client)
         }
     }
 
     const pushClient = async () => {
-        await setClients(() => [
-            ...clients,
+        await setClients([
             {} as IClient,
+            ...clients,
         ]);
-        editableList[clients.length] = true;
-        setEditableList([...editableList]);
+        await setEditableList([
+            {} as IClient,
+            ...editableList,
+        ]);
+        setTempClients([
+            {} as IClient,
+            ...tempClients,
+        ])
     }
 
     const loadTags = async (receivedTags: ITag[]) => {
         setTags(receivedTags);
     }
 
-    const handleDeleteClient = (client: IClient, index: number) => () => {
+    const handleDeleteClient = (client: IClient) => () => {
         if (client && client._id) {
             setDeleteId(client._id)
             toggleDeleteClient();
         } else {
-            removeClientFromList(index);
+            removeClientFromList(client);
         }
     }
 
@@ -106,8 +139,8 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
         setDeleteClientIsOpen(!deleteClientIsOpen)
     }
 
-    const removeClientFromList = (index: number) => {
-        const data = clients.filter((item, i) => i !== index)
+    const removeClientFromList = (client: IClient) => {
+        const data = clients.filter((item) => item._id !== client._id)
         setClients([...data]);
     }
 
@@ -115,10 +148,10 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
     const acceptDeleteClient = async () => {
         setLoading(true);
         toggleDeleteClient();
-        const index = clients.indexOf(clients.find(item => item._id === deleteId) || {} as any)
+        const client = clients.find(item => item._id === deleteId) || {} as IClient
         const response = await deleteClient(JSON.stringify({_id: deleteId}));
         if (response.status === 204) {
-            removeClientFromList(index)
+            removeClientFromList(client)
         } else {
             toast('Error mientras eliminaba', {type: 'error'})
         }
@@ -151,23 +184,27 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
                 toast('No puedes guardar un contacto sin numero', {type: 'error'});
             }
         }
-        toggleEditable(index)();
+        toggleEditable(clients[index])();
         setLoading(false);
 
     }
 
-    const onChangeClient = (index: number) => (client: IClient) => {
-        tempClients[index] = client;
-        setTempClients([...tempClients]);
+    const onChangeClient = (client: IClient) => {
+        const data = tempClients.map(item => item._id === client._id ? ({
+            ...item,
+            ...client,
+        }) : client)
+        setTempClients([...data]);
     }
 
     const onCheckClient = (client: IClient, index: number) => (e: any) => {
-        let data = [...checkedClients];
+        let data: IClient[] = checkedClients;
         if (e.target.checked) {
-            data[index] = client;
+            data.push(client);
         } else {
-            delete data[index];
+            data = data.filter(item => item._id !== client._id);
         }
+
         setCheckedClients(() => [...data]);
         onSelectClient && onSelectClient(data);
     };
@@ -176,7 +213,7 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
         setLoading(true);
         e.preventDefault();
         let updatedTags = [];
-        if(client.tags.indexOf(tag._id) !== -1) {
+        if (client.tags.indexOf(tag._id) !== -1) {
             updatedTags = client.tags.filter((tagId) => tagId !== tag._id);
         } else {
             updatedTags = [
@@ -197,24 +234,44 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
 
     const onSelectTag = (tags: ITag[]) => {
         let newClients = allClients;
-        if(tags.length) {
-            newClients = allClients.filter((clientItem, index) => {
-                // if the client has one or more from the selectedTags
-                const passed = !!clientItem.tags.find(tagId => tags.find(tagItem => tagItem._id === tagId));
-                if(passed) {
-                    onCheckClient(clientItem, index)({ target: { checked: true }});
-                }
-                return passed
-            });
+        if (tags.length) {
+            newClients = allClients.filter((clientItem, index) =>
+                !!clientItem.tags.find(tagId => tags.find(tagItem => tagItem._id === tagId))
+            );
         }
+
+        setSelectedTags(tags.map(tag => tag._id))
 
         setClients([...newClients]);
 
+        setCheckedClients(tags.length ? [...newClients] : []);
     }
+
+    const toggleAddClientToTag = () => {
+        setClients(allClients);
+        // setEnableAddClientToTag()
+    }
+
+    const tagClient = () => {
+        setLoading(true)
+        addTagsToClients(JSON.stringify({
+            clients: checkedClients,
+            tags: selectedTags,
+        })).then(async () => {
+            setLoading(false)
+            await loadClients()
+            toast('¡Clientes Etiquetados Exitosamente!')
+        })
+    }
+
     return (
         <>
             <Input type="text" onChange={onSearchClient} placeholder="Buscar Client" className="mb-3"/>
-            <TagList onUpdateTags={loadTags} onSelectTag={onSelectTag}/>
+            <TagList
+                onUpdateTags={loadTags}
+                onSelectTag={onSelectTag}
+                enableClientsToAddTags={toggleAddClientToTag}
+                tagClient={tagClient}/>
             <div className="client-list-container">
                 {
                     !loading ? null :
@@ -224,28 +281,29 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
                             </div>
                         </>
                 }
-                {clients.length ? clients.map((client, index) => (
+                {clients.length ? [{} as IClient, ...clients].map((client, index) => (
                     <div className="d-flex align-items-center w-100 mb-3 px-4" key={index}>
-                        {editableList[index] ?
+                        {!client._id || editableList.find(item => item._id === client._id) ?
                             <i className="bi bi-dash-circle-fill cursor-pointer text-danger me-3"
-                               onClick={handleDeleteClient(client, index)}/>
+                               onClick={handleDeleteClient(client)}/>
                             : <input
                                 className="client-checkbox me-3"
                                 type="checkbox"
-                                checked={!!checkedClients[index]}
+                                checked={!!checkedClients.find(item => item && item._id === client._id)}
                                 onChange={onCheckClient(client, index)}
                                 style={{
                                     transform: 'scale(1.2)',
                                 }}
                             />}
-                        <ClientItem client={{...client, ...(tempClients[index] ? tempClients[index] : {})}}
-                                    editable={editableList[index]} onChange={onChangeClient(index)}/>
+                        <ClientItem client={{...client, ...(tempClients.find(item => client._id === item._id) || {})}}
+                                    editable={!!editableList.find(item => item._id === client._id)}
+                                    onChange={onChangeClient}/>
                         <div className="d-flex align-items-center ms-3">
-                            {!editableList[index] ?
+                            {!editableList.find(item => item._id === client._id) ?
                                 <>
                                     <i className="bi bi-pencil cursor-pointer text-info"
-                                       onClick={toggleEditable(index)}/>
-                                    {index === clients.length - 1 &&
+                                       onClick={toggleEditable(client)}/>
+                                    {index === 0 &&
                                       <i className=" ms-3 bi bi-plus-lg cursor-pointer text-success"
                                          onClick={pushClient}/>
                                     }
@@ -255,8 +313,9 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
                                     <i className="bi bi-check-lg cursor-pointer me-4 text-success font-weight-bold"
                                        onClick={saveClient(index)}/>
                                     <i className="bi bi-x-lg cursor-pointer text-danger font-weight-bold me-4"
-                                       onClick={handleRemoveClient(index)}/>
-                                    <Dropdown toggle={toggleTagDropdown(index)} isOpen={tagDropdownIsOpen[index]}>
+                                       onClick={handleRemoveClient(client)}/>
+                                    <Dropdown className={client._id ? '' : 'd-none'} toggle={toggleTagDropdown(index)}
+                                              isOpen={tagDropdownIsOpen[index]}>
                                         <DropdownToggle tag="span" outline>
                                             <i className="bi bi-chevron-down cursor-pointer text-info font-weight-bold"/>
                                         </DropdownToggle>
@@ -266,7 +325,7 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
                                             </DropdownItem>
                                             {tags.length ? tags.map((tag: ITag, index: number) =>
                                                     <DropdownItem toggle={false}
-                                                                  active={!!client.tags.find(tagI => tagI === tag._id)}
+                                                                  active={!!client.tags && !!client.tags.find(tagI => tagI === tag._id)}
                                                                   key={index}
                                                                   onClick={setTagToClient(client, tag)}>
                                                         {tag.title}
@@ -281,8 +340,9 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
                             }
                         </div>
                     </div>
-
                 )) : <p>No se encontraron clientes...</p>}
+
+                <div className="client-list-scroll-loader-intersector" ref={clientWrapper}/>
 
                 <Modal isOpen={deleteClientIsOpen} toggle={toggleDeleteClient}>
                     <ModalBody>

@@ -1,6 +1,6 @@
-export const getClients = async () => {
+export const getClients = async (page: number) => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}clients`);
+        const response = await fetch(`${process.env.REACT_APP_API}clients/?page=${page}`);
         return await response.json() as any;
     } catch (e) {
         throw e;
@@ -8,9 +8,27 @@ export const getClients = async () => {
 
 };
 
+
 export const updateClients = async (body: string) => {
     try {
         return await fetch(`${process.env.REACT_APP_API}clients`, {
+                method: 'PUT',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            }
+        );
+    } catch (e) {
+        throw e;
+    }
+}
+
+
+export const addTagsToClients = async (body: string) => {
+    try {
+        return await fetch(`${process.env.REACT_APP_API}clients/add-tags-to-clients`, {
                 method: 'PUT',
                 headers: {
                     'Accept': 'application/json',

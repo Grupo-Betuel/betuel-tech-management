@@ -1,6 +1,15 @@
 //*{
 //  transition: all .3s ease;
 //}
+.logo-container {
+  position: relative;
+  display: flex;
+  justify-content: center;
+  .logo {
+    cursor: pointer;
+  }
+}
+
 .cards {
   margin-bottom: 1em;
   align-items: flex-start;

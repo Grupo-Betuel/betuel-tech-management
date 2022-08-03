@@ -12,7 +12,7 @@ import {
 import React, { useCallback, useEffect, useRef } from "react";
 import { IProductData } from "../../model/products";
 import { Rnd } from 'react-rnd';
-import logo from "../../assets/images/logo.png";
+import logo from "../../assets/images/betueltech.png";
 import productBackground from "../../assets/images/product-background.png";
 import styled from "styled-components";
 import "./ProductModalForm.scss";
@@ -24,6 +24,7 @@ import { ECommerceTypes, getWhatsappMessageURL } from "../../services/promotions
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
 import { PromotionOption } from "../../screens/Dashboard/Dashboard";
+import { CompanyTypes } from "../../model/common";
 
 const draggableWidth = 350;
 const draggableHeight = 350;
@@ -42,6 +43,7 @@ export interface IProductFormProps {
     portfolioMode?: boolean;
     promotionLoading: { [N in ECommerceTypes]?: boolean };
     editProduct?: Partial<IProductData>;
+    company: CompanyTypes;
 }
 
 export interface IProductImageProperties {
@@ -126,6 +128,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         handlePromoteProduct,
         promotionLoading,
         portfolioMode,
+        company,
     }) => {
     const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
     const [useCommission, setUseCommission] = React.useState(false);
@@ -204,6 +207,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             const body = JSON.stringify({
                 ...product,
                 productImage,
+                company,
                 image: photoName ? completePhotoName : undefined,
                 flyerOptions: photoName ? JSON.stringify(flyerOptions) : undefined,
             });
@@ -219,6 +223,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 const body = JSON.stringify({
                     ...product,
                     productImage,
+                    company,
                     image: gcloudPublicURL + photoName,
                     flyerOptions: JSON.stringify(flyerOptions),
                 });

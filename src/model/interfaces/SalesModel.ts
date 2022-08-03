@@ -1,3 +1,5 @@
+import { CompanyTypes } from "../common";
+
 export interface ISale {
     _id: string;
     productId: string;
@@ -9,4 +11,5 @@ export interface ISale {
     date: string;
     cost: number;
     quantity?: number;
+    company: CompanyTypes;
 };

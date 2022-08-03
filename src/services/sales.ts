@@ -1,6 +1,8 @@
-export const getSales = async (date?: string) => {
+import { CompanyTypes } from "../model/common";
+
+export const getSales = async (company: CompanyTypes, date: string) => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}sales/?date=${date}`);
+        const response = await fetch(`${process.env.REACT_APP_API}sales/${company}/${date}`);
         return await response.json() as any;
     } catch (e) {
         throw e;
