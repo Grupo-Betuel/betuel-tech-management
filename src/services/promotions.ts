@@ -15,7 +15,7 @@ export const getWhatsappMessageURL = (message: string) => `https://wa.me/${whats
 
 
 
-export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceTypes, sessionKey: string = 'betueltech') => {
+export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceTypes, sessionKey: string) => {
     const body = JSON.stringify({ data: products, sessionKey });
 
     try {

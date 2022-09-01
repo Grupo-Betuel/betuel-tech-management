@@ -8,6 +8,7 @@ import {
 } from 'reactstrap';
 import { MoneyStatisticLabel, Product } from '../../components';
 import BetuelTechLogo from "../../assets/images/betueltech.png"
+import Cat from "../../assets/images/cat.jpeg"
 import BetuelDanceLogo from "../../assets/images/betueldance/logo.png"
 import CorotosFavicon from "../../assets/images/corotos-favicon.png"
 import FleaFavicon from "../../assets/images/flea-favicon.png"
@@ -25,12 +26,12 @@ import { toast } from "react-toastify";
 import { useHistory } from "react-router";
 import ClientModalForm from "../../components/ClientModalForm/ClientModalForm";
 import { ecommerceMessages, errorMessages } from "../../model/messages";
-import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce } from "../../utils/socket.io";
+import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce, PROD_SOCKET_URL } from "../../utils/socket.io";
 import * as io from "socket.io-client";
 import { EcommerceEvents } from "../../model/socket-events";
 import { CompanyTypes, ECommerceResponse } from "../../model/common";
 import { Socket } from "socket.io-client";
-
+const Marvin = require('marvinj');
 // export const accountLogos: { [N in ]} ;
 
 const CreateNewProductButton = styled.button`
@@ -305,12 +306,15 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
 
 
     React.useEffect(() => {
+        console.log('socket', socket);
         if (socket) {
             if (socket.connected) {
                 promoteSelectedProduct(selectedECommerce as ECommerceTypes as ECommerceTypes, selections)
             } else {
                 socket.on(CONNECTED_EVENT, async () => {
-                    onSocketOnce(socket, EcommerceEvents.ON_PUBLISHING, (response: ECommerceResponse) => {
+                    console.log('connected');
+                    socket.on(EcommerceEvents.ON_PUBLISHING, (response: ECommerceResponse) => {
+                        console.log("klk 1")
                         setPromotionLoading((data) => ({
                             ...data,
                             [response.ecommerce]: true
@@ -322,6 +326,8 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     })
 
                     onSocketOnce(socket, EcommerceEvents.ON_PUBLISHED, (response: ECommerceResponse) => {
+                        console.log("klk 2")
+
                         toast(ecommerceMessages.PUBLISHED_ITEM(
                                 response.ecommerce,
                                 response.publication || {} as IProductData),
@@ -332,6 +338,8 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     })
 
                     onSocketOnce(socket, EcommerceEvents.ON_COMPLETED, (response: ECommerceResponse) => {
+                        console.log("klk 3")
+
                         setPromotionLoading((data) => ({
                             ...data,
                             [response.ecommerce]: false
@@ -344,6 +352,8 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     })
 
                     onSocketOnce(socket, EcommerceEvents.ON_FAILED, (response: ECommerceResponse) => {
+                        console.log("klk 4")
+
                         setPromotionLoading((data) => ({
                             ...data,
                             [response.ecommerce]: false,
@@ -372,7 +382,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                 return;
             }
 
-            await promoteProduct(data as IProduct[], ecommerceType);
+            await promoteProduct(data as IProduct[], ecommerceType, selectedCompany);
 
         } catch (err) {
             console.error('promotion error: ', err);
@@ -385,7 +395,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
 
     }
     const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => async () => {
-        !socket && setSocket(() => io.connect(DEV_SOCKET_URL));
+        !socket && setSocket(() => io.connect(PROD_SOCKET_URL));
         setSelectedECommerce(ecommerceType)
     }
 
