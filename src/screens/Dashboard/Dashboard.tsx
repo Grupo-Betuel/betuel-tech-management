@@ -312,9 +312,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                 promoteSelectedProduct(selectedECommerce as ECommerceTypes as ECommerceTypes, selections)
             } else {
                 socket.on(CONNECTED_EVENT, async () => {
-                    console.log('connected');
                     socket.on(EcommerceEvents.ON_PUBLISHING, (response: ECommerceResponse) => {
-                        console.log("klk 1")
                         setPromotionLoading((data) => ({
                             ...data,
                             [response.ecommerce]: true
@@ -326,7 +324,6 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     })
 
                     onSocketOnce(socket, EcommerceEvents.ON_PUBLISHED, (response: ECommerceResponse) => {
-                        console.log("klk 2")
 
                         toast(ecommerceMessages.PUBLISHED_ITEM(
                                 response.ecommerce,
@@ -338,7 +335,6 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     })
 
                     onSocketOnce(socket, EcommerceEvents.ON_COMPLETED, (response: ECommerceResponse) => {
-                        console.log("klk 3")
 
                         setPromotionLoading((data) => ({
                             ...data,
@@ -352,7 +348,6 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     })
 
                     onSocketOnce(socket, EcommerceEvents.ON_FAILED, (response: ECommerceResponse) => {
-                        console.log("klk 4")
 
                         setPromotionLoading((data) => ({
                             ...data,
