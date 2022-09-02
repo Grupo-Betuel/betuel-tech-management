@@ -21,7 +21,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
 
     React.useEffect(() => {
         if(!socket) {
-            setSocket(io.connect(PROD_SOCKET_URL));
+            setSocket(io.connect(DEV_SOCKET_URL));
         }
     }, [])
 
