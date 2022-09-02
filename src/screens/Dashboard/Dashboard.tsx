@@ -116,7 +116,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
     const [selections, setSelections] = React.useState<IProductData[]>([]);
     const [filter, setFilter] = React.useState<IProductFilters>("MostProfit");
     const [editProduct, setEditProduct] = React.useState<Partial<IProductData>>(null as any);
-    const [selectedECommerce, setSelectedECommerce] = React.useState<ECommerceTypes>();
+    const [selectedECommerce, setSelectedECommerce] = React.useState<ECommerceTypes | ''>();
     const [recordedDate, setRecordedDate] = React.useState<string>(`${months[new Date().getMonth()]}-${new Date().getFullYear()}`);
     const [logo, setLogo] = React.useState(companyLogos[localStorage.getItem(companyStorageKey) as CompanyTypes] || BetuelTechLogo)
     const tithePercent = 0.10;
@@ -138,10 +138,10 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
             if (selections.find(prod => prod._id === product._id)) {
                 setSelections(selections.filter(prod => prod._id !== product._id));
             } else {
-                if (selections.length < 5) {
+                if (selections.length < 30) {
                     setSelections([...selections, product]);
                 } else {
-                    toast('¡Hey! Solo puedes seleccionar 5 articulos', {type: 'info'});
+                    toast('¡Hey! Solo puedes seleccionar 30 articulos', {type: 'info'});
                 }
             }
             return;
@@ -306,10 +306,11 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
 
 
     React.useEffect(() => {
-        console.log('socket', socket);
-        if (socket) {
+        if (socket && !!selectedECommerce) {
             if (socket.connected) {
                 promoteSelectedProduct(selectedECommerce as ECommerceTypes as ECommerceTypes, selections)
+                setSelectedECommerce('')
+
             } else {
                 socket.on(CONNECTED_EVENT, async () => {
                     socket.on(EcommerceEvents.ON_PUBLISHING, (response: ECommerceResponse) => {
@@ -358,6 +359,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                     })
 
                     promoteSelectedProduct(selectedECommerce as ECommerceTypes, selections)
+                    setSelectedECommerce('')
                 });
 
             }
