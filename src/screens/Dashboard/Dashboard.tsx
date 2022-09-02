@@ -523,17 +523,17 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
                       />
                     </div>
                     <div className={`d-flex align-items-center ${!enableSelection ? 'disable-promotions' : ''}`}>
-                      <PromotionOption loading={promotionLoading.facebook}>
+                      {/*<PromotionOption>*/}
+                      {/*  <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>*/}
+                      {/*  <i data-toggle="tooltip"*/}
+                      {/*     title="Enviar Seleccionados por Whatsapp"*/}
+                      {/*     className="bi bi-instagram instagram-icon cursor-pointer promotion-icon"*/}
+                      {/*  />*/}
+                      {/*</PromotionOption>*/}
+                      <PromotionOption loading={false}>
                         <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
                         <i data-toggle="tooltip"
-                           title="Enviar Seleccionados por Whatsapp"
-                           className="bi bi-instagram instagram-icon cursor-pointer promotion-icon"
-                        />
-                      </PromotionOption>
-                      <PromotionOption loading={promotionLoading.whatsapp}>
-                        <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>
-                        <i data-toggle="tooltip"
-                           title="Enviar Seleccionados por Whatsapp"
+                           title="Abrir Whatsapp"
                            className="bi bi-whatsapp text-success cursor-pointer promotion-icon"
                            onClick={handleWhatsappPromotion}
                         />
