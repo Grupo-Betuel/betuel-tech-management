@@ -6,4 +6,5 @@ export interface IClient {
     lastName: string,
     number: string,
     tags: string[],
+    fullName: string;
 }

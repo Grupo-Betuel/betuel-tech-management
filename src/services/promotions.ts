@@ -1,6 +1,6 @@
 import { IProduct } from "../components/Product/Product";
 import { IClient } from "../model/interfaces/ClientModel";
-import { IWhatsappMessage, WhatsappSessionTypes } from "../model/interfaces/WhatsappModels";
+import { IWhatsappMessage, IWsUser, WhatsappSessionTypes } from "../model/interfaces/WhatsappModels";
 
 export const localPromotionsApi = 'http://10.0.0.13:5000/api/';
 export const whatsappPhone = '+18298937075';
@@ -51,8 +51,7 @@ export const startWhatsappServices = async (start = true, sessionId: WhatsappSes
     }
 }
 
-export const sendWhatsappMessage = async (sessionId: WhatsappSessionTypes, contacts: IClient[], message: IWhatsappMessage) => {
-    console.log(contacts, 'clients');
+export const sendWhatsappMessage = async (sessionId: WhatsappSessionTypes, contacts: (IClient | IWsUser)[], message: IWhatsappMessage) => {
     try {
         return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/message`, {
                 method: 'POST',
@@ -65,6 +64,21 @@ export const sendWhatsappMessage = async (sessionId: WhatsappSessionTypes, conta
                     message,
                     contacts: contacts.filter(item => !!item),
                 }),
+            }
+        );
+    } catch (e) {
+        throw e;
+    }
+}
+
+export const getWhatsappSeedData = async (sessionId: WhatsappSessionTypes, seedType = 'all') => {
+    try {
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/seed/${sessionId}/${seedType}`, {
+                method: 'GET',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                }
             }
         );
     } catch (e) {

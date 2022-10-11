@@ -95,24 +95,24 @@ const ClientModalForm: React.FC<IClientFormProps> = (
             </ModalHeader>
             <ModalBody>
                 <Form onSubmit={!isSubmiting && isValidForm ? onSubmit : undefined}>
-                    <div className={step === 1 ? 'd-block' : 'd-none'}>
-                        <ClientList onSelectClient={onSelectClient}/>
-                    </div>
                     <div className={step === 2 ? 'd-block' : 'd-none'}>
+                        {/*<ClientList onSelectClient={onSelectClient}/>*/}
+                    </div>
+                    <div className={step === 1 ? 'd-block' : 'd-none'}>
                         <Messaging contacts={clients}/>
                     </div>
-                    <ModalFooter>
-                        {step === 1 && <Button color="info" onClick={toggleModal} outline>Añadir Etiqueta</Button>}
-                        {' '}
-                        <Button
-                            color="success"
-                            outline
-                            type="button"
-                            onClick={handleSubmit}
-                        >
-                            {step === 1 ? 'Siguiente' : 'Volver'}
-                        </Button>
-                    </ModalFooter>
+                    {/*<ModalFooter>*/}
+                    {/*    {step === 1 && <Button color="info" onClick={toggleModal} outline>Añadir Etiqueta</Button>}*/}
+                    {/*    {' '}*/}
+                    {/*    <Button*/}
+                    {/*        color="success"*/}
+                    {/*        outline*/}
+                    {/*        type="button"*/}
+                    {/*        onClick={handleSubmit}*/}
+                    {/*    >*/}
+                    {/*        {step === 1 ? 'Siguiente' : 'Volver'}*/}
+                    {/*    </Button>*/}
+                    {/*</ModalFooter>*/}
                 </Form>
             </ModalBody>
 

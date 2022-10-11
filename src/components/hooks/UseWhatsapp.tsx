@@ -1,12 +1,12 @@
 import { IClient } from "../../model/interfaces/ClientModel";
 import React from "react";
 import QRCode from 'qrcode';
-import { startWhatsappServices, sendWhatsappMessage } from "../../services/promotions";
+import { startWhatsappServices, sendWhatsappMessage, getWhatsappSeedData } from "../../services/promotions";
 import { toast } from "react-toastify";
 import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce, PROD_SOCKET_URL } from "../../utils/socket.io";
 import styled from "styled-components";
 import * as io from "socket.io-client";
-import { IWhatsappMessage, WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
+import { ISeed, IWhatsappMessage, IWsUser, WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
 import { WhatsappEvents } from "../../model/socket-events";
 
 export const QrCanvas = styled.canvas`
@@ -17,7 +17,8 @@ export const QrCanvas = styled.canvas`
 const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     const [logged, setLogged] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
-    const [socket, setSocket] = React.useState<io.Socket>()
+    const [socket, setSocket] = React.useState<io.Socket>();
+    const [seedData, setSeedData] = React.useState<ISeed>({ groups: [], users: [], labels: [] });
 
     React.useEffect(() => {
         if(!socket) {
@@ -53,6 +54,12 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         }
     }
 
+    const fetchWsSeedData = async () => {
+        setLoading(true);
+        setSeedData(await (await getWhatsappSeedData(whatsappSessionId)).json())
+        setLoading(false);
+    }
+
     // handling whatsapp service
     React.useEffect(() => {
         if(socket) {
@@ -70,6 +77,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
                 onSocketOnce(socket,WhatsappEvents.ON_AUTH_SUCCESS, () => {
                     setLogged(true)
                     setLoading(false)
+                    fetchWsSeedData();
                 });
 
                 onSocketOnce(socket,WhatsappEvents.ON_AUTH_FAILED, async () => {
@@ -95,12 +103,12 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
 
     const handleWhatsappMessaging = (sent: (contact: IClient) => any, end: (contacts: IClient[]) => any) => {
         if(socket) {
-            onSocketOnce(socket, 'whatsapp-message-sent', sent);
-            onSocketOnce(socket, 'whatsapp-messages-end', end);
+            onSocketOnce(socket, WhatsappEvents.ON_SENT_MESSAGE, sent);
+            onSocketOnce(socket, WhatsappEvents.ON_END_MESSAGE, end);
         }
     }
 
-    const sendMessage = async (sessionId: WhatsappSessionTypes, contacts: IClient[], message: IWhatsappMessage) =>
+    const sendMessage = async (sessionId: WhatsappSessionTypes, contacts: (IClient | IWsUser)[], message: IWhatsappMessage) =>
         await sendWhatsappMessage(sessionId, contacts, message)
 
     return {
@@ -112,6 +120,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         sendMessage,
         setLogged,
         setLoading,
+        seedData,
         qrElement: <QrCanvas id="canvas-qr" />
     };
 

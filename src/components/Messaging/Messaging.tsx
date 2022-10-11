@@ -6,11 +6,14 @@ import { toast } from "react-toastify";
 import useWhatsapp from "../hooks/UseWhatsapp";
 import { TagContainer, TagItem } from "../Tag/Tag";
 import {
+    IWsGroup,
+    IWsLabel, IWsUser,
     whatsappSessionKeys,
     whatsappSessionList,
     whatsappSessionNames,
     WhatsappSessionTypes
 } from "../../model/interfaces/WhatsappModels";
+import { Multiselect } from "multiselect-react-dropdown";
 
 export interface IMessaging {
     contacts: IClient[]
@@ -23,6 +26,13 @@ export const LogOutButton = styled.i`
   font-size: 25px;
 `
 
+export const DoubleSelectableWrapper = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 15px;
+`
+
+
 export const MessagingContainer = styled.div`
 `
 
@@ -34,6 +44,9 @@ const Messaging: React.FC<IMessaging> = (
     const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.wpadilla)
     const [message, setMessage] = useState<string>('')
     const [photo, setPhoto] = useState<any>()
+    const [labeledUsers, setLabeledUsers] = React.useState<IWsUser[]>([]);
+    const [groupedUsers, setGroupedUsers] = React.useState<IWsUser[]>([]);
+    const [whatsappUsers, setWhatsappUsers] = React.useState<IWsUser[]>([]);
 
     const {
         logged,
@@ -43,6 +56,7 @@ const Messaging: React.FC<IMessaging> = (
         sendMessage,
         qrElement,
         login,
+        seedData
     } = useWhatsapp(selectedSession);
 
     const onMessageSent = (contact: IClient) => {
@@ -57,7 +71,7 @@ const Messaging: React.FC<IMessaging> = (
     // handling whatsapp service
     React.useEffect(() => {
         handleWhatsappMessaging(onMessageSent, onMessageEnd);
-    }, []);
+    }, [logged]);
 
     const changeSession = (sessionKey: WhatsappSessionTypes) => {
         login(sessionKey)
@@ -67,20 +81,7 @@ const Messaging: React.FC<IMessaging> = (
         setSelectedSession(sessionKey)
         changeSession(sessionKey)
     }
-    const handleSendMessage = (sessionId: WhatsappSessionTypes, contacts: IClient[]) => async () => {
-        const contactList = [
-            {
-                firstName: 'Luz',
-                lastName: 'De Padilla',
-                number: '8493846548',
-            },
-            {
-                firstName: 'Williams',
-                lastName: 'De Pena',
-                number: '8094055531',
-            },
-        ]
-
+    const handleSendMessage = (sessionId: WhatsappSessionTypes, contacts: (IClient | IWsUser)[]) => async () => {
         sendMessage(sessionId, contacts, {text: message, photo})
     }
 
@@ -104,6 +105,30 @@ const Messaging: React.FC<IMessaging> = (
             fr.readAsDataURL(files[0]);
         }
     }
+
+
+    const handleLabelSelection = (selectedList: IWsLabel[]) => {
+        let labeled: IWsUser[] = [];
+        selectedList.forEach(label => labeled = [...labeled, ...label.users]);
+        setLabeledUsers(labeled);
+    }
+
+
+    const handleGroupSelection = (selectedList: IWsGroup[]) => {
+        let grouped: IWsUser[] = [];
+        selectedList.forEach(group => grouped = [...grouped, ...group.participants]);
+        console.log("grouped", grouped);
+        setGroupedUsers(grouped);
+    }
+
+
+    const handleUserSelection = (isRemove: boolean) => (users: IWsUser[], rUser: IWsUser) => {
+        if(isRemove) {
+            setWhatsappUsers(whatsappUsers.filter(item => item.number !== rUser.number));
+        } else {
+            setWhatsappUsers([...whatsappUsers, ...users]);
+        }
+    };
 
     return (
         <MessagingContainer className="position-relative">
@@ -129,6 +154,51 @@ const Messaging: React.FC<IMessaging> = (
                         </div>
                     ) : null
             }
+
+
+            {!!logged && <>
+              <Multiselect
+                placeholder="Todos los Usuarios"
+                className="mb-3"
+                onSelect={handleUserSelection(false)}
+                onRemove={handleUserSelection(true)}
+                options={seedData.users} // Options to display in the dropdown
+                displayValue="fullName" // Property name to display in the dropdown options
+              />
+              <DoubleSelectableWrapper className="mb-3">
+                <Multiselect
+                  placeholder="Todos los Grupos"
+                  options={seedData.groups} // Options to display in the dropdown
+                  displayValue="subject" // Property name to display in the dropdown options
+                  onSelect={handleGroupSelection}
+                  onRemove={handleGroupSelection}
+                />
+                <Multiselect
+                  placeholder="Usuarios por grupos seleccionados"
+                  onSelect={handleUserSelection(false)}
+                  onRemove={handleUserSelection(true)}
+                  options={groupedUsers} // Options to display in the dropdown
+                  displayValue="fullName" // Property name to display in the dropdown options
+                />
+              </DoubleSelectableWrapper>
+              <DoubleSelectableWrapper className="mb-3">
+                <Multiselect
+                  placeholder="Todas las Etiquetas"
+                  options={seedData.labels} // Options to display in the dropdown
+                  displayValue="name" // Property name to display in the dropdown options
+                  onSelect={handleLabelSelection}
+                  onRemove={handleLabelSelection}
+                />
+                <Multiselect
+                  placeholder="Usuarios por etiquetas seleccionados"
+                  onSelect={handleUserSelection(false)}
+                  onRemove={handleUserSelection(true)}
+                  options={labeledUsers} // Options to display in the dropdown
+                  displayValue="fullName" // Property name to display in the dropdown options
+                />
+              </DoubleSelectableWrapper>
+            </>}
+
             {!logged ?
                 <div>
                     <h3 className="text-center mb-3">Escanear con Whatsapp</h3>
@@ -137,22 +207,29 @@ const Messaging: React.FC<IMessaging> = (
                 :
                 <div>
                     <h3 className="text-center mb-3">Enviar Mensaje</h3>
-                    <p className="mt-2">Puedes usar @firstName, @lastName y @number para personalizar el mensaje</p>
+                    <p className="mt-2">Puedes usar @firstName, @lastName, @fullName y @number para personalizar el
+                        mensaje</p>
                     <textarea
                         className="mb-3 w-100"
                         onChange={onChangeMessage}
                         rows={10}
                     />
 
-                    <div>
+                    <div className="mt-3 mb-5">
+                        <label className="btn btn-outline-info w-100" htmlFor="file">
+                            Cargar Archivo
+                        </label>
                         <input
+                            className="invisible"
                             onChange={onSelectPhoto}
                             type="file"
                             name="file"
+                            id="file"
                             accept="image/png,image/jpg,image/gif,image/jpeg"
                         />
                     </div>
-                    <Button color="success" outline onClick={handleSendMessage(selectedSession, contacts)}>Send
+                    <Button className="float-right" color="success" outline
+                            onClick={handleSendMessage(selectedSession, [...contacts, ...whatsappUsers])}>Send
                         Message</Button>
                 </div>
             }

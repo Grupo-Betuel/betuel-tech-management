@@ -96,9 +96,15 @@ const companyLogos:  {[N in CompanyTypes]: any} = {
 
 const companyStorageKey = 'betuelGroup:company';
 
-const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
+export interface IDashboardComponent {
+    setToken?: any,
+    portfolioMode?: boolean,
+    company?: CompanyTypes,
+}
+
+const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, portfolioMode, company}) => {
     const [activeAddSaleModal, setActiveAddSaleModal] = React.useState(false);
-    const [selectedCompany, setSelectedCompany] = React.useState<CompanyTypes>(localStorage.getItem(companyStorageKey) as CompanyTypes || 'betueltech');
+    const [selectedCompany, setSelectedCompany] = React.useState<CompanyTypes>(localStorage.getItem(company || companyStorageKey) as CompanyTypes || 'betueltech');
     const [showAccounts, setShowAccounts] = React.useState(false);
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
     const [loadingApp, setLoadingApp] = React.useState(false);
@@ -176,7 +182,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
 
     const getAllProducts = async () => {
         setLoadingApp(true);
-        const products = await getProducts(selectedCompany);
+        const products = await getProducts(company || selectedCompany);
         setProducts(products);
         setLoadingApp(false);
     }
@@ -184,8 +190,13 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
     React.useEffect(() => {
         getSalesData();
         getAllRecordsDates();
-        getAllProducts();
     }, []);
+
+    React.useEffect(() => {
+        getAllProducts();
+        // !!company && setSelectedCompany(company);
+    }, [company])
+
 
     const getAllRecordsDates = async () => {
         const dates: string[] = await getRecordedDates();
@@ -405,7 +416,7 @@ const Dashboard: React.FunctionComponent<any> = ({setToken, portfolioMode}) => {
         if (portfolioMode) {
             history.push('/dashboard');
         } else {
-            history.push('/portfolio');
+            history.push(`/portfolio/${selectedCompany}`);
         }
     }
 
