@@ -38,6 +38,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
             toast(`Whatsapp is ${status}`);
             setLogged(status === 'logged')
             setLoading(status !== 'logged')
+            status === 'logged' && fetchWsSeedData();
         });
     }
 
