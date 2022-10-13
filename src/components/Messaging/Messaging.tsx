@@ -19,6 +19,18 @@ export interface IMessaging {
     contacts: IClient[]
 }
 
+export const ImageWrapper = styled.div`
+  display:flex;
+  width: 100%;
+  justify-content: center;
+  padding: 12px;
+  img {
+    max-width: 20px;
+    border-radius: 5px;
+    border: 4px solid green;
+  }
+  
+`
 export const LogOutButton = styled.i`
   position: absolute;
   right: 10px;
@@ -122,11 +134,11 @@ const Messaging: React.FC<IMessaging> = (
     }
 
 
-    const handleUserSelection = (isRemove: boolean) => (users: IWsUser[], rUser: IWsUser) => {
+    const handleUserSelection = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
         if(isRemove) {
-            setWhatsappUsers(whatsappUsers.filter(item => item.number !== rUser.number));
+            setWhatsappUsers(whatsappUsers.filter(item => item.number !== currentUser.number));
         } else {
-            setWhatsappUsers([...whatsappUsers, ...users]);
+            setWhatsappUsers([...whatsappUsers, currentUser]);
         }
     };
 
@@ -214,6 +226,10 @@ const Messaging: React.FC<IMessaging> = (
                         onChange={onChangeMessage}
                         rows={10}
                     />
+                    { !!photo &&
+                      <ImageWrapper>
+                        <img src={photo} alt=""/>
+                    </ImageWrapper> }
 
                     <div className="mt-3 mb-5">
                         <label className="btn btn-outline-info w-100" htmlFor="file">

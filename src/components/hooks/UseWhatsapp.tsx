@@ -57,7 +57,8 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
 
     const fetchWsSeedData = async () => {
         setLoading(true);
-        setSeedData(await (await getWhatsappSeedData(whatsappSessionId)).json())
+        const data = await (await getWhatsappSeedData(whatsappSessionId)).json()
+        setSeedData(data);
         setLoading(false);
     }
 
