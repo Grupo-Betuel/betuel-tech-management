@@ -20,16 +20,17 @@ export interface IMessaging {
 }
 
 export const ImageWrapper = styled.div`
-  display:flex;
+  display: flex;
   width: 100%;
   justify-content: center;
   padding: 12px;
+
   img {
-    max-width: 20px;
+    max-width: 200px;
     border-radius: 5px;
-    border: 4px solid green;
+    border: 6px solid #95b895;
   }
-  
+
 `
 export const LogOutButton = styled.i`
   position: absolute;
