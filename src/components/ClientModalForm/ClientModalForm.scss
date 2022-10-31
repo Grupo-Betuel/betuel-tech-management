@@ -1,28 +1,4 @@
 .client-form-container {
-  width: 60vw !important;
-  max-width: unset !important;
+  width: 90vw !important;
+  max-width: 500px !important;
 }
-
-
-@media screen and (max-width: 800px) {
-  .client-form-container {
-    width: 80vw !important;
-  }
-
-}
-
-@media screen and (max-width: 500px) {
-  .client-form-container {
-    width: 100vw !important;
-  }
-
-}
-
-//@media screen and (max-width: 400px) {
-//  .client-form-container {
-//    .modal-dialog {
-//      width: 100vw;
-//    }
-//  }
-//
-//}

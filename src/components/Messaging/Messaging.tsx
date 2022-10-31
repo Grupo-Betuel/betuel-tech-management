@@ -16,7 +16,8 @@ import {
 import { Multiselect } from "multiselect-react-dropdown";
 
 export interface IMessaging {
-    contacts: IClient[]
+    contacts: IClient[],
+    closeWsClient?: boolean;
 }
 
 export const ImageWrapper = styled.div`
@@ -52,6 +53,7 @@ export const MessagingContainer = styled.div`
 const Messaging: React.FC<IMessaging> = (
     {
         contacts,
+        closeWsClient,
     }
 ) => {
     const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.wpadilla)
@@ -69,8 +71,15 @@ const Messaging: React.FC<IMessaging> = (
         sendMessage,
         qrElement,
         login,
-        seedData
+        seedData,
+        destroyWsClient,
     } = useWhatsapp(selectedSession);
+
+    React.useEffect(() => {
+        if(closeWsClient) {
+            destroyWsClient(selectedSession);
+        }
+    }, [closeWsClient]);
 
     const onMessageSent = (contact: IClient) => {
         console.log('contact', contact)

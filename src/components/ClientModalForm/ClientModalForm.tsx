@@ -8,10 +8,11 @@ import {
 } from 'reactstrap';
 import React, { useEffect } from 'react';
 import './ClientModalForm.scss';
-import { ECommerceTypes } from '../../services/promotions';
+import { ECommerceTypes, startWhatsappServices } from '../../services/promotions';
 import ClientList from "../ClientList/ClientList";
 import { IClient } from "../../model/interfaces/ClientModel";
 import { Messaging } from "../index";
+import { WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
 
 export interface IClientFormProps {
     toggle: () => any;
@@ -33,14 +34,17 @@ const ClientModalForm: React.FC<IClientFormProps> = (
     const [isValidForm, setIsValidForm] = React.useState(false);
     const [isSubmiting, setIsSubmiting] = React.useState(false);
     const [step, setStep] = React.useState(1);
+    const [logOutWhatsapp, setLogOutWs] = React.useState(false);
 
     useEffect(() => {
         setClient(editClient || {});
         validForm();
+        setLogOutWs(false);
     }, [editClient]);
 
-    const toggleModal = () => {
+    const toggleModal = async () => {
         toggle();
+        setLogOutWs(true);
     };
 
     const onSubmit = async (form: any) => {
@@ -99,7 +103,7 @@ const ClientModalForm: React.FC<IClientFormProps> = (
                         {/*<ClientList onSelectClient={onSelectClient}/>*/}
                     </div>
                     <div className={step === 1 ? 'd-block' : 'd-none'}>
-                        <Messaging contacts={clients}/>
+                        <Messaging contacts={clients} closeWsClient={logOutWhatsapp}/>
                     </div>
                     {/*<ModalFooter>*/}
                     {/*    {step === 1 && <Button color="info" onClick={toggleModal} outline>Añadir Etiqueta</Button>}*/}

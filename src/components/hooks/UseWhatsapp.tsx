@@ -26,8 +26,8 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         }
     }, [])
 
-    const handleWhatsapp = async (start: boolean, sessionId:WhatsappSessionTypes) => {
-        const response: any = await (await startWhatsappServices(start, sessionId)).json();
+    const handleWhatsapp = async (start: boolean, sessionId:WhatsappSessionTypes, removeSession?: boolean) => {
+        const response: any = await (await startWhatsappServices(start, sessionId, removeSession)).json();
         return response;
     }
 
@@ -43,6 +43,11 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     }
 
     const logOut = async (sessionId: WhatsappSessionTypes) => {
+        return handleWhatsapp(false, sessionId, true);
+    };
+
+    const destroyWsClient = async (sessionId: WhatsappSessionTypes) => {
+        socket?.disconnect();
         return handleWhatsapp(false, sessionId);
     };
 
@@ -123,7 +128,8 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         setLogged,
         setLoading,
         seedData,
-        qrElement: <QrCanvas id="canvas-qr" />
+        qrElement: <QrCanvas id="canvas-qr" />,
+        destroyWsClient,
     };
 
 }

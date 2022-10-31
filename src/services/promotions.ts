@@ -35,7 +35,7 @@ export const promoteProduct = async (products: IProduct[], eCommerce: ECommerceT
 }
 
 
-export const startWhatsappServices = async (start = true, sessionId: WhatsappSessionTypes) => {
+export const startWhatsappServices = async (start = true, sessionId: WhatsappSessionTypes, removeSession?: boolean) => {
     try {
         return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp`, {
                 method: 'POST',
@@ -43,7 +43,7 @@ export const startWhatsappServices = async (start = true, sessionId: WhatsappSes
                     'Accept': 'application/json',
                     'Content-Type': 'application/json'
                 },
-                body: JSON.stringify({start, sessionId}),
+                body: JSON.stringify({start, sessionId, removeSession}),
             }
         );
     } catch (e) {
