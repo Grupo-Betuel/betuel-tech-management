@@ -111,6 +111,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, port
     const [clientModalIsOpen, setClientModalIsOpen] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
     const [promotionLoading, setPromotionLoading] = React.useState<{ [N in ECommerceTypes]?: boolean }>({});
+    const [promotionDisabled, setPromotionDisabled] = React.useState<{ [N in ECommerceTypes]?: boolean }>({});
     const [enableSelection, setEnableSelection] = React.useState(false);
     const [editSale, setEditSale] = React.useState<ISale>({} as any);
     const [salesData, setSalesData] = React.useState<ISale[]>([]);
@@ -319,8 +320,14 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, port
     React.useEffect(() => {
         if (socket && !!selectedECommerce) {
             if (socket.connected) {
+                if(selectedECommerce === 'facebook') {
+                    setPromotionDisabled({ corotos: true, flea: true, whatsapp: true })
+                } else {
+                    setPromotionDisabled({ facebook: true, flea: false, whatsapp: false })
+                }
                 promoteSelectedProduct(selectedECommerce as ECommerceTypes as ECommerceTypes, selections)
                 setSelectedECommerce('')
+
 
             } else {
                 socket.on(CONNECTED_EVENT, async () => {
@@ -352,6 +359,13 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, port
                             ...data,
                             [response.ecommerce]: false
                         }))
+                        setPromotionDisabled((data) => ({
+                            ...data,
+                            facebook: false,
+                            flea: false,
+                            corotos: false,
+                        }))
+
                         toast(ecommerceMessages.COMPLETED_PUBLISHING(response.ecommerce), {
                             type: "success",
                             autoClose: false,
@@ -381,7 +395,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, port
 
     const promoteSelectedProduct = async (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => {
         // do nothing while loading or selection mode isn't active
-        if ((data.length > 1 && !enableSelection) || promotionLoading[ecommerceType]) {
+        if ((data.length > 1 && !enableSelection) || promotionLoading[ecommerceType] || promotionDisabled[ecommerceType]) {
             return;
         }
         try {
