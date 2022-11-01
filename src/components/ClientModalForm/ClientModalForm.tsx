@@ -79,7 +79,7 @@ const ClientModalForm: React.FC<IClientFormProps> = (
     }
 
     return (
-        <Modal isOpen={isOpen} toggle={toggleModal} className="client-form-container">
+        <Modal isOpen={isOpen} backdrop="static" toggle={toggleModal} className="client-form-container">
 
             {
                 isSubmiting ?

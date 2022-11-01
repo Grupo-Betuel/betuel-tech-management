@@ -59,7 +59,7 @@ const Messaging: React.FC<IMessaging> = (
     const [photo, setPhoto] = useState<any>()
     const [labeledUsers, setLabeledUsers] = React.useState<IWsUser[]>([]);
     const [groupedUsers, setGroupedUsers] = React.useState<IWsUser[]>([]);
-    const [whatsappUsers, setWhatsappUsers] = React.useState<IWsUser[]>([]);
+    const [excludedWhatsappUsers, setExcludedWhatsappUsers] = React.useState<IWsUser[]>([]);
     const lastSession = React.useRef<WhatsappSessionTypes>();
     React.useEffect(() => {
         lastSession.current = selectedSession
@@ -115,8 +115,9 @@ const Messaging: React.FC<IMessaging> = (
         setSelectedSession(sessionKey)
         changeSession(sessionKey)
     }
-    const handleSendMessage = (sessionId: WhatsappSessionTypes, contacts: (IClient | IWsUser)[]) => async () => {
-        sendMessage(sessionId, contacts, {text: message, photo})
+    const handleSendMessage = (sessionId: WhatsappSessionTypes) => async () => {
+        const whatsappUsers = getWhatsappUsers();
+        sendMessage(sessionId, whatsappUsers, {text: message, photo})
     }
 
     const onChangeMessage = (e: any) => {
@@ -158,11 +159,22 @@ const Messaging: React.FC<IMessaging> = (
 
     const handleUserSelection = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
         if(isRemove) {
-            setWhatsappUsers(whatsappUsers.filter(item => item.number !== currentUser.number));
+            setExcludedWhatsappUsers(excludedWhatsappUsers.filter(item => item.number !== currentUser.number));
         } else {
-            setWhatsappUsers([...whatsappUsers, currentUser]);
+            setExcludedWhatsappUsers([...excludedWhatsappUsers, currentUser]);
         }
     };
+
+    const getWhatsappUsers = (): IWsUser[] => {
+        const excluded: {[N in string]: boolean} = {};
+        excludedWhatsappUsers.forEach(item => excluded[item.number] = true);
+
+        const data = [...labeledUsers, ...groupedUsers].filter(user => {
+            return !excluded[user.number]
+        });
+
+        return data;
+    }
 
     return (
         <MessagingContainer className="position-relative">
@@ -201,14 +213,14 @@ const Messaging: React.FC<IMessaging> = (
               />
               <DoubleSelectableWrapper className="mb-3">
                 <Multiselect
-                  placeholder="Todos los Grupos"
+                  placeholder="Todos los usuaruis de estos Grupos"
                   options={seedData.groups} // Options to display in the dropdown
                   displayValue="subject" // Property name to display in the dropdown options
                   onSelect={handleGroupSelection}
                   onRemove={handleGroupSelection}
                 />
                 <Multiselect
-                  placeholder="Usuarios por grupos seleccionados"
+                  placeholder="Excepto estos usuarios"
                   onSelect={handleUserSelection(false)}
                   onRemove={handleUserSelection(true)}
                   options={groupedUsers} // Options to display in the dropdown
@@ -217,14 +229,14 @@ const Messaging: React.FC<IMessaging> = (
               </DoubleSelectableWrapper>
               <DoubleSelectableWrapper className="mb-3">
                 <Multiselect
-                  placeholder="Todas las Etiquetas"
+                  placeholder="Todas los usuarios de estas Etiquetas"
                   options={seedData.labels} // Options to display in the dropdown
                   displayValue="name" // Property name to display in the dropdown options
                   onSelect={handleLabelSelection}
                   onRemove={handleLabelSelection}
                 />
                 <Multiselect
-                  placeholder="Usuarios por etiquetas seleccionados"
+                  placeholder="Excepto estos usuarios"
                   onSelect={handleUserSelection(false)}
                   onRemove={handleUserSelection(true)}
                   options={labeledUsers} // Options to display in the dropdown
@@ -267,7 +279,7 @@ const Messaging: React.FC<IMessaging> = (
                         />
                     </div>
                     <Button className="float-right" color="success" outline
-                            onClick={handleSendMessage(selectedSession, [...contacts, ...whatsappUsers])}>Send
+                            onClick={handleSendMessage(selectedSession)}>Send
                         Message</Button>
                 </div>
             }

@@ -63,6 +63,7 @@ export const sendWhatsappMessage = async (sessionId: WhatsappSessionTypes, conta
                     sessionId,
                     message,
                     contacts: contacts.filter(item => !!item),
+                    delay: 10,
                 }),
             }
         );
