@@ -403,7 +403,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, port
 
     }
     const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => async () => {
-        !socket && setSocket(() => io.connect(PROD_SOCKET_URL));
+        !socket && setSocket(() => io.connect(DEV_SOCKET_URL));
         setSelectedECommerce(ecommerceType)
     }
 

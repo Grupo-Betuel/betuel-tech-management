@@ -34,17 +34,14 @@ const ClientModalForm: React.FC<IClientFormProps> = (
     const [isValidForm, setIsValidForm] = React.useState(false);
     const [isSubmiting, setIsSubmiting] = React.useState(false);
     const [step, setStep] = React.useState(1);
-    const [logOutWhatsapp, setLogOutWs] = React.useState(false);
 
     useEffect(() => {
         setClient(editClient || {});
         validForm();
-        setLogOutWs(false);
     }, [editClient]);
 
     const toggleModal = async () => {
         toggle();
-        setLogOutWs(true);
     };
 
     const onSubmit = async (form: any) => {
@@ -103,7 +100,7 @@ const ClientModalForm: React.FC<IClientFormProps> = (
                         {/*<ClientList onSelectClient={onSelectClient}/>*/}
                     </div>
                     <div className={step === 1 ? 'd-block' : 'd-none'}>
-                        <Messaging contacts={clients} closeWsClient={logOutWhatsapp}/>
+                        <Messaging contacts={clients} />
                     </div>
                     {/*<ModalFooter>*/}
                     {/*    {step === 1 && <Button color="info" onClick={toggleModal} outline>Añadir Etiqueta</Button>}*/}

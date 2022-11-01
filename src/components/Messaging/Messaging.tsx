@@ -17,7 +17,6 @@ import { Multiselect } from "multiselect-react-dropdown";
 
 export interface IMessaging {
     contacts: IClient[],
-    closeWsClient?: boolean;
 }
 
 export const ImageWrapper = styled.div`
@@ -53,7 +52,6 @@ export const MessagingContainer = styled.div`
 const Messaging: React.FC<IMessaging> = (
     {
         contacts,
-        closeWsClient,
     }
 ) => {
     const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.wpadilla)
@@ -62,6 +60,10 @@ const Messaging: React.FC<IMessaging> = (
     const [labeledUsers, setLabeledUsers] = React.useState<IWsUser[]>([]);
     const [groupedUsers, setGroupedUsers] = React.useState<IWsUser[]>([]);
     const [whatsappUsers, setWhatsappUsers] = React.useState<IWsUser[]>([]);
+    const lastSession = React.useRef<WhatsappSessionTypes>();
+    React.useEffect(() => {
+        lastSession.current = selectedSession
+    }, [selectedSession]);
 
     const {
         logged,
@@ -73,13 +75,22 @@ const Messaging: React.FC<IMessaging> = (
         login,
         seedData,
         destroyWsClient,
+        fetchWsSeedData
     } = useWhatsapp(selectedSession);
 
     React.useEffect(() => {
-        if(closeWsClient) {
-            destroyWsClient(selectedSession);
+        return (session = selectedSession) => {
+            if(!logged) {
+                !!lastSession.current && destroyWsClient(lastSession.current)
+            }
         }
-    }, [closeWsClient]);
+    }, []);
+
+    React.useEffect(() => {
+        if(logged) {
+            fetchWsSeedData(selectedSession)
+        }
+    }, [logged]);
 
     const onMessageSent = (contact: IClient) => {
         console.log('contact', contact)
@@ -99,7 +110,8 @@ const Messaging: React.FC<IMessaging> = (
         login(sessionKey)
     }
 
-    const selectSession = (sessionKey: WhatsappSessionTypes) => () => {
+    const selectSession = (sessionKey: WhatsappSessionTypes) => async () => {
+        if(!logged) await destroyWsClient(selectedSession);
         setSelectedSession(sessionKey)
         changeSession(sessionKey)
     }

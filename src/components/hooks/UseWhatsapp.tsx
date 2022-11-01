@@ -22,7 +22,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
 
     React.useEffect(() => {
         if(!socket) {
-            setSocket(io.connect(PROD_SOCKET_URL));
+            setSocket(io.connect(DEV_SOCKET_URL));
         }
     }, [])
 
@@ -38,7 +38,6 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
             toast(`Whatsapp is ${status}`);
             setLogged(status === 'logged')
             setLoading(status !== 'logged')
-            status === 'logged' && fetchWsSeedData();
         });
     }
 
@@ -47,8 +46,9 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     };
 
     const destroyWsClient = async (sessionId: WhatsappSessionTypes) => {
-        socket?.disconnect();
-        return handleWhatsapp(false, sessionId);
+        setLoading(true);
+        await handleWhatsapp(false, sessionId);
+        setLoading(false);
     };
 
     const generateQr = (data: any) => {
@@ -60,9 +60,9 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         }
     }
 
-    const fetchWsSeedData = async () => {
+    const fetchWsSeedData = async (sessionId = whatsappSessionId) => {
         setLoading(true);
-        const data = await (await getWhatsappSeedData(whatsappSessionId)).json()
+        const data = await (await getWhatsappSeedData(sessionId)).json()
         setSeedData(data);
         setLoading(false);
     }
@@ -84,7 +84,6 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
                 onSocketOnce(socket,WhatsappEvents.ON_AUTH_SUCCESS, () => {
                     setLogged(true)
                     setLoading(false)
-                    fetchWsSeedData();
                 });
 
                 onSocketOnce(socket,WhatsappEvents.ON_AUTH_FAILED, async () => {
@@ -95,6 +94,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
                 onSocketOnce(socket,WhatsappEvents.ON_READY, () => {
                     toast('¡Whatsapp listo para usar!');
                     setLoading(false);
+                    fetchWsSeedData();
                 });
 
                 onSocketOnce(socket,WhatsappEvents.ON_LOGOUT, () => {
@@ -118,6 +118,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     const sendMessage = async (sessionId: WhatsappSessionTypes, contacts: (IClient | IWsUser)[], message: IWhatsappMessage) =>
         await sendWhatsappMessage(sessionId, contacts, message)
 
+
     return {
         logged,
         loading,
@@ -130,6 +131,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         seedData,
         qrElement: <QrCanvas id="canvas-qr" />,
         destroyWsClient,
+        fetchWsSeedData
     };
 
 }

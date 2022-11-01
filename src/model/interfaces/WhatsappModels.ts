@@ -1,8 +1,8 @@
-export type WhatsappSessionTypes = 'wpadilla' | 'betueltgroup' | 'betueltravel';
-export const whatsappSessionList: WhatsappSessionTypes[] = ['betueltgroup', 'betueltravel', 'wpadilla']
+export type WhatsappSessionTypes = 'wpadilla' | 'betuelgroup' | 'betueltravel';
+export const whatsappSessionList: WhatsappSessionTypes[] = ['betuelgroup', 'betueltravel', 'wpadilla']
 export const whatsappSessionKeys: {[K in WhatsappSessionTypes]: WhatsappSessionTypes} = {
     wpadilla: 'wpadilla',
-    betueltgroup: 'betueltgroup',
+    betuelgroup: 'betuelgroup',
     betueltravel: 'betueltravel',
 }
 export interface IWhatsappMessage {
@@ -10,7 +10,7 @@ export interface IWhatsappMessage {
     photo?: Blob;
 }
 export const whatsappSessionNames: {[K in WhatsappSessionTypes]: string} = {
-    betueltgroup: 'Betuel Group',
+    betuelgroup: 'Betuel Group',
     betueltravel: 'Betuel Travel',
     wpadilla: 'Williams',
 }
