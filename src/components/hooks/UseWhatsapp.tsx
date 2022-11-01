@@ -81,9 +81,10 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
                     setLoading(false);
                 });
 
-                onSocketOnce(socket,WhatsappEvents.ON_AUTH_SUCCESS, () => {
+                onSocketOnce(socket,WhatsappEvents.ON_AUTH_SUCCESS, ({ sessionId }) => {
                     setLogged(true)
                     setLoading(false)
+                    fetchWsSeedData(sessionId)
                 });
 
                 onSocketOnce(socket,WhatsappEvents.ON_AUTH_FAILED, async () => {

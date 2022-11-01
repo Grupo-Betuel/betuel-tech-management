@@ -86,11 +86,11 @@ const Messaging: React.FC<IMessaging> = (
         }
     }, []);
 
-    React.useEffect(() => {
-        if(logged) {
-            fetchWsSeedData(selectedSession)
-        }
-    }, [logged]);
+    // React.useEffect(() => {
+    //     if(logged) {
+    //         fetchWsSeedData(selectedSession)
+    //     }
+    // }, [logged]);
 
     const onMessageSent = (contact: IClient) => {
         console.log('contact', contact)
