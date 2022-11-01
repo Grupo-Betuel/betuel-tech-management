@@ -54,7 +54,7 @@ const Messaging: React.FC<IMessaging> = (
         contacts,
     }
 ) => {
-    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.wpadilla)
+    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.betuelgroup)
     const [message, setMessage] = useState<string>('')
     const [photo, setPhoto] = useState<any>()
     const [labeledUsers, setLabeledUsers] = React.useState<IWsUser[]>([]);
