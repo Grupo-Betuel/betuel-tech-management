@@ -60,6 +60,7 @@ const Messaging: React.FC<IMessaging> = (
     const [labeledUsers, setLabeledUsers] = React.useState<IWsUser[]>([]);
     const [groupedUsers, setGroupedUsers] = React.useState<IWsUser[]>([]);
     const [excludedWhatsappUsers, setExcludedWhatsappUsers] = React.useState<IWsUser[]>([]);
+    const [selectedWhatsappUsers, setSelectedWhatsappUsers] = React.useState<IWsUser[]>([]);
     const lastSession = React.useRef<WhatsappSessionTypes>();
     React.useEffect(() => {
         lastSession.current = selectedSession
@@ -157,7 +158,7 @@ const Messaging: React.FC<IMessaging> = (
     }
 
 
-    const handleUserSelection = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
+    const handleUserExcluding = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
         if(isRemove) {
             setExcludedWhatsappUsers(excludedWhatsappUsers.filter(item => item.number !== currentUser.number));
         } else {
@@ -165,11 +166,19 @@ const Messaging: React.FC<IMessaging> = (
         }
     };
 
+    const handleUserSelection = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
+        if(isRemove) {
+            setSelectedWhatsappUsers(selectedWhatsappUsers.filter(item => item.number !== currentUser.number));
+        } else {
+            setSelectedWhatsappUsers([...selectedWhatsappUsers, currentUser]);
+        }
+    };
+
     const getWhatsappUsers = (): IWsUser[] => {
         const excluded: {[N in string]: boolean} = {};
         excludedWhatsappUsers.forEach(item => excluded[item.number] = true);
 
-        const data = [...labeledUsers, ...groupedUsers].filter(user => {
+        const data = [...labeledUsers, ...groupedUsers, ...selectedWhatsappUsers].filter(user => {
             return !excluded[user.number]
         });
 
@@ -221,8 +230,8 @@ const Messaging: React.FC<IMessaging> = (
                 />
                 <Multiselect
                   placeholder="Excepto estos usuarios"
-                  onSelect={handleUserSelection(false)}
-                  onRemove={handleUserSelection(true)}
+                  onSelect={handleUserExcluding(false)}
+                  onRemove={handleUserExcluding(true)}
                   options={groupedUsers} // Options to display in the dropdown
                   displayValue="fullName" // Property name to display in the dropdown options
                 />
@@ -237,8 +246,8 @@ const Messaging: React.FC<IMessaging> = (
                 />
                 <Multiselect
                   placeholder="Excepto estos usuarios"
-                  onSelect={handleUserSelection(false)}
-                  onRemove={handleUserSelection(true)}
+                  onSelect={handleUserExcluding(false)}
+                  onRemove={handleUserExcluding(true)}
                   options={labeledUsers} // Options to display in the dropdown
                   displayValue="fullName" // Property name to display in the dropdown options
                 />

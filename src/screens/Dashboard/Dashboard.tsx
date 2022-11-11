@@ -321,11 +321,12 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, port
         if (socket && !!selectedECommerce) {
             if (socket.connected) {
                 if(selectedECommerce === 'facebook') {
-                    setPromotionDisabled({ corotos: true, flea: true, whatsapp: true })
+                    setPromotionDisabled({ ...promotionDisabled, corotos: true, flea: true, whatsapp: true })
                 } else {
-                    setPromotionDisabled({ facebook: true, flea: false, whatsapp: false })
+                    setPromotionDisabled({ ...promotionDisabled, facebook: true, flea: false, whatsapp: false, corotos: false })
                 }
-                promoteSelectedProduct(selectedECommerce as ECommerceTypes as ECommerceTypes, selections)
+
+                !promotionDisabled[selectedECommerce] && promoteSelectedProduct(selectedECommerce as ECommerceTypes as ECommerceTypes, selections)
                 setSelectedECommerce('')
 
 
@@ -418,7 +419,9 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, port
     }
     const handlePromoteProduct = (ecommerceType: ECommerceTypes, data: Partial<IProductData>[] = selections) => async () => {
         !socket && setSocket(() => io.connect(PROD_SOCKET_URL));
-        setSelectedECommerce(ecommerceType)
+        if(!promotionDisabled[ecommerceType]) {
+            setSelectedECommerce(ecommerceType)
+        }
     }
 
     const logOut = () => {
