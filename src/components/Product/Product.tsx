@@ -133,6 +133,8 @@ const Product: React.FunctionComponent<IProduct> = ({
                     !portfolioMode &&
                     <div className="card-title">
                       <div className="title">
+                        <h4>Disponible: {product.stock}</h4>
+                        <h4>Precio: {product.price.toLocaleString()}</h4>
                         <h4>Ventas: {salesQuantity}</h4>
                         <h4>Ingresos: RD$ {moneyGenerated && moneyGenerated.toLocaleString('en-US')}</h4>
                       </div>

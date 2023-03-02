@@ -670,6 +670,12 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                id="priceId"
                                value={product.cost ? product.price : 0}/>
                       </FormGroup>
+                        <FormGroup>
+                            <Label for="priceId">Cantidad:</Label>
+                            <Input onChange={onChangeProduct} type="number" name="stock"
+                                   id="stockId"
+                                   value={product.stock}/>
+                        </FormGroup>
                       <FormGroup>
                         <Label for="productImage">Descripción:</Label>
                         <textarea rows={5}

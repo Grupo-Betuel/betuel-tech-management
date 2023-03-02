@@ -1,7 +1,11 @@
 import React from 'react';
-import { Button, Pagination, PaginationItem, PaginationLink, Table } from "reactstrap";
+import {Button, Pagination, PaginationItem, PaginationLink, Table} from "reactstrap";
 
-export interface IHeader {label: string; property: string}
+export interface IHeader {
+    label: string;
+    property: string,
+    render?: (data: any) => any;
+}
 
 export interface IAction {
     method: (item: any) => (e: React.MouseEvent<any>) => any;
@@ -15,46 +19,49 @@ export interface ITable {
     actions?: IAction[];
 }
 
-const TableComponent: React.FunctionComponent<any> = ({ headers, data, actions = [] }) => {
+const TableComponent: React.FunctionComponent<any> = ({headers, data, actions = []}) => {
 
-    return(
-    <div>
-        <Table responsive>
-            <thead>
-            <tr>
-                <th>#</th>
-                {
-                    headers.map((item: any, u: number) =>
-                    <th key={u}>{item.label}</th>
-                    )
-                }
-            </tr>
-            </thead>
-            <tbody>
-            { data.map( (item: any, i: number) =>
-                <tr key={i}>
-                    <>
-                        <th>{ i + 1}</th>
-                        {
-                            headers.map((head: IHeader, i: number) => <td key={i}>{item[head.property]}</td>)
-                        }
-                        {
-                            actions.map(
-                                (action: IAction, i: number) =>
-                                    <td key={i}>
-                                        <Button type="button" onClick={action.method(item as any)}>
-                                            {action.label}
-                                        </Button>
-                                    </td>
-                            )
-                        }
-                    </>
+    return (
+        <div>
+            <Table responsive>
+                <thead>
+                <tr>
+                    <th>#</th>
+                    {
+                        headers.map((item: any, u: number) =>
+                            <th key={u}>{item.label}</th>
+                        )
+                    }
                 </tr>
-            )
-            }
-            </tbody>
-        </Table>
-    </div>)
+                </thead>
+                <tbody>
+                {data.map((item: any, i: number) =>
+                    <tr key={i}>
+                        <>
+                            <th>{i + 1}</th>
+                            {
+                                headers.map((head: IHeader, i: number) => <td key={i}>{
+                                    head.render ? head.render(item) :
+                                        item[head.property]
+                                }</td>)
+                            }
+                            {
+                                actions.map(
+                                    (action: IAction, i: number) =>
+                                        <td key={i}>
+                                            <Button type="button" onClick={action.method(item as any)}>
+                                                {action.label}
+                                            </Button>
+                                        </td>
+                                )
+                            }
+                        </>
+                    </tr>
+                )
+                }
+                </tbody>
+            </Table>
+        </div>)
 }
 
 export default TableComponent;

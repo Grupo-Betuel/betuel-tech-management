@@ -9,12 +9,12 @@ import {
     ModalHeader,
     Spinner
 } from "reactstrap";
-import TableComponent, { IAction, IHeader } from "../Table/Table";
-import React, { useCallback, useEffect } from "react";
-import { ISale } from "../../model/interfaces/SalesModel";
-import { addSales, deleteSale, updateSales } from "../../services/sales";
-import { toast } from "react-toastify";
-import { CompanyTypes } from "../../model/common";
+import TableComponent, {IAction, IHeader} from "../Table/Table";
+import React, {useCallback, useEffect} from "react";
+import {ISale} from "../../model/interfaces/SalesModel";
+import {addSales, deleteSale, updateSales} from "../../services/sales";
+import {toast} from "react-toastify";
+import {CompanyTypes} from "../../model/common";
 
 export interface ICreateSaleModal {
     activeAddSaleModal?: boolean;
@@ -23,6 +23,7 @@ export interface ICreateSaleModal {
     salesData: ISale[];
     getSalesData: () => any;
     company: CompanyTypes;
+    loadProducts: () => any;
 }
 
 
@@ -47,6 +48,11 @@ const salesHeader: IHeader[] = [
         label: 'Comisión',
         property: 'commission',
     },
+    {
+        label: 'Fecha',
+        property: 'createDate',
+        render: (data) => new Date(data.createDate).toLocaleDateString(),
+    },
 ];
 
 const CreateSaleModal: React.FC<ICreateSaleModal> = (
@@ -57,6 +63,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         getSalesData,
         selectedSale,
         company,
+        loadProducts,
     }) => {
     const [confirmationFunction, setConfirmationFunction] = React.useState<() => any>();
     const [activeConfirmationModal, setActiveConfirmationModal] = React.useState(false);
@@ -95,7 +102,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
             method: (sale: ISale) => () => {
                 toggleConfirmation();
                 setConfirmationFunction(() => async () => {
-                    await handleDeleteSale(sale._id);
+                    await handleDeleteSale(sale);
                     setActiveConfirmationModal(false)
                 })
             },
@@ -110,12 +117,12 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         },
     ];
 
-    const handleDeleteSale = async (_id: string) => {
+    const handleDeleteSale = async (sale: ISale) => {
         setActiveConfirmationModal(false);
 
         setAddingSale(true);
 
-        const response = await deleteSale(JSON.stringify({_id}));
+        const response = await deleteSale(JSON.stringify({_id: sale._id, productId: sale.productId}));
         if (response.status === 204) {
             await getSalesData();
             toast('¡Registro Eliminado Exitosamente!', {type: "default"});
@@ -124,6 +131,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         }
 
         setAddingSale(false);
+        loadProducts();
     };
 
     const toggleModal = () => {
@@ -136,9 +144,9 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         if (salesData) {
             const newProductSales = salesData.filter((item, i) => item.productId === sale.productId);
             setProductSales([...newProductSales]);
-           if(enableProductSales) {
-               setProductSalesActive(true);
-           }
+            if (enableProductSales) {
+                setProductSalesActive(true);
+            }
         }
     };
 
@@ -153,10 +161,10 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         const body = JSON.stringify(saleData);
         let response: Response = {} as any;
 
-        if(editSale) {
+        if (editSale) {
             response = await updateSales(body);
 
-        } else  {
+        } else {
             response = await addSales(body);
         }
 
@@ -168,7 +176,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
             toast('¡Error en la Venta!', {type: "error"});
         }
         setAddingSale(false);
-
+        loadProducts();
     };
 
     const onChangeProduct = (ev: React.ChangeEvent<any>) => {
@@ -201,7 +209,8 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                 </ModalFooter>
             </Modal>
             <Modal isOpen={activeAddSaleModal} toggle={toggleModal}>
-                <ModalHeader toggle={toggleModal}>{sale.productName} | {editSale ? 'Editar Venta ' + editSale._id : 'Nueva Venta'}</ModalHeader>
+                <ModalHeader
+                    toggle={toggleModal}>{sale.productName} | {editSale ? 'Editar Venta ' + editSale._id : 'Nueva Venta'}</ModalHeader>
                 <ModalBody>
                     {
                         addingSale ?
@@ -213,7 +222,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                     {
                         productSalesActive || !!editSale ?
                             <Button color="primary" className="mb-3" type="button" outline onClick={goToCreateSale}>
-                              Ir a Crear Venta
+                                Ir a Crear Venta
                             </Button> : null
                     }
                     {productSalesActive ?
@@ -247,7 +256,8 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                                id="commissionId" placeholder="Comisión:" value={sale.commission}/>
                                     </FormGroup>
                             }
-                            <Button color="primary" className="mt-3" outline onClick={() => getAllSalesById(true)}>Todas las
+                            <Button color="primary" className="mt-3" outline onClick={() => getAllSalesById(true)}>Todas
+                                las
                                 Ventas</Button>{' '}
                         </>
                     }

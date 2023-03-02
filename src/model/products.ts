@@ -12,6 +12,7 @@ export interface IProductData {
   GodWord: string;
   productImage: string;
   description: string;
+  stock: number;
 }
 
 export type IProductBackground = {

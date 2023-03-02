@@ -481,6 +481,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({setToken, port
                 salesData={salesData}
                 getSalesData={getSalesData}
                 company={selectedCompany}
+                loadProducts={getAllProducts}
             />
             <div
                 className="d-flex align-items-center flex-column"
