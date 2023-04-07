@@ -25,7 +25,7 @@ import { toPng } from 'html-to-image';
 import { dataURItoBlob } from "../../utils/blob";
 import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
 import { addProduct, updateProducts } from "../../services/products";
-import { ECommerceTypes, getWhatsappMessageURL } from "../../services/promotions";
+import {ECommerceTypes, getWhatsappMessageURL, PublicationTypes} from "../../services/promotions";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
 import { PromotionOption } from "../../screens/Dashboard/Dashboard";
@@ -47,7 +47,7 @@ export interface ICalculatedPrice {
 export interface IProductFormProps {
     toggle: () => any;
     loadProducts: () => any;
-    handlePromoteProduct: (ecommerceType: ECommerceTypes, data: Partial<IProductData>[]) => () => any;
+    handlePromoteProduct: (ecommerceType: ECommerceTypes) => () => any;
     isOpen?: boolean;
     portfolioMode?: boolean;
     promotionLoading: { [N in ECommerceTypes]?: boolean };
@@ -592,7 +592,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                     <i data-toggle="tooltip"
                                        title={`Publicar ${product.name} en Facebook Marketplace`}
                                        className="bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
-                                       onClick={!promotionLoading.facebook ? handlePromoteProduct('facebook', [product]) : undefined}
+                                       onClick={!promotionLoading.facebook ? handlePromoteProduct('facebook') : undefined}
                                     />
                                 </PromotionOption>
                                 <PromotionOption loading={promotionLoading.flea}>
@@ -603,7 +603,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                         data-toggle="tooltip"
                                         title={`Publicar ${product.name} en La Pulga Virtual`}
                                         className="text-info cursor-pointer promotion-icon img-promotion-icon"
-                                        onClick={!promotionLoading.flea ? handlePromoteProduct('flea', [product]) : undefined}
+                                        onClick={!promotionLoading.flea ? handlePromoteProduct('flea') : undefined}
                                     />
                                 </PromotionOption>
                                 <PromotionOption loading={promotionLoading.corotos}>
@@ -614,7 +614,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                         data-toggle="tooltip"
                                         title={`Publicar ${product.name} en Corotos`}
                                         className="text-info cursor-pointer promotion-icon img-promotion-icon"
-                                        onClick={!promotionLoading.corotos ? handlePromoteProduct('corotos', [product]) : undefined}
+                                        onClick={!promotionLoading.corotos ? handlePromoteProduct('corotos') : undefined}
                                     />
                                 </PromotionOption>
                             </div> : null}

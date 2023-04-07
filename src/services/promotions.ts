@@ -8,6 +8,7 @@ import {
 
 export const localPromotionsApi = "http://10.0.0.13:5000/api/";
 export const whatsappPhone = "+18298937075";
+export type PublicationTypes = "photo" | "story";
 export type ECommerceTypes =
   | "facebook"
   | "instagram"
@@ -34,9 +35,10 @@ export const getWhatsappMessageURL = (message: string) =>
 export const promoteProduct = async (
   products: IProduct[],
   eCommerce: ECommerceTypes,
-  sessionKey: string
+  sessionKey: string,
+  type?: 'photo' | 'story',
 ) => {
-  const body = JSON.stringify({ data: products, sessionKey });
+  const body = JSON.stringify({ data: products, sessionKey, type });
 
   try {
     // `${eCommerce !== 'facebook' ? process.env.REACT_APP_PROMOTION_API : localPromotionsApi}${eCommerce}`
