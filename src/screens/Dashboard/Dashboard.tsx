@@ -164,6 +164,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const [promotion, setPromotion] = React.useState(0);
     const [registeredDates, setRegisteredDates] = React.useState<string[]>([]);
     const [products, setProducts] = React.useState<IProductData[]>([]);
+    const [filteredProducts, setFilteredProducts] = React.useState<IProductData[]>([]);
     const [selections, setSelections] = React.useState<IProductData[]>([]);
     const [filter, setFilter] = React.useState<IProductFilters>("MostProfit");
     const [editProduct, setEditProduct] = React.useState<Partial<IProductData>>(
@@ -239,6 +240,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         setLoadingApp(true);
         const products = await getProducts(company || selectedCompany);
         setProducts(products);
+        setFilteredProducts(products);
         setLoadingApp(false);
     };
 
@@ -536,7 +538,8 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const runPromotionEvents = () => {
         console.log('runPromotionEvents');
 
-        (socket as io.Socket).on(
+        onSocketOnce(
+            socket as io.Socket,
             EcommerceEvents.ON_PUBLISHING,
             (response: ECommerceResponse) => {
                 setPromotionLoading((data) => ({
@@ -691,6 +694,16 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const toggleIgDropdown = () => setIgDropdown((prevState) => !prevState);
 
+    const onFilterProducts = (e : React.ChangeEvent<any>) => {
+        const value = e.target.value;
+        const text = (value || '').toLowerCase().replace(/[ ]/gi, '');
+        const filteredProducts = products.filter((product: IProductData) => {
+            const { name, description } = product;
+            const productText = `${name} ${description}`.toLowerCase().replace(/[ ]/gi, '');
+            return productText.includes(text);
+        });
+        setFilteredProducts(filteredProducts);
+    }
     return (
         <>
             {!loadingApp ? null : (
@@ -1020,9 +1033,16 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     lg={8}
                     md={10}
                     sm={12}
+                >
+                   <Input onChange={onFilterProducts} placeholder="Buscar por nombre o descripcion"></Input>
+                </Col>
+                <Col
+                    lg={8}
+                    md={10}
+                    sm={12}
                     className={`cards mt-3 ${enableSelection ? "cards-shrink" : ""}`}
                 >
-                    {products.map((item, i) => (
+                    {filteredProducts.map((item, i) => (
                         <Product
                             {...item}
                             portfolioMode={portfolioMode}
