@@ -16,3 +16,9 @@ export enum EcommerceEvents {
     ON_COMPLETED = 'ecommerce-completed',
     ON_FAILED = 'ecommerce-failed',
 }
+
+export enum ScheduleEvents {
+    EMIT_RUNNING = 'schedule-running',
+    EMIT_STOPPED = 'schedule-stopped',
+    EMIT_FAILED = 'schedule-failed',
+}

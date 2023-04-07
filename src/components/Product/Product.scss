@@ -14,6 +14,34 @@
   grid-template-rows: 1fr;
   position: relative;
   height: 100%;
+  &:hover {
+    .delete-product-icon {
+      opacity: 1;
+    }
+    .card-title {
+      opacity: 1;
+      height: 80px;
+    }
+  }
+
+  .delete-product-icon {
+    position: absolute;
+    z-index: 999;
+    top: 3px;
+    color: red;
+    background: white;
+    font-size: 21px;
+    right: 5px;
+    cursor: pointer;
+    border-radius: 50px;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all .3s ease;
+    opacity: 0;
+  }
 }
 
 .card-image-container:hover .card-image {
@@ -27,7 +55,8 @@
   background-position: center;
   background-size: cover;
   transition: all .3s ease;
-  min-height: 170px;
+  height: 220px;
+  min-height: 100%;
 
 }
 
@@ -38,11 +67,18 @@
 }
 
 .card-title {
+  position: absolute;
+  width: 100%;
+  bottom: 0;
   margin: 0 !important;
-  height: 80px;
   display: flex;
   align-items: center;
   justify-content: center;
+  opacity: 0;
+  height: 0;
+  transition: all .3s ease;
+  background: linear-gradient(0deg, rgba(255,255,255,1) 50%, rgba(255,255,255,.01) 100%);
+  color: #6e6e6d;
 }
 
 .card-title .title h4 {

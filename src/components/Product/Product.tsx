@@ -7,12 +7,13 @@ import { ISale } from "../../model/interfaces/SalesModel";
 export interface IProduct extends IProductData {
     salesQuantity?: number;
     moneyGenerated?: number;
-    loadSale: (product: IProductData) => any;
-    loadProductDetails: (product: IProductData) => any;
+    loadSale?: (product: IProductData) => any;
+    loadProductDetails?: (product: IProductData) => any;
     selected?: boolean;
     portfolioMode?: boolean;
     enableSelection?: boolean;
     onSelect?: (product: IProductData) => any;
+    onRemoveProduct?: (product: IProductData, index?: number) => any;
 }
 
 export interface ISaleOptions {
@@ -30,6 +31,7 @@ const Product: React.FunctionComponent<IProduct> = ({
                                                         loadSale,
                                                         loadProductDetails,
                                                         selected,
+                                                        onRemoveProduct,
                                                         ...product
                                                     }) => {
 
@@ -88,18 +90,22 @@ const Product: React.FunctionComponent<IProduct> = ({
     };
 
     const handleLoadSale = () => {
-        loadSale(product);
+        loadSale && loadSale(product);
     };
 
     const handleLoadProduct = () => {
-        loadProductDetails(product);
+        loadProductDetails && loadProductDetails(product);
     };
 
+    const handleRemoveProduct = () => {
+        onRemoveProduct && onRemoveProduct(product);
+    }
     return (
         <div className={`card ${selected ? 'selected' : ''}`}>
             <div
                 className="card-content"
             >
+                {onRemoveProduct && !portfolioMode && <i className="bi bi-trash delete-product-icon" onClick={handleRemoveProduct}></i>}
                 <div className="card-image-container overflow-hidden">
                     <div
                         className="card-image"

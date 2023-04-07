@@ -1,5 +1,17 @@
 import React, { useEffect } from "react";
-import { Col, Row, FormGroup, Input, Spinner, Label } from "reactstrap";
+import {
+  Col,
+  Row,
+  FormGroup,
+  Input,
+  Spinner,
+  Label,
+  Modal,
+  ModalHeader,
+  ModalBody,
+  ModalFooter,
+  Button
+} from "reactstrap";
 import { MoneyStatisticLabel, Product } from "../../components";
 import BetuelTechLogo from "../../assets/images/betueltech.png";
 import Cat from "../../assets/images/cat.jpeg";
@@ -14,10 +26,10 @@ import { ISale } from "../../model/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
 import ProductModalForm from "../../components/ProductModalForm/ProductModalForm";
-import { getProducts } from "../../services/products";
+import {deleteProduct, getProducts} from "../../services/products";
 import {
   ecommerceNames,
-  ECommerceTypes,
+  ECommerceTypes, handleSchedulePromotion,
   promoteProduct,
   startWhatsappServices,
 } from "../../services/promotions";
@@ -33,9 +45,11 @@ import {
   PROD_SOCKET_URL,
 } from "../../utils/socket.io";
 import * as io from "socket.io-client";
-import { EcommerceEvents, WhatsappEvents } from "../../model/socket-events";
+import {EcommerceEvents, ScheduleEvents, WhatsappEvents} from "../../model/socket-events";
 import { CompanyTypes, ECommerceResponse } from "../../model/common";
 import { Socket } from "socket.io-client";
+import {ScheduleResponse} from "../../model/schedule";
+import {whatsappSessionNames, WhatsappSessionTypes} from "../../model/interfaces/WhatsappModels";
 const Marvin = require("marvinj");
 // export const accountLogos: { [N in ]} ;
 
@@ -170,6 +184,10 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
   const history = useHistory();
   const [socket, setSocket] = React.useState<io.Socket>();
 
+  // initializing socket
+  React.useEffect(() => {
+    setSocket(io.connect(PROD_SOCKET_URL));
+  }, []);
   const toggleProductForm = () => {
     setEditProduct(null as any);
     setProductFormIsOpen(!productFormIsOpen);
@@ -370,6 +388,8 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
   };
 
   React.useEffect(() => {
+    console.log("klk?", socket?.connected, selectedECommerce)
+
     if (socket && !!selectedECommerce) {
       if (socket.connected) {
         if (selectedECommerce === "facebook") {
@@ -378,6 +398,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             corotos: true,
             flea: true,
             whatsapp: true,
+            instagram: true,
           });
         } else {
           setPromotionDisabled({
@@ -386,91 +407,20 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             flea: false,
             whatsapp: false,
             corotos: false,
+            instagram: false,
           });
         }
 
-        !promotionDisabled[selectedECommerce] &&
-          promoteSelectedProduct(
-            selectedECommerce as ECommerceTypes as ECommerceTypes,
-            selections
-          );
+      promoteSelectedProduct(
+        selectedECommerce as ECommerceTypes as ECommerceTypes,
+        selections
+      );
         setSelectedECommerce("");
       } else {
+        console.log('connect');
         socket.on(CONNECTED_EVENT, async () => {
-          socket.on(
-            EcommerceEvents.ON_PUBLISHING,
-            (response: ECommerceResponse) => {
-              setPromotionLoading((data) => ({
-                ...data,
-                [response.ecommerce]: true,
-              }));
-              toast(ecommerceMessages.START_PUBLISHING(response.ecommerce), {
-                type: "default",
-              });
-            }
-          );
+          console.log('goood!!')
 
-          onSocketOnce(
-            socket,
-            EcommerceEvents.ON_PUBLISHED,
-            (response: ECommerceResponse) => {
-              toast(
-                ecommerceMessages.PUBLISHED_ITEM(
-                  response.ecommerce,
-                  response.publication || ({} as IProductData)
-                ),
-                {
-                  type: "success",
-                  autoClose: false,
-                }
-              );
-            }
-          );
-
-          onSocketOnce(
-            socket,
-            EcommerceEvents.ON_COMPLETED,
-            (response: ECommerceResponse) => {
-              setPromotionLoading((data) => ({
-                ...data,
-                [response.ecommerce]: false,
-              }));
-              setPromotionDisabled((data) => ({
-                ...data,
-                facebook: false,
-                flea: false,
-                corotos: false,
-              }));
-
-              toast(
-                ecommerceMessages.COMPLETED_PUBLISHING(response.ecommerce),
-                {
-                  type: "success",
-                  autoClose: false,
-                }
-              );
-              destroyUnusedSocket();
-            }
-          );
-
-          onSocketOnce(
-            socket,
-            EcommerceEvents.ON_FAILED,
-            (response: ECommerceResponse) => {
-              setPromotionLoading((data) => ({
-                ...data,
-                [response.ecommerce]: false,
-                autoClose: false,
-              }));
-              toast(
-                errorMessages.ECOMMERCE_ERROR(
-                  response.ecommerce,
-                  response.error || "indefinido"
-                ),
-                { type: "error" }
-              );
-            }
-          );
 
           promoteSelectedProduct(
             selectedECommerce as ECommerceTypes,
@@ -488,9 +438,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
   ) => {
     // do nothing while loading or selection mode isn't active
     if (
-      (data.length > 1 && !enableSelection) ||
-      promotionLoading[ecommerceType] ||
-      promotionDisabled[ecommerceType]
+      (data.length > 1 && !enableSelection)
     ) {
       return;
     }
@@ -515,10 +463,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
       data: Partial<IProductData>[] = selections
     ) =>
     async () => {
-      !socket && setSocket(() => io.connect(PROD_SOCKET_URL));
-      if (!promotionDisabled[ecommerceType]) {
         setSelectedECommerce(ecommerceType);
-      }
     };
 
   const logOut = () => {
@@ -559,65 +504,192 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     setLogo(companyLogos[company]);
   };
 
-  const [betueltravelBotStarted, setBetueltravelBotStarted] =
-    React.useState<boolean>();
+
 
   useEffect(() => {
-    toggleBetuelTravelBot();
+    const callPromotion = async () => {
+      await runPromotion('betueldance')();
+      await runPromotion('betueltech')();
+      // runPromotion('betueltravel')();
+    }
+    callPromotion();
+
   }, []);
 
-  const toggleBetuelTravelBot = async () => {
-    if (!socket) {
-      setSocket(io.connect(PROD_SOCKET_URL));
-    }
+
+
+  const runPromotion = (sessionId: ECommerceTypes) => async () => {
+    const action = promotionLoading[sessionId] ? "stop" : "run";
+
     const response: any = await (
-      await startWhatsappServices(!betueltravelBotStarted, "betueltravel")
+      await handleSchedulePromotion(sessionId, action)
     ).json();
-    const { status } = response;
-    toast(`Betuel Travel Bot is ${status}`);
-    const btIsLoading = status !== "logged" && status !== "logged out";
-    setPromotionLoading({
+
+    const status: 'running' | 'stopped' | 'error'  = response.status;
+    toast(`${ecommerceNames[sessionId]} is ${status}`);
+
+    setPromotionLoading((data) => ({
       ...promotionLoading,
-      betueltravel: btIsLoading,
-    });
-    setBetueltravelBotStarted(!btIsLoading);
+      ...data,
+      [sessionId]: status === "running"
+    }));
+  };
+
+  const runPromotionEvents = () => {
+    console.log('runPromotionEvents');
+
+    (socket as io.Socket).on(
+        EcommerceEvents.ON_PUBLISHING,
+        (response: ECommerceResponse) => {
+          setPromotionLoading((data) => ({
+            ...data,
+            [response.ecommerce]: true,
+          }));
+          toast(ecommerceMessages.START_PUBLISHING(response.ecommerce), {
+            type: "default",
+          });
+        }
+    );
+
+    onSocketOnce(
+        socket as io.Socket,
+        EcommerceEvents.ON_PUBLISHED,
+        (response: ECommerceResponse) => {
+          console.log('published', response)
+          toast(
+              ecommerceMessages.PUBLISHED_ITEM(
+                  response.ecommerce,
+                  response.publication || ({} as IProductData)
+              ),
+              {
+                type: "success",
+                autoClose: false,
+              }
+          );
+        }
+    );
+
+    onSocketOnce(
+        socket as io.Socket,
+        EcommerceEvents.ON_COMPLETED,
+        (response: ECommerceResponse) => {
+          setPromotionLoading((data) => ({
+            ...data,
+            [response.ecommerce]: false,
+          }));
+          setPromotionDisabled((data) => ({
+            ...data,
+            facebook: false,
+            flea: false,
+            corotos: false,
+          }));
+
+          console.log("completed", response)
+          toast(
+              ecommerceMessages.COMPLETED_PUBLISHING(response.ecommerce),
+              {
+                type: "success",
+                autoClose: false,
+              }
+          );
+          // destroyUnusedSocket();
+        }
+    );
+
+    onSocketOnce(
+        socket as io.Socket,
+        EcommerceEvents.ON_FAILED,
+        (response: ECommerceResponse) => {
+          setPromotionLoading((data) => ({
+            ...data,
+            [response.ecommerce]: false,
+            autoClose: false,
+          }));
+          toast(
+              errorMessages.ECOMMERCE_ERROR(
+                  response.ecommerce,
+                  response.error || "indefinido"
+              ),
+              { type: "error" }
+          );
+        }
+    );
+  }
+  const runScheduleEvents = () => {
+    onSocketOnce(
+        socket as io.Socket,
+        ScheduleEvents.EMIT_RUNNING,
+        ({ sessionId }: ScheduleResponse) => {
+          console.log("sessionId", sessionId);
+          setPromotionLoading((data) => ({
+            ...promotionLoading,
+            ...data,
+            [sessionId]: true
+          }));
+          toast(`${whatsappSessionNames[sessionId]} promotion is running`);
+        }
+    );
+
+    onSocketOnce(
+        socket as io.Socket,
+        ScheduleEvents.EMIT_STOPPED,
+        ({ sessionId }: ScheduleResponse) => {
+          console.log("sessionId", sessionId);
+          setPromotionLoading((data) => ({
+            ...promotionLoading,
+            ...data,
+            [sessionId]: false
+          }));
+          toast(`${whatsappSessionNames[sessionId]} promotion is stopped`);
+        }
+    );
+
+    onSocketOnce(
+        socket as io.Socket,
+        ScheduleEvents.EMIT_FAILED,
+        ({ sessionId, error }: ScheduleResponse) => {
+          console.log("sessionId", sessionId);
+          console.error(error);
+          setPromotionLoading((data) => ({
+            ...promotionLoading,
+            ...data,
+            [sessionId]: false
+          }));
+          toast(`${whatsappSessionNames[sessionId]} occurred an error`);
+
+        }
+    );
+  }
+
+  const onDeleteProduct = async () => {
+    setLoadingApp(true);
+    const res = await deleteProduct(deleteProductId);
+    console.log('deleted item', res);
+    setLoadingApp(false);
+    getAllProducts();
+    setDeleteConfirmationModal(false)
   };
 
   useEffect(() => {
     if (socket) {
       socket.on(CONNECTED_EVENT, () => {
-        onSocketOnce(
-          socket as any,
-          WhatsappEvents.ON_AUTH_SUCCESS,
-          ({ sessionId }) => {
-            console.log("sessionId", sessionId);
-            if (sessionId === "betueltravel") {
-              setPromotionLoading({ ...promotionLoading, betueltravel: false });
-              toast(`Betuel Travel Bot is started`);
-              setBetueltravelBotStarted(true);
-            }
-          }
-        );
-
-        onSocketOnce(
-          socket as any,
-          WhatsappEvents.ON_LOGOUT,
-          ({ sessionId, ...res }) => {
-            console.log("closed sessionId", sessionId, res);
-
-            if (sessionId === "betueltravel") {
-              toast(`Betuel Travel Bot is stopped`);
-              setPromotionLoading({ ...promotionLoading, betueltravel: false });
-              setBetueltravelBotStarted(false);
-
-            }
-          }
-        );
+        runScheduleEvents();
+        runPromotionEvents();
       });
     }
   }, [socket]);
 
-  return (
+  const [deleteConfirmationModal, setDeleteConfirmationModal] = React.useState(false);
+  const [deleteProductId, setDeleteProductId] = React.useState('');
+
+  const toggleDeleteConfirmationModal = () => setDeleteConfirmationModal(!deleteConfirmationModal);
+
+  const handleDeleteProduct = ({ _id }: IProductData) => {
+    setDeleteProductId(_id);
+    setDeleteConfirmationModal(true);
+  }
+
+ return (
     <>
       {!loadingApp ? null : (
         <>
@@ -626,6 +698,16 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
           </div>
         </>
       )}
+      <Modal isOpen={deleteConfirmationModal} toggle={toggleDeleteConfirmationModal}>
+        <ModalHeader toggle={toggleConfirmation}>Confirmación</ModalHeader>
+        <ModalBody>
+          ¿Estas Seguro que deseas eliminar este producto?
+        </ModalBody>
+        <ModalFooter>
+          <Button color="primary" onClick={onDeleteProduct}>Confirmar</Button>{' '}
+          <Button color="secondary" onClick={toggleDeleteConfirmationModal}>Cancel</Button>
+        </ModalFooter>
+      </Modal>
       <CreateSaleModal
         activeAddSaleModal={activeAddSaleModal}
         toggleAddSale={toggleAddSale}
@@ -767,7 +849,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 </PromotionOption>
                 <PromotionOption
                   loading={promotionLoading.betueltravel}
-                  className={betueltravelBotStarted ? "" : "option-disabled"}
                 >
                   <Spinner
                     className="loading-spinner"
@@ -778,37 +859,42 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                   <img
                     src={BetuelTravelLogo}
                     data-toggle="tooltip"
-                    title={
-                      betueltravelBotStarted
-                        ? "Detener Betuel Travel Bot"
-                        : "Ejecutar betuel travel Bot"
-                    }
-                    className="bi bi-whatsapp text-success cursor-pointer promotion-icon img-promotion-icon"
-                    onClick={toggleBetuelTravelBot}
+                    className="bi-whatsapp cursor-pointer promotion-icon img-promotion-icon"
+                    // onClick={runPromotion("betueltravel")}
                   />
                 </PromotionOption>
-                {/* <PromotionOption
-                  loading={promotionLoading.betueltravel}
-                  className={betueltravelBotStarted ? "" : "option-disabled"}
+                <PromotionOption
+                    loading={promotionLoading.betueltech}
                 >
                   <Spinner
-                    className="loading-spinner"
-                    animation="grow"
-                    variant="secondary"
-                    size="sm"
+                      className="loading-spinner"
+                      animation="grow"
+                      variant="secondary"
+                      size="sm"
                   />
                   <img
-                    src={BetuelDanceLogo}
-                    data-toggle="tooltip"
-                    title={
-                      betueltravelBotStarted
-                        ? "Detener Betuel Travel Bot"
-                        : "Ejecutar betuel travel Bot"
-                    }
-                    className="bi text-success cursor-pointer promotion-icon img-promotion-icon"
-                    onClick={toggleBetuelTravelBot}
+                      src={BetuelTechLogo}
+                      data-toggle="tooltip"
+                      className="bi-whatsapp cursor-pointer promotion-icon img-promotion-icon"
+                      onClick={runPromotion("betueltech")}
                   />
-                </PromotionOption> */}
+                </PromotionOption>
+                <PromotionOption
+                    loading={promotionLoading.betueldance}
+                >
+                  <Spinner
+                      className="loading-spinner"
+                      animation="grow"
+                      variant="secondary"
+                      size="sm"
+                  />
+                  <img
+                      src={BetuelDanceLogo}
+                      data-toggle="tooltip"
+                      className="bi-whatsapp cursor-pointer promotion-icon img-promotion-icon"
+                      onClick={runPromotion("betueldance")}
+                  />
+                </PromotionOption>
 
                 <PromotionOption loading={promotionLoading.facebook}>
                   <Spinner
@@ -822,6 +908,20 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     title="Publicar Seleccionados en Facebook Marketplace"
                     className="bi bi-facebook text-info cursor-pointer promotion-icon facebook-icon"
                     onClick={handlePromoteProduct("facebook")}
+                  />
+                </PromotionOption>
+                <PromotionOption loading={promotionLoading.instagram}>
+                  <Spinner
+                      className="loading-spinner"
+                      animation="grow"
+                      variant="secondary"
+                      size="sm"
+                  />
+                  <i
+                      data-toggle="tooltip"
+                      title="Publicar Seleccionados en Instagram"
+                      className="bi bi-instagram  cursor-pointer promotion-icon instagram-icon"
+                      onClick={handlePromoteProduct("instagram")}
                   />
                 </PromotionOption>
                 <PromotionOption loading={promotionLoading.flea}>
@@ -915,6 +1015,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
               loadProductDetails={loadProductDetails}
               salesQuantity={getProductSales(item._id)}
               moneyGenerated={getProductMoney(item._id) as number}
+              onRemoveProduct={handleDeleteProduct}
               key={i}
             />
           ))}
@@ -943,6 +1044,8 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
       <ClientModalForm
         promotionLoading={promotionLoading}
+        selectedProducts={selections}
+        setSelectedProducts={setSelections}
         isOpen={clientModalIsOpen}
         toggle={toggleClientFormModal}
       />

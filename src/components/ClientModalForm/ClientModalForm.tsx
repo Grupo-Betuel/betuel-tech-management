@@ -13,12 +13,16 @@ import ClientList from "../ClientList/ClientList";
 import { IClient } from "../../model/interfaces/ClientModel";
 import { Messaging } from "../index";
 import { WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
+import {IProduct} from "../Product/Product";
+import {IProductData} from "../../model/products";
 
 export interface IClientFormProps {
     toggle: () => any;
     isOpen?: boolean;
     promotionLoading: { [N in ECommerceTypes]?: boolean };
     editClient?: Partial<any>;
+    selectedProducts: IProductData[];
+    setSelectedProducts: (products: IProductData[]) => any;
 }
 
 
@@ -27,6 +31,8 @@ const ClientModalForm: React.FC<IClientFormProps> = (
         isOpen,
         toggle,
         editClient,
+        selectedProducts,
+        setSelectedProducts
     },
 ) => {
     const [client, setClient] = React.useState<Partial<any>>(editClient || {});
@@ -100,7 +106,11 @@ const ClientModalForm: React.FC<IClientFormProps> = (
                         {/*<ClientList onSelectClient={onSelectClient}/>*/}
                     </div>
                     <div className={step === 1 ? 'd-block' : 'd-none'}>
-                        <Messaging contacts={clients} />
+                        <Messaging
+                            contacts={clients}
+                            selectedProducts={selectedProducts}
+                            setSelectedProducts={setSelectedProducts}
+                        />
                     </div>
                     {/*<ModalFooter>*/}
                     {/*    {step === 1 && <Button color="info" onClick={toggleModal} outline>Añadir Etiqueta</Button>}*/}

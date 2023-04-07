@@ -10,16 +10,23 @@ export const localPromotionsApi = "http://10.0.0.13:5000/api/";
 export const whatsappPhone = "+18298937075";
 export type ECommerceTypes =
   | "facebook"
+  | "instagram"
   | "corotos"
   | "flea"
   | "whatsapp"
-  | "betueltravel";
+  | "betueltravel"
+  | "betueldance"
+  | "betueltech";
+
 export const ecommerceNames: { [N in ECommerceTypes]: string } = {
   facebook: "Facebook Marketplace",
+  instagram: "Instagram",
   corotos: "Corotos",
   flea: "La Pulga Virtual",
   whatsapp: "Whatsapp Messenger",
   betueltravel: "Betuel Travel",
+  betueltech: "Betuel Tech",
+  betueldance: "Betuel Dance Shop",
 };
 export const getWhatsappMessageURL = (message: string) =>
   `https://wa.me/${whatsappPhone}?text=${encodeURI(message)}`;
@@ -64,6 +71,25 @@ export const startWhatsappServices = async (
     throw e;
   }
 };
+
+export const handleSchedulePromotion = async (
+    clientId: ECommerceTypes,
+    action: 'run' | 'stop' = 'run'
+) => {
+  try {
+    return await fetch(`${process.env.REACT_APP_PROMOTION_API}schedule`, {
+      method: "POST",
+      headers: {
+        Accept: "application/json",
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ action, clientId }),
+    });
+  } catch (e) {
+    throw e;
+  }
+};
+
 
 export const sendWhatsappMessage = async (
   sessionId: WhatsappSessionTypes,

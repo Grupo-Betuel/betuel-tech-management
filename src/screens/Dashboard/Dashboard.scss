@@ -18,13 +18,16 @@
 
 .cards {
   margin-bottom: 1em;
-  align-items: flex-start;
+  justify-content: center;
   display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr 1fr;
-  grid-template-rows: 1fr;
+  grid-template-columns: repeat(auto-fit, minmax(220px, 220px));
+  //grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-rows: repeat(auto-fit, minmax(220px, 220px));
+  //grid-template-rows: repeat(auto-fit, minmax(220px, 1fr));
   grid-gap: 1em;
-  width: 100%;
   padding: 0 20px;
+  width: 90% !important;
+
 
   &.cards-shrink {
     //grid-gap: 1.5em;
@@ -81,7 +84,7 @@
  cursor: pointer !important;
 }
 .loading-sale-container {
-  position: absolute;
+  position: fixed;
   width: 100%;
   height: 100%;
   display: flex;
@@ -98,6 +101,7 @@ th {
 
 .promotion-icon {
   font-size: 24px;
+  z-index: 9;
 
   &:hover {
     filter: brightness(50%);
@@ -107,6 +111,10 @@ th {
 .facebook-icon {
   filter: brightness(70%);
 
+}
+
+.instagram-icon {
+  color: white;
 }
 
 .img-promotion-icon {
@@ -142,36 +150,27 @@ th {
   justify-content: center;
   font-size: 20px;
 }
-@media screen and (max-width: 1050px) {
 
-  .cards {
-    grid-template-columns: 1fr 1fr 1fr 1fr;
-  }
-}
 
-@media screen and ( max-width: 860px) {
-  .label-grid {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr 1fr;
-  }
 
-  .total-label:nth-child(3)::after {
-    display: none;
-  }
-
-}
 
 @media screen and (max-width: 768px) {
   .cards {
-    grid-template-columns: 1fr 1fr 1fr;
-    grid-template-rows: 1fr;
+    width: 100% !important;
   }
 }
 
 @media screen and (max-width: 680px) {
   .cards {
-    grid-template-columns: 1fr 1fr;
-    grid-template-rows: 1fr 1fr;
+    $itemSize: 320px;
+
+    grid-template-columns: repeat(auto-fit, minmax($itemSize, $itemSize));
+    grid-template-rows: repeat(auto-fit, minmax($itemSize, $itemSize));
+
+    .card-image {
+        min-height: $itemSize;
+    }
+
   }
 }
 

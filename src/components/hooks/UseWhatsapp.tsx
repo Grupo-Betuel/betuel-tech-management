@@ -14,11 +14,19 @@ export const QrCanvas = styled.canvas`
   height: 100% !important;
 `
 
+export const whatsappSeedStorePrefix = 'whatsappSeedData::';
+
 const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     const [logged, setLogged] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
     const [socket, setSocket] = React.useState<io.Socket>();
     const [seedData, setSeedData] = React.useState<ISeed>({ groups: [], users: [], labels: [] });
+
+    React.useEffect(() => {
+        const storedSeedData = JSON.parse(localStorage.getItem(`${whatsappSeedStorePrefix}${whatsappSessionId}`) || '[]') ;
+        setSeedData(storedSeedData);
+    }, []);
+
 
     React.useEffect(() => {
         if(!socket) {
@@ -32,7 +40,13 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     }
 
 
+    const updateSeedDataWithLocalStorage = (sessionKey: WhatsappSessionTypes) => {
+        const newSeed = JSON.parse(localStorage.getItem(`${whatsappSeedStorePrefix}${sessionKey}`) || '[]');
+        setSeedData(newSeed);
+    }
+
     const login = async (sessionId: WhatsappSessionTypes) => {
+        updateSeedDataWithLocalStorage(sessionId);
         return handleWhatsapp(true, sessionId).then(res => {
             const { status } = res;
             toast(`Whatsapp is ${status}`);
@@ -63,6 +77,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     const fetchWsSeedData = async (sessionId = whatsappSessionId) => {
         setLoading(true);
         const data = await (await getWhatsappSeedData(sessionId)).json()
+        localStorage.setItem(`${whatsappSeedStorePrefix}${sessionId}`, JSON.stringify(data));
         setSeedData(data);
         setLoading(false);
     }

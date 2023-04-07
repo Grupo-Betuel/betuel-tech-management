@@ -1,10 +1,10 @@
-import { IClient } from "../../model/interfaces/ClientModel";
-import React, { ChangeEvent, useState } from "react";
+import {IClient} from "../../model/interfaces/ClientModel";
+import React, {ChangeEvent, useState} from "react";
 import styled from "styled-components";
-import { Button, Spinner } from "reactstrap";
-import { toast } from "react-toastify";
-import useWhatsapp from "../hooks/UseWhatsapp";
-import { TagContainer, TagItem } from "../Tag/Tag";
+import {Button, FormGroup, Input, Label, Spinner, Tooltip} from "reactstrap";
+import {toast} from "react-toastify";
+import useWhatsapp, {whatsappSeedStorePrefix} from "../hooks/UseWhatsapp";
+import {TagContainer, TagItem} from "../Tag/Tag";
 import {
     IWsGroup,
     IWsLabel, IWsUser,
@@ -13,10 +13,15 @@ import {
     whatsappSessionNames,
     WhatsappSessionTypes
 } from "../../model/interfaces/WhatsappModels";
-import { Multiselect } from "multiselect-react-dropdown";
+import {Multiselect} from "multiselect-react-dropdown";
+import {IProductData} from "../../model/products";
+import {Product} from "../index";
+import "./Messaging.scss";
 
 export interface IMessaging {
     contacts: IClient[],
+    selectedProducts: IProductData[];
+    setSelectedProducts: (products: IProductData[]) => any;
 }
 
 export const ImageWrapper = styled.div`
@@ -52,10 +57,13 @@ export const MessagingContainer = styled.div`
 const Messaging: React.FC<IMessaging> = (
     {
         contacts,
+        selectedProducts,
+        setSelectedProducts,
     }
 ) => {
     const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.betuelgroup)
     const [message, setMessage] = useState<string>('')
+    const [onlySendImagesIds, setOnlySendImagesIds] = useState<string[]>([]);
     const [photo, setPhoto] = useState<any>()
     const [labeledUsers, setLabeledUsers] = React.useState<IWsUser[]>([]);
     const [groupedUsers, setGroupedUsers] = React.useState<IWsUser[]>([]);
@@ -79,12 +87,13 @@ const Messaging: React.FC<IMessaging> = (
         fetchWsSeedData
     } = useWhatsapp(selectedSession);
 
+
     React.useEffect(() => {
-        return (session = selectedSession) => {
-            if(!logged) {
-                !!lastSession.current && destroyWsClient(lastSession.current)
-            }
-        }
+        // return (session = selectedSession) => {
+        //     if(!logged) {
+        //         !!lastSession.current && destroyWsClient(lastSession.current)
+        //     }
+        // }
     }, []);
 
     // React.useEffect(() => {
@@ -92,6 +101,19 @@ const Messaging: React.FC<IMessaging> = (
     //         fetchWsSeedData(selectedSession)
     //     }
     // }, [logged]);
+
+    const handleSendOnlyImage = (id: string) => () => {
+        if (onlySendImagesIds.indexOf(id) !== -1) {
+            setOnlySendImagesIds(onlySendImagesIds.filter((imageId: string) => imageId !== id))
+            return;
+        } else {
+            setOnlySendImagesIds([...onlySendImagesIds, id])
+        }
+    };
+
+    const removeSelection = (id: string) => () => {
+        setSelectedProducts(selectedProducts.filter((product: IProductData) => product._id !== id))
+    }
 
     const onMessageSent = (contact: IClient) => {
         console.log('contact', contact)
@@ -112,13 +134,46 @@ const Messaging: React.FC<IMessaging> = (
     }
 
     const selectSession = (sessionKey: WhatsappSessionTypes) => async () => {
-        if(!logged) await destroyWsClient(selectedSession);
+        // if(!logged) await destroyWsClient(selectedSession);
         setSelectedSession(sessionKey)
         changeSession(sessionKey)
     }
+
+    const parseUrlToBase64 = (url: string, callback: (base64: Blob) => void) => {
+        const xhr = new XMLHttpRequest();
+        xhr.onload = function () {
+            const reader = new FileReader();
+            reader.onloadend = function () {
+                callback((reader as any).result);
+            }
+            reader.readAsDataURL(xhr.response);
+        };
+        xhr.open('GET', url);
+        xhr.responseType = 'blob';
+        xhr.send();
+    }
+
     const handleSendMessage = (sessionId: WhatsappSessionTypes) => async () => {
+        console.log("foto", photo)
         const whatsappUsers = getWhatsappUsers();
-        sendMessage(sessionId, whatsappUsers, {text: message, photo})
+
+        if (selectedProducts && selectedProducts.length) {
+            selectedProducts.forEach(product => {
+                const prefixText = message ? `${message} \n` : '';
+                let text = `${prefixText}${product.description || ''}`;
+
+                if(onlySendImagesIds.indexOf(product._id) !== -1) {
+                    text = message;
+                }
+
+                parseUrlToBase64(product.image, (image: Blob) => {
+                    console.log("image", image)
+                    sendMessage(sessionId, whatsappUsers, {text, photo: image})
+                });
+            });
+        } else {
+            sendMessage(sessionId, whatsappUsers, {text: message, photo})
+        }
     }
 
     const onChangeMessage = (e: any) => {
@@ -159,7 +214,7 @@ const Messaging: React.FC<IMessaging> = (
 
 
     const handleUserExcluding = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
-        if(isRemove) {
+        if (isRemove) {
             setExcludedWhatsappUsers(excludedWhatsappUsers.filter(item => item.number !== currentUser.number));
         } else {
             setExcludedWhatsappUsers([...excludedWhatsappUsers, currentUser]);
@@ -167,7 +222,7 @@ const Messaging: React.FC<IMessaging> = (
     };
 
     const handleUserSelection = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
-        if(isRemove) {
+        if (isRemove) {
             setSelectedWhatsappUsers(selectedWhatsappUsers.filter(item => item.number !== currentUser.number));
         } else {
             setSelectedWhatsappUsers([...selectedWhatsappUsers, currentUser]);
@@ -175,7 +230,7 @@ const Messaging: React.FC<IMessaging> = (
     };
 
     const getWhatsappUsers = (): IWsUser[] => {
-        const excluded: {[N in string]: boolean} = {};
+        const excluded: { [N in string]: boolean } = {};
         excludedWhatsappUsers.forEach(item => excluded[item.number] = true);
 
         const data = [...labeledUsers, ...groupedUsers, ...selectedWhatsappUsers].filter(user => {
@@ -198,9 +253,9 @@ const Messaging: React.FC<IMessaging> = (
                 }
             </TagContainer>
             {logged && <LogOutButton
-              title="Cerrar Sesión"
-              className="bi bi-power text-danger log-out-icon cursor-pointer"
-              onClick={() => logOut(selectedSession)}/>}
+                title="Cerrar Sesión"
+                className="bi bi-power text-danger log-out-icon cursor-pointer"
+                onClick={() => logOut(selectedSession)}/>}
             {
                 loading ?
                     (
@@ -212,46 +267,51 @@ const Messaging: React.FC<IMessaging> = (
 
 
             {!!logged && <>
-              <Multiselect
-                placeholder="Todos los Usuarios"
-                className="mb-3"
-                onSelect={handleUserSelection(false)}
-                onRemove={handleUserSelection(true)}
-                options={seedData.users} // Options to display in the dropdown
-                displayValue="fullName" // Property name to display in the dropdown options
-              />
-              <DoubleSelectableWrapper className="mb-3">
                 <Multiselect
-                  placeholder="Todos los usuaruis de estos Grupos"
-                  options={seedData.groups} // Options to display in the dropdown
-                  displayValue="subject" // Property name to display in the dropdown options
-                  onSelect={handleGroupSelection}
-                  onRemove={handleGroupSelection}
+                    placeholder="Todos los Usuarios"
+                    className="mb-3"
+                    onSelect={handleUserSelection(false)}
+                    onRemove={handleUserSelection(true)}
+                    options={seedData.users || []} // Options to display in the dropdown
+                    displayValue="fullName" // Property name to display in the dropdown options
                 />
-                <Multiselect
-                  placeholder="Excepto estos usuarios"
-                  onSelect={handleUserExcluding(false)}
-                  onRemove={handleUserExcluding(true)}
-                  options={groupedUsers} // Options to display in the dropdown
-                  displayValue="fullName" // Property name to display in the dropdown options
-                />
-              </DoubleSelectableWrapper>
-              <DoubleSelectableWrapper className="mb-3">
-                <Multiselect
-                  placeholder="Todas los usuarios de estas Etiquetas"
-                  options={seedData.labels} // Options to display in the dropdown
-                  displayValue="name" // Property name to display in the dropdown options
-                  onSelect={handleLabelSelection}
-                  onRemove={handleLabelSelection}
-                />
-                <Multiselect
-                  placeholder="Excepto estos usuarios"
-                  onSelect={handleUserExcluding(false)}
-                  onRemove={handleUserExcluding(true)}
-                  options={labeledUsers} // Options to display in the dropdown
-                  displayValue="fullName" // Property name to display in the dropdown options
-                />
-              </DoubleSelectableWrapper>
+                <DoubleSelectableWrapper className="mb-3">
+                    <Multiselect
+                        placeholder="Grupos"
+                        options={seedData.groups || []} // Options to display in the dropdown
+                        displayValue="subject" // Property name to display in the dropdown options
+                        onSelect={handleGroupSelection}
+                        onRemove={handleGroupSelection}
+                    />
+                    <Multiselect
+                        placeholder="Excepto estos usuarios"
+                        onSelect={handleUserExcluding(false)}
+                        onRemove={handleUserExcluding(true)}
+                        options={groupedUsers || []} // Options to display in the dropdown
+                        displayValue="fullName" // Property name to display in the dropdown options
+                    />
+                </DoubleSelectableWrapper>
+                <DoubleSelectableWrapper className="mb-3">
+                    <Multiselect
+                        placeholder="Etiquetas"
+                        options={seedData.labels && seedData.labels.map(item => ({
+                            ...item,
+                            name: item.name || "example",
+                            id: Number(item.id)
+                        })) || []} // Options to display in the dropdown
+                        displayValue="name" // Property name to display in the dropdown options
+                        onSelect={handleLabelSelection}
+                        onRemove={handleLabelSelection}
+                        isObject={true}
+                    />
+                    <Multiselect
+                        placeholder="Excepto estos usuarios"
+                        onSelect={handleUserExcluding(false)}
+                        onRemove={handleUserExcluding(true)}
+                        options={labeledUsers || []} // Options to display in the dropdown
+                        displayValue="fullName" // Property name to display in the dropdown options
+                    />
+                </DoubleSelectableWrapper>
             </>}
 
             {!logged ?
@@ -261,7 +321,27 @@ const Messaging: React.FC<IMessaging> = (
                 </div>
                 :
                 <div>
-                    <h3 className="text-center mb-3">Enviar Mensaje</h3>
+                    <h3 className="text-center mb-3">Enviar {selectedProducts && selectedProducts.length ? 'Productos' : 'Mensaje'}</h3>
+                    {!!(selectedProducts && selectedProducts.length) &&
+                        <div className="products-wrapper">
+                            {selectedProducts.map((item, i) => (
+                                <div className="product-container">
+                                    <Product
+                                        {...item}
+                                        enableSelection={false}
+                                        onRemoveProduct={removeSelection(item._id)}
+                                        key={i}
+                                    />
+                                    <FormGroup className="d-flex flex-column align-items-center" switch>
+                                        <Input
+                                            type="switch" role="switch"
+                                            checked={onlySendImagesIds.indexOf(item._id) !== -1}
+                                            onChange={handleSendOnlyImage(item._id)}/>
+                                    </FormGroup>
+
+                                </div>
+                            ))}
+                        </div>}
                     <p className="mt-2">Puedes usar @firstName, @lastName, @fullName y @number para personalizar el
                         mensaje</p>
                     <textarea
@@ -269,10 +349,10 @@ const Messaging: React.FC<IMessaging> = (
                         onChange={onChangeMessage}
                         rows={10}
                     />
-                    { !!photo &&
-                      <ImageWrapper>
-                        <img src={photo} alt=""/>
-                    </ImageWrapper> }
+                    {!!photo &&
+                        <ImageWrapper>
+                            <img src={photo} alt=""/>
+                        </ImageWrapper>}
 
                     <div className="mt-3 mb-5">
                         <label className="btn btn-outline-info w-100" htmlFor="file">
