@@ -49,6 +49,7 @@ import {CompanyTypes, ECommerceResponse} from "../../model/common";
 import {Socket} from "socket.io-client";
 import {ScheduleResponse} from "../../model/schedule";
 import {whatsappSessionNames, WhatsappSessionTypes} from "../../model/interfaces/WhatsappModels";
+import BetuelTravelDashboard from "../BetuelTravelDashboard/BetuelTravelDashboard";
 
 const Marvin = require("marvinj");
 // export const accountLogos: { [N in ]} ;
@@ -124,6 +125,7 @@ const months = [
 const companyLogos: { [N in CompanyTypes]: any } = {
     betueldance: BetuelDanceLogo,
     betueltech: BetuelTechLogo,
+    betueltravel: BetuelTravelLogo,
 };
 
 const companyStorageKey = "betuelGroup:company";
@@ -694,11 +696,11 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const toggleIgDropdown = () => setIgDropdown((prevState) => !prevState);
 
-    const onFilterProducts = (e : React.ChangeEvent<any>) => {
+    const onFilterProducts = (e: React.ChangeEvent<any>) => {
         const value = e.target.value;
         const text = (value || '').toLowerCase().replace(/[ ]/gi, '');
         const filteredProducts = products.filter((product: IProductData) => {
-            const { name, description } = product;
+            const {name, description} = product;
             const productText = `${name} ${description}`.toLowerCase().replace(/[ ]/gi, '');
             return productText.includes(text);
         });
@@ -732,7 +734,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 company={selectedCompany}
                 loadProducts={getAllProducts}
             />
-            <div className="d-flex align-items-center flex-column">
+            {<div className="d-flex align-items-center flex-column">
                 {localStorage.getItem("authToken") && (
                     <Col sm={8} className="position-relative">
                         <LogOutButton
@@ -766,21 +768,13 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     />
                     {showAccounts && (
                         <AccountsWrapper>
-                            {selectedCompany === "betueldance" ? (
-                                <img
-                                    src={BetuelTechLogo}
-                                    onClick={selectCompany("betueltech")}
-                                    alt="Logo Betuel Dance"
+                            {Object.keys(companyLogos).map((company: CompanyTypes | any) => (
+                                company !== selectedCompany && <img
+                                    src={(companyLogos as any)[company]}
+                                    onClick={selectCompany(company)}
                                     className="w-100"
                                 />
-                            ) : (
-                                <img
-                                    src={BetuelDanceLogo}
-                                    onClick={selectCompany("betueldance")}
-                                    alt="Logo Betuel Dance"
-                                    className="w-100"
-                                />
-                            )}
+                            ))}
                         </AccountsWrapper>
                     )}
                 </Col>
@@ -1029,36 +1023,39 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                         </Col>
                     </>
                 )}
-                <Col
-                    lg={8}
-                    md={10}
-                    sm={12}
-                >
-                   <Input onChange={onFilterProducts} placeholder="Buscar por nombre o descripcion"></Input>
-                </Col>
-                <Col
-                    lg={8}
-                    md={10}
-                    sm={12}
-                    className={`cards mt-3 ${enableSelection ? "cards-shrink" : ""}`}
-                >
-                    {filteredProducts.map((item, i) => (
-                        <Product
-                            {...item}
-                            portfolioMode={portfolioMode}
-                            selected={!!selections.find((prod) => prod._id === item._id)}
-                            onSelect={onSelectProduct}
-                            enableSelection={enableSelection}
-                            loadSale={selectProduct}
-                            loadProductDetails={loadProductDetails}
-                            salesQuantity={getProductSales(item._id)}
-                            moneyGenerated={getProductMoney(item._id) as number}
-                            onRemoveProduct={handleDeleteProduct}
-                            key={i}
-                        />
-                    ))}
-                </Col>
-            </div>
+                {selectedCompany === 'betueltravel' ?
+                    <BetuelTravelDashboard setLoading={setLoadingApp}/> : <>
+                        <Col
+                            lg={8}
+                            md={10}
+                            sm={12}
+                        >
+                            <Input onChange={onFilterProducts} placeholder="Buscar por nombre o descripcion"></Input>
+                        </Col>
+                        <Col
+                            lg={8}
+                            md={10}
+                            sm={12}
+                            className={`cards mt-3 ${enableSelection ? "cards-shrink" : ""}`}
+                        >
+                            {filteredProducts.map((item, i) => (
+                                <Product
+                                    {...item}
+                                    portfolioMode={portfolioMode}
+                                    selected={!!selections.find((prod) => prod._id === item._id)}
+                                    onSelect={onSelectProduct}
+                                    enableSelection={enableSelection}
+                                    loadSale={selectProduct}
+                                    loadProductDetails={loadProductDetails}
+                                    salesQuantity={getProductSales(item._id)}
+                                    moneyGenerated={getProductMoney(item._id) as number}
+                                    onRemoveProduct={handleDeleteProduct}
+                                    key={i}
+                                />
+                            ))}
+                        </Col>
+                    </>}
+            </div>}
 
             {!portfolioMode && (
                 <CreateNewProductButton

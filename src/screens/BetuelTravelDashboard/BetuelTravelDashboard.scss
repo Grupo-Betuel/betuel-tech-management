@@ -1,0 +1,9 @@
+.rates-wrapper {
+  max-width: 90vw;
+  .rates-filters {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+  }
+}

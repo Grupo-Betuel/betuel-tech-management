@@ -37,6 +37,7 @@ const draggableHeight = 300;
 const nameInitialFontSize: { [N in CompanyTypes]: number} = {
     betueldance: 80,
     betueltech: 30,
+    betueltravel: 30,
 };
 
 export interface ICalculatedPrice {
@@ -197,6 +198,9 @@ const productBackgrounds: IProductBackground = {
         4: bdBackground4,
     },
     betueltech: {
+        1: btBackground1,
+    },
+    betueltravel: {
         1: btBackground1,
     }
 };

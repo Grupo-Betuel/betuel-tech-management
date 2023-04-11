@@ -23,6 +23,6 @@ export class ECommerceResponse {
     }
 }
 
-export type CompanyTypes = 'betueltech' | 'betueldance';
+export type CompanyTypes = 'betueltech' | 'betueldance' | 'betueltravel';
 
 // export interface ICsd
