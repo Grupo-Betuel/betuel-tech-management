@@ -181,7 +181,6 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
                     if (key === 'amenities') {
                         return data.find((item: IHotelListItem) => hotel.amenities.find(a => item.id === a.amenity))
                     } else {
-                        console.log('hotel[hotelKey]', hotel[hotelKey]);
                         return data.find((item: IHotelListItem) => item.id === hotel[hotelKey])
                     }
                 });
@@ -192,7 +191,6 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
 
     }
     const handleFilter = (type: 'rate' | 'hotel', key: keyof (IHotel & IRate)) => (selectedData: IHotelListItem[]) => {
-        console.log('selectedData', selectedData);
         const newFilters = {
             ...rateFilters,
             [key]: {
