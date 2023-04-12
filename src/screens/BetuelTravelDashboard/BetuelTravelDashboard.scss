@@ -1,9 +1,50 @@
 .rates-wrapper {
-  max-width: 90vw;
+  width: 90vw;
+
+  .quotes-container {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 1rem;
+    width: 100%;
+  }
+
   .rates-filters {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
     gap: 1.5rem;
     padding: 1rem;
+    width: 100%;
+    margin-bottom: 2rem;
+    .column-2 {
+      grid-column: span 2;
+    }
+
+    .rates-filters-details {
+      grid-column: 1 / -1;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      gap: 1rem;
+    }
   }
+
+  .rates-hotels-table {
+    margin-bottom: 3.125rem;
+    td {
+      white-space: nowrap;
+    }
+  }
+
+  .rates-hotels-title {
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    background: violet;
+    color: white;
+    font-size: 2rem;
+    font-weight: 500;
+  }
+
 }
