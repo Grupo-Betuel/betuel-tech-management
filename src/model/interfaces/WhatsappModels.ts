@@ -1,5 +1,5 @@
 export type WhatsappSessionTypes = 'wpadilla' | 'betuelgroup' | 'betueltravel';
-export const whatsappSessionList: WhatsappSessionTypes[] = ['betueltravel', 'wpadilla', 'betuelgroup']
+export const whatsappSessionList: WhatsappSessionTypes[] = ['betuelgroup', 'betueltravel', 'wpadilla']
 export const whatsappSessionKeys: {[K in WhatsappSessionTypes]: WhatsappSessionTypes} = {
     wpadilla: 'wpadilla',
     betuelgroup: 'betuelgroup',

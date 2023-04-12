@@ -83,8 +83,7 @@ const Messaging: React.FC<IMessaging> = (
         qrElement,
         login,
         seedData,
-        destroyWsClient,
-        fetchWsSeedData
+        updateSeedDataWithLocalStorage
     } = useWhatsapp(selectedSession);
 
 
@@ -137,6 +136,7 @@ const Messaging: React.FC<IMessaging> = (
         // if(!logged) await destroyWsClient(selectedSession);
         setSelectedSession(sessionKey)
         changeSession(sessionKey)
+        updateSeedDataWithLocalStorage(sessionKey);
     }
 
     const parseUrlToBase64 = (url: string, callback: (base64: Blob) => void) => {

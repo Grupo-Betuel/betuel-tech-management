@@ -147,7 +147,8 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         seedData,
         qrElement: <QrCanvas id="canvas-qr" />,
         destroyWsClient,
-        fetchWsSeedData
+        fetchWsSeedData,
+        updateSeedDataWithLocalStorage,
     };
 
 }
