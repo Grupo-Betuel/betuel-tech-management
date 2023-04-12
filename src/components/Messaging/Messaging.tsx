@@ -247,7 +247,7 @@ const Messaging: React.FC<IMessaging> = (
                     whatsappSessionList.map((sessionKey, key) => (
                         <TagItem onClick={selectSession(sessionKey)}
                                  selected={selectedSession === sessionKey} key={key}>
-                            <span>{sessionKey === 'wpadilla' ? whatsappSessionNames.betuelgroup : whatsappSessionNames.wpadilla}</span>
+                            <span>{whatsappSessionNames[sessionKey]}</span>
                         </TagItem>
                     ))
                 }

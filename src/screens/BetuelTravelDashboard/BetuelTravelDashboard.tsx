@@ -460,6 +460,17 @@ ${habText}`,
                         <span><b>{filteredHotels.reduce((a, curr) => a + curr.rates.length, 0)}</b> tarifas.</span>
                     </div>
                 </div>
+                <div>
+                    <Label>Hoteles</Label>
+                    <Multiselect
+                        placeholder="Buscar Hoteles"
+                        className="mb-3"
+                        onSelect={handleFilter('hotel', 'id')}
+                        onRemove={handleFilter('hotel', 'id')}
+                        options={hotelList}
+                        displayValue="name"
+                    />
+                </div>
                 <Label className="column-2">Check In - Check Out
                     <InputGroup>
                         <Input
@@ -492,7 +503,6 @@ ${habText}`,
                             <Input
                                 id="exampleDate"
                                 name="first_child_free"
-
                                 placeholder="date placeholder"
                                 type="checkbox"
                                 onChange={onChangeChild}
@@ -509,17 +519,6 @@ ${habText}`,
                             /> 2do Niño
                         </Label>
                     </InputGroup>
-                </div>
-                <div>
-                    <Label>Hoteles</Label>
-                    <Multiselect
-                        placeholder="Buscar Hoteles"
-                        className="mb-3"
-                        onSelect={handleFilter('hotel', 'id')}
-                        onRemove={handleFilter('hotel', 'id')}
-                        options={hotelList}
-                        displayValue="name"
-                    />
                 </div>
                 <div>
                     <Label>Categorias</Label>
