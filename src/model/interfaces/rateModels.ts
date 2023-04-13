@@ -139,5 +139,7 @@ export interface IQuoteDetails {
     singleQuantity: number,
     tripleQuantity: number,
     dollarToPeso: number,
+    currency: string,
+    rate: IRate,
 }
 

@@ -1,4 +1,4 @@
-import {Button, Input, InputGroup, Label, Table} from "reactstrap";
+import {Button, FormGroup, Input, InputGroup, Label, Spinner, Table} from "reactstrap";
 import React from "react";
 import {
     AmenityData,
@@ -126,7 +126,7 @@ export type RateFilters = {
     }
 }
 
-const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
+const BetuelTravelDashboard = ({}: IBetuelTravelDashboardProps) => {
     const [hotels, setHotels] = React.useState<IHotel[]>([])
     const [filteredHotels, setFilteredHotels] = React.useState<IHotel[]>([])
     const [categories, setCategories] = React.useState<CategoryData[]>([])
@@ -138,10 +138,10 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
     const [generalQuoteDetails, setGeneralQuoteDetails] = React.useState<IQuoteDetails>({dollarToPeso: 56.5} as IQuoteDetails);
     const [quotes, setQuotes] = React.useState<IQuoteDetails[]>([]);
     const [nights, setNights] = React.useState<number>(0);
+    const [loading, setLoading] = React.useState(false);
+    const [budgetPerPerson, setBudgetPerPerson] = React.useState(false);
 
     const getSeedData = async () => {
-        setLoading(true);
-
         const cats = await getRoomsCategories();
         const newAmenities = await getAmenities();
         const newZones = await getZones();
@@ -155,14 +155,13 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
     }
 
     const getHotelsRates = async () => {
-        setLoading(true);
         const response = await getHotelsWithRates();
         setHotels(response)
         setFilteredHotels(response)
     }
 
     const getAllData = async () => {
-        // setLoading(true);
+        setLoading(true);
         await getHotelsRates();
         await getSeedData();
         setLoading(false);
@@ -178,41 +177,45 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
         return Math.round(Math.abs((startDate.getTime() - endDate.getTime()) / (oneDay)));
     }
 
-    const calculateQuotePrices = (rate: IRate, nights: number): Partial<IQuoteDetails> => {
+    const calculateQuotePrices = (rate: IRate, nights: number, inPesos: boolean = true): Partial<IQuoteDetails> => {
+        inPesos = rate.currency_data.acronym === 'DOP' ? false : inPesos;
+
         const specifiedHabQuantity = ((generalQuoteDetails.doubleQuantity || 0) * 2 +
             (generalQuoteDetails.singleQuantity || 0) + (generalQuoteDetails.tripleQuantity || 0) * 3);
         const adultCalc = generalQuoteDetails.adults - specifiedHabQuantity
         const adults = adultCalc > 0 ? adultCalc : 0;
         const children = generalQuoteDetails.children || 0;
-        const doubleQuantity = generalQuoteDetails.doubleQuantity || Math.floor(adults / 2);
-        console.log("double", doubleQuantity);
-        const singleQuantity = generalQuoteDetails.singleQuantity || adults % 2;
-        console.log("singleQuantity", singleQuantity);
-        const tripleQuantity = generalQuoteDetails.tripleQuantity || 0;
-        let doublePrice = rate.double * (doubleQuantity * 2);
-        console.log("doublePrice", doublePrice);
+        let doubleQuantity = generalQuoteDetails.doubleQuantity || Math.floor(adults / 2);
+        let tripleQuantity = generalQuoteDetails.tripleQuantity || 0;
 
-        const singlePrice = rate.simple * singleQuantity;
-        console.log("singlePrice", singlePrice);
-        const triplePrice = rate.triple * (tripleQuantity * 3);
+        if (adults % 2) {
+            doubleQuantity -= 1;
+            tripleQuantity = 1;
+        }
 
-        const childrenPrice = rate.children * children;
+        const singleQuantity = generalQuoteDetails.singleQuantity || 0;
+        let doublePrice = (rate.double * (doubleQuantity * 2)) * nights;
 
-        const total = (triplePrice + doublePrice + singlePrice + childrenPrice) * nights;
-        console.log("total", total, "how many nights?", nights);
-        const adultPrice = ((doublePrice || 0) + (triplePrice || 0) + (singlePrice || 0)) * nights;
+        const singlePrice = (rate.simple * singleQuantity) * nights;
+        const triplePrice = (rate.triple * (tripleQuantity * 3)) * nights;
+
+        const childrenPrice = (rate.children * children) * nights;
+
+        let total = (triplePrice + doublePrice + singlePrice + childrenPrice);
+        total = inPesos ? total * generalQuoteDetails.dollarToPeso : total;
+        const adultPrice = ((doublePrice || 0) + (triplePrice || 0) + (singlePrice || 0));
 
         return {
-            doublePrice,
-            singlePrice,
-            childrenPrice,
             total,
             doubleQuantity,
             singleQuantity,
             tripleQuantity,
-            adultPrice,
-            triplePrice,
-            totalText: `${rate.currency_data.acronym}$${total.toLocaleString()}`,
+            doublePrice: inPesos ? doublePrice * generalQuoteDetails.dollarToPeso : doublePrice,
+            singlePrice: inPesos ? singlePrice * generalQuoteDetails.dollarToPeso : singlePrice,
+            childrenPrice: inPesos ? childrenPrice * generalQuoteDetails.dollarToPeso : childrenPrice,
+            adultPrice: inPesos ? adultPrice * generalQuoteDetails.dollarToPeso : adultPrice,
+            triplePrice: inPesos ? triplePrice * generalQuoteDetails.dollarToPeso : triplePrice,
+            totalText: `${inPesos ? 'DOP' : rate.currency_data.acronym}$${total.toLocaleString()}`,
         }
     }
 
@@ -240,10 +243,7 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
                             const date = new Date(data);
                             return date >= startDate && date <= new Date(rate.ending_date);
                         });
-
                     } else if (key === 'min_budget' || key === 'max_budget') {
-
-
                     } else {
                         newRates = hotel.rates.filter(rate => data.find((item: IHotelListItem) => item.id === rate[rateKey]));
                     }
@@ -256,15 +256,21 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
                         setNights(nights);
 
                         newRates = newRates.map(rate => {
-                            const {total, totalText} = calculateQuotePrices(rate, nights);
+                            const {
+                                total,
+                                totalText,
+                                childrenPrice
+                            } = calculateQuotePrices(rate, nights) as IQuoteDetails;
+                            const perPersonPrice = (total - childrenPrice) / generalQuoteDetails.adults;
+                            const totalQuantity = budgetPerPerson ? perPersonPrice : total;
                             let success = true;
 
                             if (rateFilters.min_budget?.data && total) {
-                                success = rateFilters.min_budget.data <= total;
+                                success = rateFilters.min_budget.data <= totalQuantity;
                             }
 
                             if (rateFilters.max_budget?.data && total) {
-                                success = rateFilters.max_budget.data >= total;
+                                success = rateFilters.max_budget.data >= totalQuantity;
                             }
 
                             rate.total_amount = totalText;
@@ -335,7 +341,6 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
     }
 
     const onChangeBudget = ({target: {value, name}}: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(value, name);
         const newFilters = {
             ...rateFilters,
             [name]: {
@@ -346,10 +351,20 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
         setRateFilters({...newFilters});
     }
 
-    const onChangeQuoteDetails = ({target: {name, value}}: React.ChangeEvent<HTMLInputElement>) => {
+    React.useEffect(() => {
+        const habBasedAdults = (generalQuoteDetails.tripleQuantity || 0) * 3 + (generalQuoteDetails.doubleQuantity || 0) * 2 + (generalQuoteDetails.singleQuantity || 0);
         setGeneralQuoteDetails({
             ...generalQuoteDetails,
-            [name]: Number(value),
+            adults: habBasedAdults || generalQuoteDetails.adults,
+        });
+    }, [generalQuoteDetails.tripleQuantity, generalQuoteDetails.doubleQuantity, generalQuoteDetails.singleQuantity]);
+
+    const onChangeGeneralQuoteDetails = ({target: {name, value}}: React.ChangeEvent<HTMLInputElement>) => {
+        const currentValue = Number(value);
+
+        setGeneralQuoteDetails({
+            ...generalQuoteDetails,
+            [name]: currentValue,
         });
     }
 
@@ -371,23 +386,23 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
 
     }
 
-    const addQuote = (rate: IRate, hotelName: string) => () => {
+    const handleQuote = (rate: IRate, hotelName: string, inPesos: boolean = true, rateId?: number) => () => {
         const {
             totalText, total, doublePrice, triplePrice, singlePrice, childrenPrice,
             doubleQuantity,
             singleQuantity,
             tripleQuantity,
             adultPrice,
-        } = calculateQuotePrices(rate, nights) as IQuoteDetails;
-
-        const childrenPriceText = `${rate.currency_data.acronym}$${childrenPrice.toLocaleString()}`;
-        const adultPriceText = `${rate.currency_data.acronym}$${adultPrice.toLocaleString()}`;
-        const totalPesosText = rate.currency_data.acronym !== 'DOP' ? `DOP${(total * generalQuoteDetails.dollarToPeso).toLocaleString()}` : '';
-        const doubleText = doubleQuantity ? `${doubleQuantity} Hab. doble - ${rate.currency_data.acronym}$${doublePrice.toLocaleString()}. \n` : '';
-        const singleText = singleQuantity ? `${singleQuantity} Hab. simple - ${rate.currency_data.acronym}$${singlePrice.toLocaleString()}. \n` : '';
-        const tripleText = tripleQuantity ? `${tripleQuantity} Hab. triple - ${rate.currency_data.acronym}$${triplePrice.toLocaleString()}.` : '';
+        } = calculateQuotePrices(rate, nights, inPesos) as IQuoteDetails;
+        const currencyAcronym = inPesos ? 'DOP' : rate.currency_data.acronym;
+        const childrenPriceText = `${currencyAcronym}$${childrenPrice.toLocaleString()}`;
+        const adultPriceText = `${currencyAcronym}$${adultPrice.toLocaleString()}`;
+        // const totalPesosText = rate.currency_data.acronym !== 'DOP' ? `DOP${(total * generalQuoteDetails.dollarToPeso).toLocaleString()}` : '';
+        const doubleText = doubleQuantity ? `${doubleQuantity} Hab. doble - ${currencyAcronym}$${doublePrice.toLocaleString()}. \n` : '';
+        const singleText = singleQuantity ? `${singleQuantity} Hab. simple - ${currencyAcronym}$${singlePrice.toLocaleString()}. \n` : '';
+        const tripleText = tripleQuantity ? `${tripleQuantity} Hab. triple - ${currencyAcronym}$${triplePrice.toLocaleString()}.` : '';
         const habText = singleText + doubleText + tripleText;
-        const totalPesosInfo = totalPesosText ? `\n_Total en pesos: ${totalPesosText}_` : '';
+        // const totalPesosInfo = totalPesosText ? `\n_Total en pesos: ${totalPesosText}_` : '';
 
         const newQuote: IQuoteDetails = {
             ...generalQuoteDetails,
@@ -406,31 +421,54 @@ const BetuelTravelDashboard = ({setLoading}: IBetuelTravelDashboardProps) => {
             tripleText,
             childrenPriceText,
             adultPriceText,
-            totalPesosText,
+            rate,
+            // totalPesosText,
+            currency: currencyAcronym,
             rateId: rate.id,
             hotel: hotelName,
             textToCopy: `
 *${hotelName.trim()}*
-_Total: ${totalText}_${totalPesosInfo}
+_Total: ${totalText}_
 Adultos: ${generalQuoteDetails.adults} - ${adultPriceText}${childrenPrice ? '\nNiños: ' + generalQuoteDetails.children + ' - ' + childrenPriceText : ''}
 ${habText}`,
         };
 
-        setQuotes([...quotes, newQuote as IQuoteDetails]);
+        if (rateId) {
+            setQuotes(quotes.map(quote => quote.rateId === rateId ? newQuote : quote));
+        } else {
+            setQuotes([...quotes, newQuote as IQuoteDetails]);
+
+        }
         toast('Cotización agregada!', {type: 'default', autoClose: 1000});
     }
 
     const rateIsCalculated = (rateId: number) => quotes.find(quote => quote.rateId === rateId);
+    const onChangeBudgetPerPerson = ({target: {checked}}: React.ChangeEvent<HTMLInputElement>) => setBudgetPerPerson(checked);
+
 
     return (
         <div className="rates-wrapper">
+            {!loading ? null : (
+                <>
+                    <div className="loading-sale-container">
+                        <Spinner animation="grow" variant="secondary"/>
+                    </div>
+                </>
+            )}
             {quotes.length ?
                 <a href="javascript:;" className="card-link float-end" onClick={copyAllQuotes}>Copiar Todas</a> : null}
             <div className="quotes-container">
                 {quotes.map(quote =>
-                    <div className="card">
+                    <div className="card cursor-no-pointer">
                         <div className="card-body">
-                            <h5>{quote.hotel}</h5>
+                            <div className="d-flex justify-content-between align-items-center">
+                                <h5>{quote.hotel}</h5>
+                                <span className="cursor-pointer d-flex align-items-center text-info"
+                                      onClick={handleQuote(quote.rate, quote.hotel, !(quote.currency === 'DOP'), quote.rateId)}>
+                                    {quote.currency}
+                                    <i className="bi bi-currency-dollar"/>
+                                </span>
+                            </div>
                             <h6 className="card-subtitle mb-2 text-muted">Total: {quote.totalText}</h6>
                             {quote.totalPesosText && <h6 className="card-subtitle mb-2 text-muted">Total en
                                 pesos: {quote.totalPesosText}</h6>}
@@ -471,10 +509,13 @@ ${habText}`,
                         displayValue="name"
                     />
                 </div>
-                <Label className="column-2">Check In - Check Out
+                <div>
+                    <Label className="column-2" htmlFor="ending_date">
+                        Check In - Check Out
+                    </Label>
                     <InputGroup>
                         <Input
-                            id="exampleDate"
+                            id="ending_date"
                             name="ending_date"
                             placeholder="date placeholder"
                             type="date"
@@ -488,12 +529,14 @@ ${habText}`,
                             onChange={onChangeDate}
                         />
                     </InputGroup>
-                </Label>
+                </div>
                 <div>
                     <Label>Adultos / Niños</Label>
                     <InputGroup>
-                        <Input placeholder="Adultos" name="adults" type="number" onChange={onChangeQuoteDetails}/>
-                        <Input placeholder="Niños" name="children" type="number" onChange={onChangeQuoteDetails}/>
+                        <Input placeholder="Adultos" name="adults" type="number" value={generalQuoteDetails.adults}
+                               onChange={onChangeGeneralQuoteDetails}/>
+                        <Input placeholder="Niños" name="children" type="number" value={generalQuoteDetails.children}
+                               onChange={onChangeGeneralQuoteDetails}/>
                     </InputGroup>
                 </div>
                 <div>
@@ -525,10 +568,8 @@ ${habText}`,
                     <Multiselect
                         placeholder="Buscar Categorias"
                         className="mb-3"
-                        // onSelect={handleUserSelection(false)}
                         onSelect={handleFilter('rate', 'category')}
                         onRemove={handleFilter('rate', 'category')}
-                        // onRemove={handleUserSelection(true)}
                         options={categories}
                         displayValue="name"
                     />
@@ -566,13 +607,24 @@ ${habText}`,
                         displayValue="name"
                     />
                 </div>
-                <div className="mb-3">
-                    <Label>Presupuesto
-                        <InputGroup>
-                            <Input name="min_budget" onChange={onChangeBudget} placeholder="De"/>
-                            <Input name="max_budget" onChange={onChangeBudget} placeholder="Hasta"/>
-                        </InputGroup>
+                <div>
+                    <Label htmlFor="min_budget" className="d-flex align-items-center justify-content-between">
+                        Presupuesto
+                        <div className="d-flex align-items-center">
+                            <span className="budget-toggle-text">Grupo</span>
+                            <FormGroup switch>
+                                <Input
+                                    type="switch" role="switch"
+                                    checked={budgetPerPerson}
+                                    onChange={onChangeBudgetPerPerson}/>
+                            </FormGroup>
+                            <span className="budget-toggle-text">Persona</span>
+                        </div>
                     </Label>
+                    <InputGroup>
+                        <Input name="min_budget" id="min_budget" onChange={onChangeBudget} placeholder="De"/>
+                        <Input name="max_budget" onChange={onChangeBudget} placeholder="Hasta"/>
+                    </InputGroup>
                 </div>
                 {/*<div>*/}
                 {/*    <Label>*/}
@@ -585,17 +637,19 @@ ${habText}`,
                 <div>
                     <Label>Especificar hab.</Label>
                     <InputGroup>
-                        <Input placeholder="Doble" name="doubleQuantity" type="number" onChange={onChangeQuoteDetails}/>
                         <Input placeholder="Simple" name="singleQuantity" type="number"
-                               onChange={onChangeQuoteDetails}/>
+                               onChange={onChangeGeneralQuoteDetails}/>
+                        <Input placeholder="Doble" name="doubleQuantity" type="number"
+                               onChange={onChangeGeneralQuoteDetails}/>
+
                         <Input placeholder="Triple" name="tripleQuantity" type="number"
-                               onChange={onChangeQuoteDetails}/>
+                               onChange={onChangeGeneralQuoteDetails}/>
                     </InputGroup>
                 </div>
                 <div>
                     <Label>Precio Dolar</Label>
                     <Input placeholder="Simple" name="dollarToPeso" type="number"
-                           value={generalQuoteDetails.dollarToPeso} onChange={onChangeQuoteDetails}/>
+                           value={generalQuoteDetails.dollarToPeso} onChange={onChangeGeneralQuoteDetails}/>
                 </div>
             </div>
             {
@@ -625,7 +679,7 @@ ${habText}`,
                                             <td>
                                                 {!rateIsCalculated(rate.id) ?
                                                     <Button color="primary"
-                                                            onClick={addQuote(rate, hotel.name)}>{rate.total_amount}</Button>
+                                                            onClick={handleQuote(rate, hotel.name)}>{rate.total_amount}</Button>
                                                     :
                                                     <Button color="info"
                                                             onClick={removeQuote(rate.id)}>Quitar</Button>}

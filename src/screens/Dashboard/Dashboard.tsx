@@ -505,6 +505,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         setSelectedCompany(company);
         localStorage.setItem(companyStorageKey, company);
         toggleCompanies();
+        setSelections([]);
         setLogo(companyLogos[company]);
     };
 
