@@ -513,7 +513,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     useEffect(() => {
         const callPromotion = async () => {
             await runPromotion('betueldance')();
-            await runPromotion('betueltech')();
+            // await runPromotion('betueltech')();
             // runPromotion('betueltravel')();
         }
         callPromotion();
