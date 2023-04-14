@@ -810,7 +810,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                             </FormGroup>
                         </Col>
                         <div
-                            className="d-flex justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
+                            className="d-flex flex-wrap justify-content-center mb-4 align-items-center justify-content-around col-sm-12 col-md-10 col-lg-10">
                             <div>
                                 <Label className="d-flex flex-column align-items-center cursor-pointer">
                                     <Input
