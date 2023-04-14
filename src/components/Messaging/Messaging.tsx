@@ -2,6 +2,7 @@ import {IClient} from "../../model/interfaces/ClientModel";
 import React, {ChangeEvent, useState} from "react";
 import styled from "styled-components";
 import {Button, FormGroup, Input, Label, Spinner, Tooltip} from "reactstrap";
+import InputMask from "react-input-mask";
 import {toast} from "react-toastify";
 import useWhatsapp, {whatsappSeedStorePrefix} from "../hooks/UseWhatsapp";
 import {TagContainer, TagItem} from "../Tag/Tag";
@@ -240,6 +241,9 @@ const Messaging: React.FC<IMessaging> = (
         return data;
     }
 
+    const onChangeCustomContact = ({ target: { value } }: React.ChangeEvent<HTMLInputElement>) => {
+
+    }
     return (
         <MessagingContainer className="position-relative">
             <TagContainer className="d-flex w-100">
@@ -267,6 +271,7 @@ const Messaging: React.FC<IMessaging> = (
 
 
             {!!logged && <>
+                <InputMask className="form-control mb-3" placeholder="Numeros de whatsapp" onChange={onChangeCustomContact} mask="+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999," />
                 <Multiselect
                     placeholder="Todos los Usuarios"
                     className="mb-3"

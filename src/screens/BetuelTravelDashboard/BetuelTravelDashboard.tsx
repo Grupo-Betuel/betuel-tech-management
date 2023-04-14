@@ -126,6 +126,10 @@ export type RateFilters = {
     }
 }
 
+export interface ExtraQuoteDetails {
+    budgetPerPerson?: boolean;
+}
+
 const BetuelTravelDashboard = ({}: IBetuelTravelDashboardProps) => {
     const [hotels, setHotels] = React.useState<IHotel[]>([])
     const [filteredHotels, setFilteredHotels] = React.useState<IHotel[]>([])
@@ -135,11 +139,10 @@ const BetuelTravelDashboard = ({}: IBetuelTravelDashboardProps) => {
     const [zones, setZones] = React.useState<ZoneData[]>([])
     const [hotelList, setHotelList] = React.useState<IHotelListItem[]>([])
     const [rateFilters, setRateFilters] = React.useState<RateFilters>({});
-    const [generalQuoteDetails, setGeneralQuoteDetails] = React.useState<IQuoteDetails>({dollarToPeso: 56.5} as IQuoteDetails);
+    const [generalQuoteDetails, setGeneralQuoteDetails] = React.useState<IQuoteDetails & ExtraQuoteDetails>({dollarToPeso: 56.5} as IQuoteDetails);
     const [quotes, setQuotes] = React.useState<IQuoteDetails[]>([]);
     const [nights, setNights] = React.useState<number>(0);
     const [loading, setLoading] = React.useState(false);
-    const [budgetPerPerson, setBudgetPerPerson] = React.useState(false);
 
     const getSeedData = async () => {
         const cats = await getRoomsCategories();
@@ -262,16 +265,18 @@ const BetuelTravelDashboard = ({}: IBetuelTravelDashboardProps) => {
                                 childrenPrice
                             } = calculateQuotePrices(rate, nights) as IQuoteDetails;
                             const perPersonPrice = (total - childrenPrice) / generalQuoteDetails.adults;
-                            const totalQuantity = budgetPerPerson ? perPersonPrice : total;
+                            const totalQuantity = generalQuoteDetails.budgetPerPerson ? perPersonPrice : total;
                             let success = true;
 
-                            if (rateFilters.min_budget?.data && total) {
+                            if(rateFilters.max_budget?.data && rateFilters.min_budget?.data && totalQuantity) {
+                                success = rateFilters.min_budget.data <= totalQuantity && rateFilters.max_budget.data >= totalQuantity;
+                            } else if (rateFilters.min_budget?.data && totalQuantity) {
                                 success = rateFilters.min_budget.data <= totalQuantity;
-                            }
-
-                            if (rateFilters.max_budget?.data && total) {
+                            } else if (rateFilters.max_budget?.data && totalQuantity) {
                                 success = rateFilters.max_budget.data >= totalQuantity;
                             }
+
+
 
                             rate.total_amount = totalText;
 
@@ -345,7 +350,7 @@ const BetuelTravelDashboard = ({}: IBetuelTravelDashboardProps) => {
             ...rateFilters,
             [name]: {
                 type: 'rate',
-                data: value
+                data: Number(value),
             }
         };
         setRateFilters({...newFilters});
@@ -443,7 +448,10 @@ ${habText}`,
     }
 
     const rateIsCalculated = (rateId: number) => quotes.find(quote => quote.rateId === rateId);
-    const onChangeBudgetPerPerson = ({target: {checked}}: React.ChangeEvent<HTMLInputElement>) => setBudgetPerPerson(checked);
+    const onChangeBudgetPerPerson = ({target: {checked}}: React.ChangeEvent<HTMLInputElement>) => setGeneralQuoteDetails({
+        ...generalQuoteDetails,
+        budgetPerPerson: checked,
+    });
 
 
     return (
@@ -499,6 +507,17 @@ ${habText}`,
                     </div>
                 </div>
                 <div>
+                    <Label>Zonas</Label>
+                    <Multiselect
+                        placeholder="Buscar Zonas"
+                        className="mb-3"
+                        onSelect={handleFilter('hotel', 'zone')}
+                        onRemove={handleFilter('hotel', 'zone')}
+                        options={zones}
+                        displayValue="name"
+                    />
+                </div>
+                <div>
                     <Label>Hoteles</Label>
                     <Multiselect
                         placeholder="Buscar Hoteles"
@@ -509,8 +528,8 @@ ${habText}`,
                         displayValue="name"
                     />
                 </div>
-                <div>
-                    <Label className="column-2" htmlFor="ending_date">
+                <div className="column-2">
+                    <Label htmlFor="ending_date">
                         Check In - Check Out
                     </Label>
                     <InputGroup>
@@ -564,6 +583,37 @@ ${habText}`,
                     </InputGroup>
                 </div>
                 <div>
+                    <Label htmlFor="min_budget" className="d-flex align-items-center justify-content-between">
+                        Presupuesto
+                        <div className="d-flex align-items-center">
+                            <span className="budget-toggle-text">Grupo</span>
+                            <FormGroup switch>
+                                <Input
+                                    type="switch" role="switch"
+                                    checked={generalQuoteDetails.budgetPerPerson}
+                                    onChange={onChangeBudgetPerPerson}/>
+                            </FormGroup>
+                            <span className="budget-toggle-text">Persona</span>
+                        </div>
+                    </Label>
+                    <InputGroup>
+                        <Input name="min_budget" id="min_budget" type="number" onChange={onChangeBudget} placeholder="De"/>
+                        <Input name="max_budget" type="number" onChange={onChangeBudget} placeholder="Hasta"/>
+                    </InputGroup>
+                </div>
+                <div>
+                    <Label>Especificar hab.</Label>
+                    <InputGroup>
+                        <Input placeholder="Simple" name="singleQuantity" type="number"
+                               onChange={onChangeGeneralQuoteDetails}/>
+                        <Input placeholder="Doble" name="doubleQuantity" type="number"
+                               onChange={onChangeGeneralQuoteDetails}/>
+
+                        <Input placeholder="Triple" name="tripleQuantity" type="number"
+                               onChange={onChangeGeneralQuoteDetails}/>
+                    </InputGroup>
+                </div>
+                <div>
                     <Label>Categorias</Label>
                     <Multiselect
                         placeholder="Buscar Categorias"
@@ -571,28 +621,6 @@ ${habText}`,
                         onSelect={handleFilter('rate', 'category')}
                         onRemove={handleFilter('rate', 'category')}
                         options={categories}
-                        displayValue="name"
-                    />
-                </div>
-                <div>
-                    <Label>Zonas</Label>
-                    <Multiselect
-                        placeholder="Buscar Zonas"
-                        className="mb-3"
-                        onSelect={handleFilter('hotel', 'zone')}
-                        onRemove={handleFilter('hotel', 'zone')}
-                        options={zones}
-                        displayValue="name"
-                    />
-                </div>
-                <div>
-                    <Label>Monedas</Label>
-                    <Multiselect
-                        placeholder="Buscar Monedas"
-                        className="mb-3"
-                        onSelect={handleFilter('rate', 'currency')}
-                        onRemove={handleFilter('rate', 'currency')}
-                        options={currencies}
                         displayValue="name"
                     />
                 </div>
@@ -608,24 +636,17 @@ ${habText}`,
                     />
                 </div>
                 <div>
-                    <Label htmlFor="min_budget" className="d-flex align-items-center justify-content-between">
-                        Presupuesto
-                        <div className="d-flex align-items-center">
-                            <span className="budget-toggle-text">Grupo</span>
-                            <FormGroup switch>
-                                <Input
-                                    type="switch" role="switch"
-                                    checked={budgetPerPerson}
-                                    onChange={onChangeBudgetPerPerson}/>
-                            </FormGroup>
-                            <span className="budget-toggle-text">Persona</span>
-                        </div>
-                    </Label>
-                    <InputGroup>
-                        <Input name="min_budget" id="min_budget" onChange={onChangeBudget} placeholder="De"/>
-                        <Input name="max_budget" onChange={onChangeBudget} placeholder="Hasta"/>
-                    </InputGroup>
+                    <Label>Monedas</Label>
+                    <Multiselect
+                        placeholder="Buscar Monedas"
+                        className="mb-3"
+                        onSelect={handleFilter('rate', 'currency')}
+                        onRemove={handleFilter('rate', 'currency')}
+                        options={currencies}
+                        displayValue="name"
+                    />
                 </div>
+
                 {/*<div>*/}
                 {/*    <Label>*/}
                 {/*        <div>Disponibilidad Inmediata</div>*/}
@@ -634,18 +655,6 @@ ${habText}`,
                 {/*</div>*/}
 
 
-                <div>
-                    <Label>Especificar hab.</Label>
-                    <InputGroup>
-                        <Input placeholder="Simple" name="singleQuantity" type="number"
-                               onChange={onChangeGeneralQuoteDetails}/>
-                        <Input placeholder="Doble" name="doubleQuantity" type="number"
-                               onChange={onChangeGeneralQuoteDetails}/>
-
-                        <Input placeholder="Triple" name="tripleQuantity" type="number"
-                               onChange={onChangeGeneralQuoteDetails}/>
-                    </InputGroup>
-                </div>
                 <div>
                     <Label>Precio Dolar</Label>
                     <Input placeholder="Simple" name="dollarToPeso" type="number"
