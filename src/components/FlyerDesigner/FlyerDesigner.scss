@@ -1,0 +1,53 @@
+.flyer-designer {
+  .flyer {
+    position: relative;
+    width: 500px;
+    overflow: hidden;
+
+    .flyer-element {
+      display: flex !important;
+      align-items: center;
+      justify-content: center;
+      background-size: 100% 100%;
+      position: relative;
+
+      .flyer-element-change-image-action {
+        $size: 24px;
+        position: absolute;
+        right: -$size;
+        top: -$size;
+        font-size: $size;
+        z-index: 1;
+        color: white;
+        cursor: pointer;
+      }
+
+      &:focus-within {
+        border: 3px solid red;
+      }
+
+      *:focus-visible {
+        outline: none;
+      }
+    }
+
+    .flyer-designer-background-image {
+      width: 100%;
+      height: auto;
+    }
+
+    img {
+      -webkit-user-drag: none;
+      -khtml-user-drag: none;
+      -moz-user-drag: none;
+      -o-user-drag: none;
+      user-drag: none;
+    }
+  }
+
+  .flyer-designer-actions {
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+  }
+}

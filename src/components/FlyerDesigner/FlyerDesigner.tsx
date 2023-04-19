@@ -1,143 +1,21 @@
-import {Rnd} from "react-rnd";
-import React, {useCallback, useEffect, useRef} from "react";
-import styled from "styled-components";
-import {IProductBackground, IProductData} from "../../model/products";
+import {Position, ResizableDelta, Rnd} from "react-rnd";
+import React, {useCallback, useRef} from "react";
+import {IProductData} from "../../model/products";
 import {CompanyTypes} from "../../model/common";
-import {IProductImageProperties} from "../ProductModalForm/ProductModalForm";
 import logo from "../../assets/images/betueltech.png";
-import bdBackground1 from "../../assets/images/betueldance/Fondo1.png";
-import bdBackground2 from "../../assets/images/betueldance/Fondo2.png";
-import bdBackground3 from "../../assets/images/betueldance/Fondo3.png";
-import bdBackground4 from "../../assets/images/betueldance/Fondo4.png";
-import btBackground1 from "../../assets/images/product-background.png";
 import {toPng} from "html-to-image";
 import {dataURItoBlob} from "../../utils/blob";
 import {uploadPhoto} from "../../services/gcloud";
-
-const ProductImageEditor: any = styled.div`
-  height: ${(props: any) => props.portfolioMode ? 'auto' : '500px'};
-  position: relative;
-
-  .product-background {
-    width: 100%;
-    position: ${(props: any) => props.portfolioMode ? 'relative' : 'absolute'};
-  }
-`
-const ProductNameSpan: any = styled.span`
-  position: absolute;
-  bottom: 15px;
-  font-size: ${(props: any) => props.fontSize}px;
-  z-index: 999;
-  transform: translate(15px, 0px);
-  max-width: 206px;
-  line-height: ${(props: any) => props.fontSize}px;
-
-  &.betueldance {
-    bottom: unset;
-    top: 20px;
-    width: 100%;
-    text-align: center;
-    max-width: unset;
-    font-size: 'anisha';
-    font-size: ${(props: any) => props.fontSize}px;
-    font-family: betueldance-font;
-  }
-`;
-const ProductPriceSpan = styled.span`
-  position: absolute;
-  bottom: 10px;
-  font-size: ${(props: any) => props.fontSize || 85}px;
-  line-height: ${(props: any) => props.fontSize || 85}px;
-  z-index: 999;
-  right: 15px;
-
-  &.betueldance {
-    right: unset;
-    width: 100%;
-    text-align: center;
-    font-size: ${(props: any) => props.fontSize || 60}px;
-  }
-`;
-
-const ProductImageContainer: any = styled.div`
-  position: absolute;
-  z-index: 999;
-  width: 100%;
-  height: 100%;
-
-  .rnd-container {
-    input[type="file"] {
-      z-index: -1;
-    }
-
-    a:focus > img {
-      border: ${(props: any) => props.portfolioMode ? 'unset' : '3px dashed #ababab'};
-    }
-  }
-
-  .product-arrows {
-    position: absolute;
-    top: 0;
-    left: 0;
-    width: 100%;
-    height: 100%;
-    display: flex;
-    align-items: center;
-    justify-content: space-between;
-    padding: 0 10px;
-
-    .bi {
-      cursor: pointer;
-      font-size: 21px;
-      border-radius: 21px;
-      height: 40px;
-      width: 40px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      transition: all .3s ease;
-
-      &:hover {
-        background: rgba(255, 255, 255, 0.5);
-      }
-    }
-  }
-
-`
-const selectedBackgroundKey = 'betuelgroup:selected-product-background';
-
-const GodWordSpan = styled.span`
-  position: absolute;
-  bottom: 15px;
-  right: 15px;
-  font-size: ${(props: any) => props.fontSize || 25}px;
-  z-index: 999;
-  color: #c3c3c3;
-
-  &.betueldance {
-    background: white;
-    padding: 0 10px;
-    border-radius: 20px;
-    color: rgba(0, 0, 0, .6);
-    font-size: 14px;
-  }
-
-`;
-const ChangePhotoLabel: any = styled.label`
-  position: absolute;
-  right: -35px;
-  color: #ababab;
-  cursor: pointer;
-  font-size: 35px;
-  
-  &.betueldance {
-    color: white;
-  }
-`;
-
-const draggableWidth = 300;
-
-const draggableHeight = 300;
+import {
+    IFlyer,
+    FlyerElement,
+    IFlyerElementPosition,
+    IFlyerElementTemporaryFile, FlyerElementTypes
+} from "../../model/interfaces/FlyerDesigner.interfaces";
+import "./FlyerDesigner.scss";
+import {ResizeDirection} from "re-resizable";
+import ContentEditable from "react-contenteditable";
+import {Button} from "reactstrap";
 
 
 export interface IFlyerDesignerProps {
@@ -147,73 +25,33 @@ export interface IFlyerDesignerProps {
     validForm: (useComissionData?: boolean) => any;
 }
 
-const productBackgrounds: IProductBackground = {
-    betueldance: {
-        1: bdBackground1,
-        2: bdBackground2,
-        3: bdBackground3,
-        4: bdBackground4,
-    },
-    betueltech: {
-        1: btBackground1,
-    },
-    betueltravel: {
-        1: btBackground1,
-    }
-};
-
-const nameInitialFontSize: { [N in CompanyTypes]: number} = {
-    betueldance: 80,
-    betueltech: 30,
-    betueltravel: 30,
-};
 
 const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesignerProps) => {
-    const [increaseNameFont, setIncreaseNameFont] = React.useState(nameInitialFontSize[company]);
-    const [selectedBackground, setSelectedBackground] = React.useState();
+    const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [hideChangeProductPhotoIcon, setHideChangeProductPhotoIcon] = React.useState(false);
     const [productPhotoName, setProductPhotoName] = React.useState('');
     const [productPhoto, setProductPhoto] = React.useState(logo);
     const [productImageFile, setProductImageFile] = React.useState<File | any>();
     const [productImageChanged, setProductImageChanged] = React.useState(false);
-    const [enableDropShadow, setEnableDropShadow] = React.useState(false);
 
     const productImageWrapper = useRef<HTMLDivElement>(null)
     const portfolioMode = false;
-    const internationalNumberFormat = new Intl.NumberFormat('en-US')
-    const [flyerOptions, setFlyerOptions] = React.useState<IProductImageProperties>({
-        width: draggableWidth,
-        height: draggableHeight,
-        x: 90,
-        y: 90
-    } as any);
-    const selectBackground = (bg: 1 | 2 | 3 | 4) => () => {
-        setSelectedBackground(productBackgrounds[company][bg]);
-        setFlyerOptions({
-            ...flyerOptions,
-            selectedBackground: bg,
-        })
-    }
 
-    useEffect(() => {
-        const flyerOptionItem: IProductImageProperties = editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions) : flyerOptions;
-        setFlyerOptions(flyerOptionItem);
-        const background = (productBackgrounds[company] as any)[flyerOptionItem.selectedBackground || 1];
-        setSelectedBackground(background);
-        setIncreaseNameFont(flyerOptionItem.fontSize || nameInitialFontSize[company]);
-        setEnableDropShadow(!!flyerOptionItem.enableShadow);
-        validForm()
-    }, [editProduct])
-
-    const decreaseIncreaseNameFont = (minus = false) => () => {
-        const value = minus ? increaseNameFont - 1 : increaseNameFont + 1;
-        setIncreaseNameFont(value);
-        setFlyerOptions({
-            ...flyerOptions,
-            fontSize: value,
+    const changeFlyerElementProps = (index: number, value: Partial<FlyerElement>) => {
+        const newFlyerElements: FlyerElement[] = flyer.elements.map((element, i) => {
+            if (i === index) {
+                return {
+                    ...element,
+                    ...value
+                }
+            }
+            return element;
         });
 
-        validForm();
+        setFlyer({
+            ...flyer,
+            elements: newFlyerElements
+        })
     }
 
     const saveProductPhoto = useCallback(async (downloadImage: boolean = false) => {
@@ -252,103 +90,162 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
     }, [productImageWrapper, productImageFile, productImageChanged]);
 
 
-    const enableDropShadowChange = async (e: any) => {
-        const {checked} = e.target;
-        await setEnableDropShadow(checked);
-        setFlyerOptions({
-            ...flyerOptions,
-            enableShadow: checked
-        })
-        validForm()
-    };
-
-    const onChangeProductPhoto = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const onChangeElementImage = (index: number) => (event: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(index, "index");
         const input = event.target;
         const url = event.target.value;
         const ext = '.' + url.substring(url.lastIndexOf('.') + 1).toLowerCase();
-        if (input.files && input.files[0]) {
-            const reader = new FileReader();
 
+        if (input.files && input.files[0]) {
+            const productFile = new File([input.files[0]], Date.now() + ext, {type: input.files[0].type});
+            const reader = new FileReader();
+            const temporaryFiles = flyer.elements[index].temporaryFiles ? flyer.elements[index].temporaryFiles : [] as any;
             reader.onload = function (e: any) {
-                setProductPhoto(e.target.result)
+                changeFlyerElementProps(index, {
+                    content: e.target.result,
+                    temporaryFiles: [...temporaryFiles, {type: 'image', file: productFile}]
+                });
             }
 
             reader.readAsDataURL(input.files[0]);
             // renaming file
-            const productFile = new File([input.files[0]], Date.now() + ext, {type: input.files[0].type});
-            setProductImageFile(productFile);
-            setProductImageChanged(true);
         } else {
             setProductPhoto(logo);
         }
 
-        validForm();
     }
 
 
-    return (
-        <ProductImageEditor portfolioMode={false} id="product-image-result" ref={productImageWrapper}>
-            <img src={portfolioMode ? product.image : selectedBackground} alt="bg-image"
-                 className="product-background"/>
-            {!portfolioMode && <>
+    React.useEffect(() => {
+        setFlyer({
+            elements: [
+                {
+                    type: 'text',
+                    position: {x: 30, y: 40},
+                    content: 'Betuel Dance',
+                    size: {fontSize: 21, width: 'auto', height: 'auto'},
+                    color: {text: 'red'},
+                    fontFamily: 'Roboto',
+                    // border: {color: 'red', width: 2, type: 'solid', radius: 0},
+                    padding: 30,
+                    backgroundImage: "https://png.pngtree.com/png-vector/20220723/ourmid/pngtree-golden-circle-frame-with-luxury-leaves-ornament-design-png-image_6034826.png",
+                },
+                {
+                    type: 'image',
+                    position: {x: 50, y: 30},
+                    content: 'https://media.istockphoto.com/id/1217828258/photo/grey-stripped-mixed-breed-cat-sitting-isolated-on-white.jpg?s=612x612&w=0&k=20&c=ZdsQKhn9NqMm8KQ-AlpT7D7E0SBv9pNJF-Sbs-j91R0=',
+                    size: {width: 100, height: 100},
+                    border: {color: '#000', width: 5, type: 'solid'},
+                },
+                {
+                    type: 'image',
+                    position: {x: 200, y: 200},
+                    content: 'https://media.istockphoto.com/id/1217828258/photo/grey-stripped-mixed-breed-cat-sitting-isolated-on-white.jpg?s=612x612&w=0&k=20&c=ZdsQKhn9NqMm8KQ-AlpT7D7E0SBv9pNJF-Sbs-j91R0=',
+                    size: {width: 100, height: 100},
+                    border: {color: 'red', width: 5, type: 'solid'},
+                },
+            ],
+            canvaSize: {
+                width: 500, height: 500
+            },
+            templateUrl: 'https://scontent.fhex5-1.fna.fbcdn.net/v/t39.30808-6/279859380_510172334169053_8980077003497225708_n.jpg?_nc_cat=102&ccb=1-7&_nc_sid=a26aad&_nc_ohc=Hpl83XD0K1oAX-A-sNQ&_nc_oc=AQnE3zi4Jl5uyto8MgBt_fwLLBVgVpOUWTvxMDdrzoWnNDXcmHOJjIbUOZrxHYl86sk&_nc_ht=scontent.fhex5-1.fna&oh=00_AfDAykmFAEvgo1tznAn-LPa8V8O6tt7OmIJQ--IoimYF3Q&oe=643E8A91'
+        })
+    }, []);
 
-                <ProductNameSpan fontSize={increaseNameFont}
-                                 className={`product-detail-text inset-text ${company}`}>
-                    <span>{product.name}</span>
-                </ProductNameSpan>
 
-                <ProductPriceSpan className={`product-detail-text inset-text ${company}`}>
-                    <span style={{fontSize: '35px'}}>RD$</span>
-                    <span>{product.cost && internationalNumberFormat.format(product.price || 0)}</span>
-                </ProductPriceSpan>
-                <GodWordSpan className={company}>{product.GodWord || 'Dios te bendiga'}</GodWordSpan>
+    const onDragElementStop = (index: number) => (e: any, position: IFlyerElementPosition) => {
+        changeFlyerElementProps(index, {position})
+    };
 
-                <ProductImageContainer portfolioMode={portfolioMode}>
-                    {!hideChangeProductPhotoIcon && <div className="product-arrows">
-                        <i className="bi bi-chevron-left"
-                           onClick={selectBackground(flyerOptions.selectedBackground - 1 > 0 ? flyerOptions.selectedBackground - 1 : 4 as any)}/>
-                        <i className="bi bi-chevron-right"
-                           onClick={selectBackground(flyerOptions.selectedBackground + 1 <= 4 ? flyerOptions.selectedBackground + 1 : 1 as any)}/>
-                    </div>}
-                    <Rnd
-                        className="rnd-container"
-                        size={{width: flyerOptions.width, height: flyerOptions.height}}
-                        position={{x: flyerOptions.x, y: flyerOptions.y}}
-                        disableDragging={portfolioMode}
-                        enableResizing={!portfolioMode}
-                        onDragStop={(e, d) => {
-                            setFlyerOptions({...flyerOptions, x: d.x, y: d.y});
-                            validForm();
-                        }}
-                        onResize={(e, direction, ref, delta, position) => {
-                            setFlyerOptions({
-                                ...flyerOptions,
-                                width: ref.offsetWidth,
-                                height: ref.offsetHeight,
-                                ...position,
-                            });
-                            validForm();
-                        }}
-                    >
-                        <a href="#" className="position-relative">
-
-                            <ChangePhotoLabel className={company} htmlFor="product-photo" data-toggle="tooltip"
-                                              id="change-image"
-                                              title="Cambiar Foto del Producto">
-                                {!hideChangeProductPhotoIcon && <i className="bi bi-images"/>}
-                            </ChangePhotoLabel>
-                            <input type="file" id="product-photo" className="invisible position-absolute"
-                                   onChange={onChangeProductPhoto} accept="image/png, image/gif, image/jpeg"/>
-
-                            <img src={productPhoto} className={`${enableDropShadow ? 'image-drop-shadow' : ''}`}
-                                 alt="" width="100%"
-                                 height="100%"/>
-                        </a>
-                    </Rnd>
-                </ProductImageContainer>
-            </>
+    const onResizeElement = (index: number) => (e: any, dir: ResizeDirection, elementRef: HTMLElement, size: ResizableDelta, position: Position) => {
+        changeFlyerElementProps(index, {
+            position, size: {
+                width: elementRef.offsetWidth,
+                height: elementRef.offsetHeight,
             }
-        </ProductImageEditor>
+        });
+    };
+
+    const onChangeElementText = (index: number) => ({target: {value}}: React.ChangeEvent<any>) => {
+        changeFlyerElementProps(index, {content: value});
+    };
+
+    const addFlyerElement = (type: FlyerElementTypes) => () => {
+        const newElement = new FlyerElement({type})
+
+        setFlyer({
+            ...flyer,
+            elements: [
+                ...flyer.elements,
+                newElement,
+            ]
+        })
+    }
+    return (
+        <div className="w-100 h-100 d-flex justify-content-center align-items-center"
+             style={{width: "100vw", height: "100vh"}}>
+            <div className="flyer-designer">
+                <div className="flyer" id="product-image-result" ref={productImageWrapper}>
+                    <img src={flyer.templateUrl} alt=""
+                         className="flyer-designer-background-image"/>
+                    {flyer.elements?.map((element, i) =>
+                        (
+                            <Rnd className="flyer-element"
+                                 position={{x: element.position.x, y: element.position.y}}
+                                 size={{width: element.size.width, height: element.size.height}}
+                                 onDragStop={onDragElementStop(i)}
+                                 onResize={onResizeElement(i)}
+                                 style={{
+                                     fontSize: element.size?.fontSize,
+                                     color: element.color?.text,
+                                     backgroundColor: element.color?.background,
+                                     padding: element.padding,
+                                     borderRadius: element.border?.radius,
+                                     borderColor: element.border?.color,
+                                     borderStyle: element.border?.type,
+                                     borderWidth: element.border?.width,
+                                     backgroundImage: `url(${element.backgroundImage})`,
+                                 }}>
+
+                                {
+                                    element.type === 'text' ?
+                                        <ContentEditable
+                                            html={element.content} // innerHTML of the editable div
+                                            onChange={onChangeElementText(i)} // handle innerHTML change
+                                        />
+                                        :
+                                        <>
+                                            <label htmlFor="product-photo">
+                                                <i className="bi bi-images flyer-element-change-image-action"/>
+                                                {console.log("index", i)}
+                                                <input type="file" id="product-photo"
+                                                       className="invisible position-absolute"
+                                                       onChange={onChangeElementImage(i)}
+                                                       accept="image/png, image/gif, image/jpeg"/>
+                                            </label>
+                                            <img
+                                                src={element.content}
+                                                width={element.size.width}
+                                                height={element.size.height}
+                                                style={{
+                                                    borderRadius: element.border?.radius,
+                                                    borderColor: element.border?.color,
+                                                    borderStyle: element.border?.type,
+                                                    borderWidth: element.border?.width,
+                                                }}
+                                            />
+                                        </>
+                                }
+                            </Rnd>
+                        )
+                    )}
+                </div>
+                <div className="flyer-designer-actions">
+                    <Button onClick={addFlyerElement('text')}>Add Text</Button>
+                    <Button onClick={addFlyerElement('image')}>Add Image</Button>
+                </div>
+            </div>
+        </div>
     )
 }
 
