@@ -432,7 +432,6 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                     <Button onClick={addFlyerElement('image')}>Add Image</Button>
                 </div>
             </div>
-            <CardGrid />
         </div>
     )
 }
