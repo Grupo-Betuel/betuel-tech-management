@@ -16,11 +16,23 @@ export interface IFlyerElementPosition {
     y: number;
 }
 
-export interface IFlyerElementBorder {
+export interface IFlyerElementTransform {
+    rotation?: number;
+    skew?: IFlyerElementPosition;
+}
+
+export interface IFlyerElementStrokeBorder {
     color: string;
     width: number;
     radius: number;
     style: 'dashed' | 'solid' | 'dotted';
+}
+
+export interface IFlyerElementShadow {
+    horizontal: number;
+    vertical: number;
+    blur: number;
+    color: string;
 }
 
 export interface IFlyerElementTemporaryFile {
@@ -36,9 +48,11 @@ export class FlyerElement {
     size: IFlyerElementSize = {width: 'auto', height: 'auto', fontSize: 16};
     color?: Partial<IFlyerElementColor>;
     fontFamily?: string;
-    shadow?: boolean;
-    border?: Partial<IFlyerElementBorder>;
-    stroke?: Partial<IFlyerElementBorder>;
+    border?: Partial<IFlyerElementStrokeBorder> = { width: 0, radius: 0, style: 'solid'}
+    stroke?: Partial<IFlyerElementStrokeBorder>;
+    shadow?: Partial<IFlyerElementShadow>;
+    textShadow?: Partial<IFlyerElementShadow>;
+    transform?: Partial<IFlyerElementTransform> = { rotation: 0, skew: {x: 0, y: 0} }
     padding?: number;
     backgroundImage?: string;
     temporaryFiles?: IFlyerElementTemporaryFile[];
