@@ -43,7 +43,7 @@ export interface IFlyerElementTemporaryFile {
 export class FlyerElement {
     id: number = new Date().getTime();
     type: FlyerElementTypes = 'text';
-    position: IFlyerElementPosition = {x: 0, y: 0};
+    position: IFlyerElementPosition = {x: 20, y: 30};
     content: string = 'Betuel';
     size: IFlyerElementSize = {width: 'auto', height: 'auto', fontSize: 16};
     color?: Partial<IFlyerElementColor>;

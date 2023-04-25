@@ -1,5 +1,5 @@
 import {Position, ResizableDelta, Rnd} from "react-rnd";
-import React, {useCallback, useRef} from "react";
+import React, {useCallback, useEffect, useRef} from "react";
 import {IProductData} from "../../model/products";
 import {CompanyTypes} from "../../model/common";
 import logo from "../../assets/images/betueltech.png";
@@ -39,9 +39,12 @@ export interface IFlyerDesignerProps {
     validForm: (useComissionData?: boolean) => any;
 }
 
+let currentFlyerVersion = 0;
 
 const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesignerProps) => {
     const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
+    const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
+    const [redoFlyer, setRedoFlyer] = React.useState<IFlyer[]>([]);
     const [hideChangeProductPhotoIcon, setHideChangeProductPhotoIcon] = React.useState(false);
     const [productPhotoName, setProductPhotoName] = React.useState('');
     const [productPhoto, setProductPhoto] = React.useState(logo);
@@ -53,8 +56,48 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
     const [editTextShadowItemPanelIsOpen, setEditTextShadowItemPanelIsOpen] = React.useState<boolean>();
     const [editTransformItemPanelIsOpen, setTransformItemPanelIsOpen] = React.useState<boolean>();
 
+
+
+
     const productImageWrapper = useRef<HTMLDivElement>(null)
     const portfolioMode = false;
+
+    const updateUndoFlyer = _.debounce(() => {
+        setUndoFlyer([...undoFlyer, flyer]);
+    }, 100);
+
+    useEffect(() => {
+        updateUndoFlyer();
+    }, [flyer]);
+
+
+
+    useEffect(() => {
+        function handleKeyDown(event: KeyboardEvent) {
+            const controlPressed = event.ctrlKey || event.metaKey;
+            if (controlPressed && event.shiftKey && event.key.toLowerCase() === 'z') {
+                if (redoFlyer.length > 0) {
+                    const currentFlyer = redoFlyer[redoFlyer.length - 1];
+                    setUndoFlyer(prevUndoFlyer => [...prevUndoFlyer, currentFlyer]);
+                    setFlyer(currentFlyer);
+                    setTimeout(() => setRedoFlyer(prevRedoFlyer => prevRedoFlyer.slice(0, -1)));
+                }
+            } else if (controlPressed && event.key.toLowerCase() === 'z') {
+                if (undoFlyer.length > 1) {
+                    const newUndoFlyer = undoFlyer.slice(0, -1);
+                    const previousFlyer = newUndoFlyer[newUndoFlyer.length - 1];
+                    setRedoFlyer(prevStack => [...prevStack, flyer]);
+                    setFlyer(previousFlyer);
+                    setTimeout( () => setUndoFlyer(() => [...newUndoFlyer]), 200);
+                }
+            }
+        }
+
+        document.addEventListener('keydown', handleKeyDown);
+        return () => document.removeEventListener('keydown', handleKeyDown);
+    }, [undoFlyer, redoFlyer, flyer]);
+
+
 
     const changeFlyerElementProps = (id: number, value: Partial<FlyerElement>) => {
         const newFlyerElements: FlyerElement[] = flyer.elements.map((element) => {
@@ -182,7 +225,6 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
 
 
     const onKeyDownFlyer = (e: any) => {
-        console.log(e.key, !!e.target.contenteditable, e.target, !!e.target.getAttribute("contenteditable"));
         // e.stopPropagation();
         const isEditing = !!e.target.getAttribute("contenteditable");
         if (e.key === 'Backspace' && !isEditing && flyer.elements) {
@@ -259,19 +301,17 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
 
     const onChangeFlyerElementProps = ({target: {value, name, type}}: React.ChangeEvent<HTMLInputElement>) => {
 
-        console.log("vals", value, name, type);
         if (type === 'number') {
             value = Number(value) as any;
         }
 
         // eslint-disable-next-line no-undef
         const changedElement = selectedElement;
-        console.log("changed => ", changedElement)
         _.set<FlyerElement>(changedElement, name, value);
         changeFlyerElementProps(changedElement.id, changedElement);
     }
 
-    const selectElement = (element: FlyerElement) => () => (console.log("element", element), setSelectedElement(element));
+    const selectElement = (element: FlyerElement) => () => setSelectedElement(element);
 
     const removeElement = () => {
         const id = selectedElement.id;
@@ -286,6 +326,7 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
     return (
         <div className="w-100 h-100 d-flex justify-content-center align-items-center"
              style={{width: "100vw", height: "100vh"}}>
+
             <div className="flyer-designer" tabIndex={0} onKeyDown={onKeyDownFlyer}>
                 <div className="flyer" id="product-image-result" ref={productImageWrapper}>
                     <img src={flyer.templateUrl} alt=""
