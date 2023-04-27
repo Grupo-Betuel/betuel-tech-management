@@ -4,6 +4,7 @@ import {Dashboard, Login} from "./screens";
 import {ToastContainer} from "react-toastify";
 import {Switch, Route, Redirect} from 'react-router-dom';
 import FlyerDesigner from "./components/FlyerDesigner/FlyerDesigner";
+import {TemplatesDesign} from "./screens/TemplateDesign/TemplatesDesign";
 
 function App() {
     const [token, setToken] = React.useState(localStorage.getItem('authToken'));
@@ -29,19 +30,17 @@ function App() {
     return (
         <div className="App">
             <Switch>
-                {token ? <Route path="/dashboard" component={() => <Dashboard setToken={setToken}/>}/> :
-                    <Route path="/login" component={() => <Login setToken={setToken}/>}/>}
+                {token ?
+                    <>
+                        <Route path="/dashboard" component={() => <Dashboard setToken={setToken}/>}/>
+                        <Route path="/templates" component={() => <TemplatesDesign/>}/>
+                    </> :
+                    <Route path="/login" component={() => <Login setToken={setToken}/>}/>
+                }
                 <Route path="/portfolio/betueldance"
                        component={() => <Dashboard setToken={setToken} portfolioMode={true} company="betueldance"/>}/>
                 <Route path="/portfolio/betueltech"
                        component={() => <Dashboard setToken={setToken} portfolioMode={true} company="betueltech"/>}/>
-                <Route path="/design" component={() =>
-                    <FlyerDesigner product={product as any}
-                                   validForm={() => {
-                                   }}
-                                   editProduct={product as any}
-                                   company="betueltech"
-                                   onChangeFlyer={value => console.log(value)}/>}/>
                 <Route path="*" component={() => <Redirect to={token ? "/dashboard" : "/login"}/>}/>
             </Switch>
             {/*<Dashboard />*/}

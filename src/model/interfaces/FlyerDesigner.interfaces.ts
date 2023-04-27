@@ -82,6 +82,6 @@ export interface IFlyerCanvaSize {
 export interface IFlyer {
     elements: FlyerElement[];
     templateImage: string;
-    canvaSize: IFlyerCanvaSize;
+    canvaSize?: IFlyerCanvaSize;
     value?: any;
 }

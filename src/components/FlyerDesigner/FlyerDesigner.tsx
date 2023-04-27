@@ -5,7 +5,7 @@ import {CompanyTypes} from "../../model/common";
 import logo from "../../assets/images/betueltech.png";
 import {toPng} from "html-to-image";
 import {dataURItoBlob} from "../../utils/blob";
-import {uploadGCloudImage} from "../../services/gcloud";
+import {gcloudPublicURL, uploadGCloudImage} from "../../services/gcloud";
 import {
     IFlyer,
     FlyerElement,
@@ -18,16 +18,12 @@ import ContentEditable from "react-contenteditable";
 import {
     Button, FormGroup,
     Input,
-    InputGroup,
     Label,
-    ListGroup,
-    ListGroupItem,
     Popover,
     PopoverBody,
     PopoverHeader
 } from "reactstrap";
 import _ from "lodash";
-import {Card, CardGrid} from "../Card/Card";
 import {GCloudImagesHandler, IImage} from "../GCloudImagesHandler/GCloudImagesHandler";
 import {
     addFlyerTemplate,
@@ -38,19 +34,33 @@ import {
 import {toast} from "react-toastify";
 import {FlyerTemplateModel} from "../../model/flyerTemplateModel";
 import {Loading} from "../Loading/Loading";
+import {passFlyerValueToFlyerContent} from "../../utils/flyer.utils";
 
 
 const fonts = ['Reey Regular', 'Rockwell Extra Bold']
 
 export interface IFlyerDesignerProps {
-    product: IProductData;
-    editProduct: IProductData;
-    company: CompanyTypes;
-    validForm: (useComissionData?: boolean) => any;
     onChangeFlyer: (flyer: IFlyer) => void;
+    onSaveFlyer?: (image: string) => void;
+    templateId?: string;
+    flyerOptions?: IFlyer;
 }
 
-const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}: IFlyerDesignerProps) => {
+const blankFlyer: IFlyer = {
+    elements: [
+        {
+            id: 1,
+            type: 'text',
+            position: {x: 113, y: 230},
+            content: 'Grupo Betuel',
+            fontFamily: 'Rockwell Extra Bold',
+            size: {fontSize: 35, width: 'auto', height: 'auto'},
+        },
+    ],
+    templateImage: 'https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/image-1682611001553.png?generation=1682611002092972&alt=media'
+}
+
+const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }: IFlyerDesignerProps) => {
     const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
     const [redoFlyer, setRedoFlyer] = React.useState<IFlyer[]>([]);
@@ -78,6 +88,24 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
         setUndoFlyer([...undoFlyer, flyer]);
     }, 100);
 
+    React.useEffect(() => {
+        onChangeTemplate({ target: { value: templateId } } as any)
+    }, [templateId, templates]);
+
+    React.useEffect(() => {
+        if(JSON.stringify(flyer) !== '{}') {
+            const unitedF = {...flyer, ...flyerOptions };
+            console.log('united g', unitedF);
+            const newFlyer = passFlyerValueToFlyerContent(unitedF);
+            console.log('altered flyer', flyer, flyerOptions);
+            setFlyer(newFlyer);
+        }
+
+    }, [selectedTemplate]);
+
+    React.useEffect(() => {
+        getTemplates();
+    }, []);
     useEffect(() => {
         updateUndoFlyer();
     }, [flyer]);
@@ -129,12 +157,14 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
         })
     }
 
-    const saveProductPhoto = useCallback(async (downloadImage: boolean = false) => {
-        const productURLName = product.name ? product.name.split(' ').join('-') : 'flyer';
-        const photoName = `${productURLName}-${Date.now()}.png`;
-        setProductPhotoName(photoName)
+    const saveProductPhoto =  (downloadImage?: boolean) => async () => {
+        setLoading(true)
 
-        setHideChangeProductPhotoIcon(true);
+        const productURLName = `${flyer.value?.name || 'photo'}-flyer`;
+        const photoName = `${productURLName}-${Date.now()}.png`;
+        // setProductPhotoName(photoName)
+
+        // setHideChangeProductPhotoIcon(true);
         if (productImageWrapper.current === null) {
             return
         }
@@ -143,17 +173,13 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
             .then(async (dataUrl: string) => {
                 if (downloadImage) {
                     const a = document.createElement('a') as any;
-                    a.href = portfolioMode ? product.image : dataUrl;
+                    a.href = portfolioMode ? 'product.image' : dataUrl;
                     a.download = photoName;
                     a.click();
                 } else {
                     const blob = dataURItoBlob(dataUrl)
                     const file = new File([blob], photoName);
                     await uploadGCloudImage(file);
-
-                    if (productImageChanged && productImageFile) {
-                        await uploadGCloudImage(productImageFile)
-                    }
                 }
 
                 setHideChangeProductPhotoIcon(false);
@@ -161,8 +187,11 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
             .catch((err: any) => {
                 console.log(err)
             })
-        return photoName;
-    }, [productImageWrapper, productImageFile, productImageChanged]);
+
+        setLoading(false)
+
+        onSaveFlyer && onSaveFlyer(gcloudPublicURL + photoName);
+    };
 
     const onChangeImage = (img: IImage) => {
         if (imageToChangeType) {
@@ -209,46 +238,6 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
     }
 
 
-    React.useEffect(() => {
-        setFlyer({
-            elements: [
-                {
-                    id: 1,
-                    type: 'text',
-                    position: {x: 30, y: 40},
-                    content: 'Betuel Dance',
-                    size: {fontSize: 21, width: 'auto', height: 'auto'},
-                    color: {text: 'red'},
-                    fontFamily: 'Roboto',
-                    // border: {color: 'red', width: 2, type: 'solid', radius: 0},
-                    padding: 30,
-                    backgroundImage: "https://png.pngtree.com/png-vector/20220723/ourmid/pngtree-golden-circle-frame-with-luxury-leaves-ornament-design-png-image_6034826.png",
-                },
-                {
-                    id: 2,
-                    type: 'image',
-                    position: {x: 50, y: 30},
-                    content: 'https://media.istockphoto.com/id/1217828258/photo/grey-stripped-mixed-breed-cat-sitting-isolated-on-white.jpg?s=612x612&w=0&k=20&c=ZdsQKhn9NqMm8KQ-AlpT7D7E0SBv9pNJF-Sbs-j91R0=',
-                    size: {width: 100, height: 100},
-                    border: {color: '#000', width: 5, style: 'solid'},
-                },
-                {
-                    id: new Date().getTime(),
-                    type: 'image',
-                    position: {x: 200, y: 200},
-                    content: 'https://media.istockphoto.com/id/1217828258/photo/grey-stripped-mixed-breed-cat-sitting-isolated-on-white.jpg?s=612x612&w=0&k=20&c=ZdsQKhn9NqMm8KQ-AlpT7D7E0SBv9pNJF-Sbs-j91R0=',
-                    size: {width: 100, height: 100},
-                    border: {color: 'red', width: 5, style: 'solid'},
-                },
-            ],
-            canvaSize: {
-                width: 500, height: 500
-            },
-            templateImage: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg'
-        })
-
-        getTemplates();
-    }, []);
 
 
     const onKeyDownFlyerElement = (e: any) => {
@@ -406,9 +395,10 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
 
     const onChangeTemplate = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
         const selectedTemplate = templates.find(template => template._id === value);
-        setSelectedTemplate(selectedTemplate);
-        const flyer = JSON.parse(selectedTemplate?.flyer || '{}');
+        const flyer = selectedTemplate?.flyer ? JSON.parse(selectedTemplate?.flyer) : blankFlyer;
         setFlyer(flyer);
+        setTimeout( () => setSelectedTemplate(selectedTemplate));
+        console.log('selected flyer', flyer, value);
         setTemplateName(selectedTemplate?.name || '');
     };
 
@@ -432,14 +422,13 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
 
     // @ts-ignore
     return (
-        <div className="w-100 d-flex justify-content-center align-items-center flex-column"
-             style={{width: "100vw"}}>
-
+        <>
             <div className="flyer-designer">
                 <Loading loading={loading}/>
                 <div className="template-actions">
                     <Input onChange={onChangeTemplateName}
                            value={templateName}/>
+                    <Button onClick={saveProductPhoto(true)} color="primary">Descargar Imagen</Button>
                     <Button onClick={createTemplate} color="primary">Crear Plantilla</Button>
                     {selectedTemplate && <>
                         <Button onClick={updateTemplate} color="info">Update Plantilla</Button>
@@ -448,8 +437,8 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
                     <FormGroup>
                         <Input placeholder="Style" onChange={onChangeTemplate}
                                type="select" name="border.style" id="exampleSelect"
-                               value={selectedTemplate?._id}>
-                            <option value="">Selecciona Plantilla</option>
+                               value={selectedTemplate?._id || templateId}>
+                            <option value="">Blank Template</option>
                             {templates.map(template => <option value={template._id}>
                                 {template.name}
                             </option>)}
@@ -485,9 +474,9 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
                                         backgroundColor: element.color?.background,
                                         padding: element.padding,
                                         borderRadius: element.border?.radius ? element.border?.radius : undefined,
-                                        borderColor:  element.border?.color ? element.border?.color : undefined,
-                                        borderStyle:  element.border?.style ? element.border?.style : undefined,
-                                        borderWidth:  element.border?.width ? element.border?.width : undefined,
+                                        borderColor: element.border?.color ? element.border?.color : undefined,
+                                        borderStyle: element.border?.style ? element.border?.style : undefined,
+                                        borderWidth: element.border?.width ? element.border?.width : undefined,
                                         boxShadow: `${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color}`,
                                         textShadow: element.textShadow ? `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}` : undefined,
                                         backgroundImage: `url(${element.backgroundImage})`,
@@ -798,13 +787,14 @@ const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}
                     </FormGroup>
                 </div>
                 <div className="flyer-designer-element-handler">
-                    <Button onClick={addFlyerElement('text')}>Add Text</Button>
-                    <Button onClick={addFlyerElement('image')}>Add Image</Button>
+                    <Button onClick={addFlyerElement('text')}>Agregar Texto</Button>
+                    <Button onClick={addFlyerElement('image')}>Agregar Imagen</Button>
+                    <Button onClick={saveProductPhoto()} color="primary">Guardar</Button>
                 </div>
             </div>
 
             <GCloudImagesHandler open={!!imageToChangeType} toggle={toggleImageGrid} onClickImage={onChangeImage}/>
-        </div>
+        </>
     )
 }
 
