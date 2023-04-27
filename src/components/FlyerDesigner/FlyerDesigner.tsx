@@ -5,12 +5,12 @@ import {CompanyTypes} from "../../model/common";
 import logo from "../../assets/images/betueltech.png";
 import {toPng} from "html-to-image";
 import {dataURItoBlob} from "../../utils/blob";
-import {uploadPhoto} from "../../services/gcloud";
+import {uploadGCloudImage} from "../../services/gcloud";
 import {
     IFlyer,
     FlyerElement,
     IFlyerElementPosition,
-    FlyerElementTypes
+    FlyerElementTypes, ImageTypes
 } from "../../model/interfaces/FlyerDesigner.interfaces";
 import "./FlyerDesigner.scss";
 import {ResizeDirection} from "re-resizable";
@@ -28,6 +28,16 @@ import {
 } from "reactstrap";
 import _ from "lodash";
 import {Card, CardGrid} from "../Card/Card";
+import {GCloudImagesHandler, IImage} from "../GCloudImagesHandler/GCloudImagesHandler";
+import {
+    addFlyerTemplate,
+    deleteFlyerTemplate,
+    getFlyerTemplates,
+    updateFlyerTemplate
+} from "../../services/flyerTemplateService";
+import {toast} from "react-toastify";
+import {FlyerTemplateModel} from "../../model/flyerTemplateModel";
+import {Loading} from "../Loading/Loading";
 
 
 const fonts = ['Reey Regular', 'Rockwell Extra Bold']
@@ -37,11 +47,10 @@ export interface IFlyerDesignerProps {
     editProduct: IProductData;
     company: CompanyTypes;
     validForm: (useComissionData?: boolean) => any;
+    onChangeFlyer: (flyer: IFlyer) => void;
 }
 
-let currentFlyerVersion = 0;
-
-const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesignerProps) => {
+const FlyerDesigner = ({product, company, validForm, editProduct, onChangeFlyer}: IFlyerDesignerProps) => {
     const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
     const [redoFlyer, setRedoFlyer] = React.useState<IFlyer[]>([]);
@@ -55,9 +64,12 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
     const [editShadowItemPanelIsOpen, setEditShadowItemPanelIsOpen] = React.useState<boolean>();
     const [editTextShadowItemPanelIsOpen, setEditTextShadowItemPanelIsOpen] = React.useState<boolean>();
     const [editTransformItemPanelIsOpen, setTransformItemPanelIsOpen] = React.useState<boolean>();
-
-
-
+    const [templateName, setTemplateName] = React.useState<string>('');
+    const [selectedTemplate, setSelectedTemplate] = React.useState<FlyerTemplateModel>();
+    const [templates, setTemplates] = React.useState<FlyerTemplateModel[]>([]);
+    const [loading, setLoading] = React.useState<boolean>();
+    const toggleImageGrid = () => setImageToChangeType(undefined);
+    const [imageToChangeType, setImageToChangeType] = React.useState<ImageTypes>();
 
     const productImageWrapper = useRef<HTMLDivElement>(null)
     const portfolioMode = false;
@@ -69,7 +81,6 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
     useEffect(() => {
         updateUndoFlyer();
     }, [flyer]);
-
 
 
     useEffect(() => {
@@ -88,7 +99,7 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                     const previousFlyer = newUndoFlyer[newUndoFlyer.length - 1];
                     setRedoFlyer(prevStack => [...prevStack, flyer]);
                     setFlyer(previousFlyer);
-                    setTimeout( () => setUndoFlyer(() => [...newUndoFlyer]), 200);
+                    setTimeout(() => setUndoFlyer(() => [...newUndoFlyer]), 200);
                 }
             }
         }
@@ -98,10 +109,11 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
     }, [undoFlyer, redoFlyer, flyer]);
 
 
-
     const changeFlyerElementProps = (id: number, value: Partial<FlyerElement>) => {
+        const flyerValue = flyer.value;
         const newFlyerElements: FlyerElement[] = flyer.elements.map((element) => {
             if (element.id === id) {
+                if (element.ref) flyerValue[element.ref] = value.content;
                 return {
                     ...element,
                     ...value
@@ -112,7 +124,8 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
 
         setFlyer({
             ...flyer,
-            elements: newFlyerElements
+            elements: newFlyerElements,
+            value: flyerValue,
         })
     }
 
@@ -136,10 +149,10 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                 } else {
                     const blob = dataURItoBlob(dataUrl)
                     const file = new File([blob], photoName);
-                    await uploadPhoto(file);
+                    await uploadGCloudImage(file);
 
                     if (productImageChanged && productImageFile) {
-                        await uploadPhoto(productImageFile)
+                        await uploadGCloudImage(productImageFile)
                     }
                 }
 
@@ -151,9 +164,23 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
         return photoName;
     }, [productImageWrapper, productImageFile, productImageChanged]);
 
+    const onChangeImage = (img: IImage) => {
+        if (imageToChangeType) {
+            if (imageToChangeType === 'templateImage') {
+                setFlyer({
+                    ...flyer,
+                    templateImage: img.content
+                });
+            } else {
+                const changedElement = selectedElement;
+                _.set<FlyerElement>(changedElement, imageToChangeType, img.content);
+                changeFlyerElementProps(changedElement.id, changedElement);
+            }
+
+        }
+    }
 
     const onChangeElementImage = (id: number, type: 'content' | 'backgroundImage' = 'content') => (event: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(id, "img id");
         const input = event.target;
         const url = event.target.value;
         const ext = '.' + url.substring(url.lastIndexOf('.') + 1).toLowerCase();
@@ -217,14 +244,14 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
             canvaSize: {
                 width: 500, height: 500
             },
-            templateUrl: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg'
+            templateImage: 'https://upload.wikimedia.org/wikipedia/commons/4/4d/Cat_November_2010-1a.jpg'
         })
 
-
+        getTemplates();
     }, []);
 
 
-    const onKeyDownFlyer = (e: any) => {
+    const onKeyDownFlyerElement = (e: any) => {
         // e.stopPropagation();
         const isEditing = !!e.target.getAttribute("contenteditable");
         if (e.key === 'Backspace' && !isEditing && flyer.elements) {
@@ -297,7 +324,15 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
     }
 
 
-    const [selectedElement, setSelectedElement] = React.useState<FlyerElement>(new FlyerElement());
+    const [selectedElement, setSelectedElement] = React.useState<FlyerElement>({} as FlyerElement);
+
+    const resetFlyerElementProp = (props: string[]) => () => {
+        const changedElement = selectedElement;
+        props.forEach(prop => {
+            _.set<FlyerElement>(changedElement, prop, undefined);
+        })
+        changeFlyerElementProps(changedElement.id, changedElement);
+    }
 
     const onChangeFlyerElementProps = ({target: {value, name, type}}: React.ChangeEvent<HTMLInputElement>) => {
 
@@ -311,7 +346,9 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
         changeFlyerElementProps(changedElement.id, changedElement);
     }
 
-    const selectElement = (element: FlyerElement) => () => setSelectedElement(element);
+    const selectElement = (element: FlyerElement) => () => {
+        setSelectedElement(element)
+    };
 
     const removeElement = () => {
         const id = selectedElement.id;
@@ -322,19 +359,111 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
         });
     }
 
+    const createTemplateModel = () => {
+        const flyerTemplate: FlyerTemplateModel = {
+            flyer: JSON.stringify(flyer),
+            name: templateName,
+        };
+
+        return flyerTemplate;
+    }
+
+    const getTemplates = async () => {
+        setLoading(true);
+        const data = await getFlyerTemplates();
+        setTemplates(data);
+        setLoading(false);
+    }
+
+    const createTemplate = async () => {
+        setLoading(true);
+        const flyerTemplate = createTemplateModel();
+        await addFlyerTemplate(JSON.stringify(flyerTemplate));
+        toast('Template created successfully');
+        await getTemplates();
+        setLoading(false);
+    }
+
+    const updateTemplate = async () => {
+        if (!selectedTemplate) return;
+        setLoading(true);
+        const flyerTemplate = createTemplateModel();
+        flyerTemplate._id = selectedTemplate._id;
+        await updateFlyerTemplate(JSON.stringify(flyerTemplate));
+        toast('Template updated successfully');
+        await getTemplates();
+        setLoading(false);
+    }
+
+    const deleteTemplate = async () => {
+        if (!selectedTemplate) return;
+        setLoading(true);
+        await deleteFlyerTemplate(JSON.stringify({_id: selectedTemplate._id}));
+        toast('Template updated successfully');
+        await getTemplates();
+        setLoading(false);
+    }
+
+    const onChangeTemplate = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
+        const selectedTemplate = templates.find(template => template._id === value);
+        setSelectedTemplate(selectedTemplate);
+        const flyer = JSON.parse(selectedTemplate?.flyer || '{}');
+        setFlyer(flyer);
+        setTemplateName(selectedTemplate?.name || '');
+    };
+
+    const onChangeTemplateName = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
+        setTemplateName(value)
+    }
+
+    const changeImageToChangeType = (type: ImageTypes) => () => setImageToChangeType(type);
+
+    const onChangeElementRef = (ev: React.ChangeEvent<HTMLInputElement>) => {
+        let pattern = new RegExp(
+            "[`~!@#$^&*()=：”“'。，、？|{}':;'%,\\[\\].<>/?~！@#$……&*（）&;—|{ }【】‘；]", 'gi'
+        );
+        ev.target.value = ev.target.value.replace(pattern, '');
+        onChangeFlyerElementProps(ev);
+    }
+
+    useEffect(() => {
+        onChangeFlyer(flyer);
+    }, [flyer]);
+
     // @ts-ignore
     return (
-        <div className="w-100 h-100 d-flex justify-content-center align-items-center"
-             style={{width: "100vw", height: "100vh"}}>
+        <div className="w-100 d-flex justify-content-center align-items-center flex-column"
+             style={{width: "100vw"}}>
 
-            <div className="flyer-designer" tabIndex={0} onKeyDown={onKeyDownFlyer}>
+            <div className="flyer-designer">
+                <Loading loading={loading}/>
+                <div className="template-actions">
+                    <Input onChange={onChangeTemplateName}
+                           value={templateName}/>
+                    <Button onClick={createTemplate} color="primary">Crear Plantilla</Button>
+                    {selectedTemplate && <>
+                        <Button onClick={updateTemplate} color="info">Update Plantilla</Button>
+                        <Button onClick={deleteTemplate} color="danger">Delete Plantilla</Button>
+                    </>}
+                    <FormGroup>
+                        <Input placeholder="Style" onChange={onChangeTemplate}
+                               type="select" name="border.style" id="exampleSelect"
+                               value={selectedTemplate?._id}>
+                            <option value="">Selecciona Plantilla</option>
+                            {templates.map(template => <option value={template._id}>
+                                {template.name}
+                            </option>)}
+                        </Input>
+                    </FormGroup>
+                </div>
                 <div className="flyer" id="product-image-result" ref={productImageWrapper}>
-                    <img src={flyer.templateUrl} alt=""
+                    <img src={flyer.templateImage} alt=""
+                         onClick={selectElement({} as FlyerElement)}
                          className="flyer-designer-background-image"/>
                     {flyer.elements?.map((element, i) =>
                         (
                             <Rnd
-                                className={`flyer-element `}
+                                className="flyer-element"
                                 id={element.id}
                                 onClick={selectElement(element)}
                                 key={i}
@@ -345,6 +474,7 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                             >
                                 <input className="flyer-element-focus-input"/>
                                 <div
+                                    tabIndex={0} onKeyDown={onKeyDownFlyerElement}
                                     className={`flyer-element-content ${selectedElement.id === element.id ? 'selected' : ''} text-stroke-${element.stroke?.width}`}
                                     style={{
                                         // @ts-ignore
@@ -354,12 +484,12 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                         color: element.color?.text,
                                         backgroundColor: element.color?.background,
                                         padding: element.padding,
-                                        borderRadius: element.border?.radius,
-                                        borderColor: element.border?.color,
-                                        borderStyle: element.border?.style,
-                                        borderWidth: element.border?.width,
+                                        borderRadius: element.border?.radius ? element.border?.radius : undefined,
+                                        borderColor:  element.border?.color ? element.border?.color : undefined,
+                                        borderStyle:  element.border?.style ? element.border?.style : undefined,
+                                        borderWidth:  element.border?.width ? element.border?.width : undefined,
                                         boxShadow: `${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color}`,
-                                        textShadow: `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}`,
+                                        textShadow: element.textShadow ? `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}` : undefined,
                                         backgroundImage: `url(${element.backgroundImage})`,
                                         transform: `rotate(${element.transform?.rotation || 0}deg) skew(${element.transform?.skew?.x || 0}deg, ${element.transform?.skew?.y || 0}deg)`,
                                     }}
@@ -378,12 +508,10 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                             </div>
                                             :
                                             <div>
-                                                <label htmlFor={`product-photo-${i}`}>
-                                                    <i className="bi bi-images flyer-element-change-image-action"/>
-                                                    <input type="file" id={`product-photo-${i}`}
-                                                           className="invisible position-absolute"
-                                                           onChange={onChangeElementImage(element.id)}
-                                                           accept="image/png, image/gif, image/jpeg"/>
+                                                <label>
+                                                    <i className="bi bi-images flyer-element-change-image-action"
+                                                       onClick={changeImageToChangeType('content')}
+                                                    />
                                                 </label>
                                                 <img
                                                     src={element.content}
@@ -403,10 +531,15 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                         )
                     )}
                 </div>
-                <div className="flyer-designer-actions">
+                <div className={`flyer-designer-actions ${!selectedElement.id ? 'd-none' : ''}`}>
+                    <FormGroup>
+                        <Label>Referencia</Label>
+                        <Input type="text" name="ref" value={selectedElement.ref || ''}
+                               onChange={onChangeElementRef}/>
+                    </FormGroup>
                     <FormGroup>
                         <Label>Font size</Label>
-                        <Input type="number" name="size.fontSize" value={selectedElement.size.fontSize || 0}
+                        <Input type="number" name="size.fontSize" value={selectedElement.size?.fontSize || 0}
                                onChange={onChangeFlyerElementProps}/>
                     </FormGroup>
                     <FormGroup className="flyer-designer-actions-text-item">
@@ -433,6 +566,12 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                    id="exampleColor" placeholder="color placeholder"
                                    className="invisible position-absolute"/>
                         </Label>
+                        {selectedElement.color?.background &&
+                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                               onClick={resetFlyerElementProp(['color.background'])}
+                            />
+                        }
+
                     </FormGroup>
                     <FormGroup>
                         <Label>
@@ -441,6 +580,11 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                    onChange={onChangeFlyerElementProps} name="color.text"
                                    placeholder="color placeholder" className="invisible position-absolute"/>
                         </Label>
+                        {selectedElement.color?.text &&
+                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                               onClick={resetFlyerElementProp(['color.text'])}
+                            />
+                        }
                     </FormGroup>
                     <FormGroup>
                         <i className="bi bi-square cursor-pointer" data-toggle="tooltip" data-placement="top"
@@ -451,7 +595,7 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                             <PopoverHeader>Border Options</PopoverHeader>
                             <PopoverBody>
                                 <FormGroup>
-                                    <Input placeholder="Style" onChange={onChangeFlyerElementProps}
+                                    <Input placeholder="Style" placement="top" onChange={onChangeFlyerElementProps}
                                            type="select" name="border.style" id="exampleSelect"
                                            value={selectedElement.fontFamily}>
                                         <option value="">Selecciona Estilo</option>
@@ -480,6 +624,11 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                 </FormGroup>
                             </PopoverBody>
                         </Popover>
+                        {selectedElement.border &&
+                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                               onClick={resetFlyerElementProp(['border'])}
+                            />
+                        }
                     </FormGroup>
                     <FormGroup>
                         <i className="bi bi-border-width cursor-pointer" id="editTextItemStrokeToggle"
@@ -505,6 +654,11 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                 </FormGroup>
                             </PopoverBody>
                         </Popover>
+                        {selectedElement.stroke &&
+                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                               onClick={resetFlyerElementProp(['stroke'])}
+                            />
+                        }
                     </FormGroup>
                     <FormGroup>
                         <i className="bi bi-back cursor-pointer" id="editTextItemShadowToggle"
@@ -541,6 +695,11 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                 </FormGroup>
                             </PopoverBody>
                         </Popover>
+                        {selectedElement.shadow &&
+                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                               onClick={resetFlyerElementProp(['shadow'])}
+                            />
+                        }
                     </FormGroup>
                     <FormGroup>
                         <i className="bi bi-file-font cursor-pointer" id="editItemTextShadowToggle"
@@ -577,6 +736,11 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                 </FormGroup>
                             </PopoverBody>
                         </Popover>
+                        {selectedElement.textShadow &&
+                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                               onClick={resetFlyerElementProp(['textShadow'])}
+                            />
+                        }
                     </FormGroup>
                     <FormGroup>
                         <i className="bi bi-bezier2 cursor-pointer" id="editItemTransformToggle"
@@ -606,15 +770,30 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                                 </FormGroup>
                             </PopoverBody>
                         </Popover>
+                        {selectedElement.transform &&
+                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                               onClick={resetFlyerElementProp(['transform'])}
+                            />
+                        }
                     </FormGroup>
 
                     <FormGroup>
                         <label>
-                            <i className="bi bi-image-fill flyer-element-change-image-action"/>
-                            <input type="file"
-                                   onChange={onChangeElementImage(selectedElement.id, 'backgroundImage')}
-                                   className="invisible position-absolute"
-                                   accept="image/png, image/gif, image/jpeg"/>
+                            <i className="bi bi-image-fill flyer-element-change-image-action cursor-pointer"
+                               onClick={changeImageToChangeType('backgroundImage')}
+                            />
+                        </label>
+                        {selectedElement.backgroundImage &&
+                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                               onClick={resetFlyerElementProp(['backgroundImage'])}
+                            />
+                        }
+                    </FormGroup>
+                    <FormGroup>
+                        <label>
+                            <i className="bi bi-file-earmark-image flyer-element-change-image-action cursor-pointer"
+                               onClick={changeImageToChangeType('templateImage')}
+                            />
                         </label>
                     </FormGroup>
                 </div>
@@ -623,6 +802,8 @@ const FlyerDesigner = ({product, company, validForm, editProduct}: IFlyerDesigne
                     <Button onClick={addFlyerElement('image')}>Add Image</Button>
                 </div>
             </div>
+
+            <GCloudImagesHandler open={!!imageToChangeType} toggle={toggleImageGrid} onClickImage={onChangeImage}/>
         </div>
     )
 }

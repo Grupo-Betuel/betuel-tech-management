@@ -26,3 +26,11 @@ export class ECommerceResponse {
 export type CompanyTypes = 'betueltech' | 'betueldance' | 'betueltravel';
 
 // export interface ICsd
+
+export class ConstructorClass<T> {
+    constructor(private data: Partial<T> = {} as any) {
+        Object.keys({...data, ...this}).forEach(key => {
+            (this as any)[key] = (data as any)[key] || (this as any)[key]
+        });
+    }
+}

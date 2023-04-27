@@ -1,4 +1,4 @@
-export const uploadPhoto = async (file: File) => {
+export const uploadGCloudImage = async (file: File) => {
     const filename = encodeURIComponent(file.name);
     const res = await fetch(`${process.env.REACT_APP_API}gcloud/upload-url/${filename}`);
     const {url, fields} = await res.json();
@@ -18,7 +18,17 @@ export const gcloudPublicURL = "https://storage.googleapis.com/betuel-tech-photo
 export const gcloudAuthenticatedURL = "https://storage.cloud.google.com/betuel-tech-photos/"
 
 export const deletePhoto = async (filename: string) => {
-    return await fetch(`${process.env.REACT_APP_API}products/product-image/${filename}`, {
+    return await fetch(`${process.env.REACT_APP_API}gcloud/image/${filename}`, {
         method: 'DELETE',
     });
+}
+
+
+export const getGCloudImages = async () => {
+    try {
+        const response = await fetch(`${process.env.REACT_APP_API}gcloud/images`);
+        return await response.json() as any;
+    } catch (e) {
+        throw e;
+    }
 }

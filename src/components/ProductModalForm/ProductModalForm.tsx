@@ -23,7 +23,7 @@ import styled from "styled-components";
 import "./ProductModalForm.scss";
 import { toPng } from 'html-to-image';
 import { dataURItoBlob } from "../../utils/blob";
-import { gcloudPublicURL, uploadPhoto } from "../../services/gcloud";
+import { gcloudPublicURL, uploadGCloudImage } from "../../services/gcloud";
 import { addProduct, updateProducts } from "../../services/products";
 import {ECommerceTypes, getWhatsappMessageURL, PublicationTypes} from "../../services/promotions";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
@@ -450,10 +450,10 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 } else {
                     const blob = dataURItoBlob(dataUrl)
                     const file = new File([blob], photoName);
-                    await uploadPhoto(file);
+                    await uploadGCloudImage(file);
 
                     if (productImageChanged && productImageFile) {
-                        await uploadPhoto(productImageFile)
+                        await uploadGCloudImage(productImageFile)
                     }
                 }
 

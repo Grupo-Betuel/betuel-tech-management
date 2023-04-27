@@ -40,6 +40,8 @@ export interface IFlyerElementTemporaryFile {
     file: File;
 }
 
+export type ImageTypes = 'content' | 'backgroundImage' | 'templateImage';
+
 export class FlyerElement {
     id: number = new Date().getTime();
     type: FlyerElementTypes = 'text';
@@ -48,7 +50,7 @@ export class FlyerElement {
     size: IFlyerElementSize = {width: 'auto', height: 'auto', fontSize: 16};
     color?: Partial<IFlyerElementColor>;
     fontFamily?: string;
-    border?: Partial<IFlyerElementStrokeBorder> = { width: 0, radius: 0, style: 'solid'}
+    border?: Partial<IFlyerElementStrokeBorder>;
     stroke?: Partial<IFlyerElementStrokeBorder>;
     shadow?: Partial<IFlyerElementShadow>;
     textShadow?: Partial<IFlyerElementShadow>;
@@ -56,6 +58,7 @@ export class FlyerElement {
     padding?: number;
     backgroundImage?: string;
     temporaryFiles?: IFlyerElementTemporaryFile[];
+    ref?: string;
 
     constructor(private data?: Partial<FlyerElement>) {
         if (data) {
@@ -78,6 +81,7 @@ export interface IFlyerCanvaSize {
 
 export interface IFlyer {
     elements: FlyerElement[];
-    templateUrl: string;
+    templateImage: string;
     canvaSize: IFlyerCanvaSize;
+    value?: any;
 }
