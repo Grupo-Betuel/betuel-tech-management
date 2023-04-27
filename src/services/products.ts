@@ -28,20 +28,13 @@ export const deleteProduct = async (id: string) => {
 
 };
 
-export const updateProducts = async (body: string, filenameToDelete?: string, productImageToDelete?: string) => {
+export const updateProducts = async (body: string, filenameToDelete?: string) => {
 
     try {
         if (filenameToDelete) {
             const deletedResponse = await deletePhoto(filenameToDelete);
             if (deletedResponse.status !== 204) {
                 console.error(deletedResponse);
-            }
-        }
-
-        if (productImageToDelete) {
-            const deletedProductImageResponse = await deletePhoto(productImageToDelete);
-            if (deletedProductImageResponse.status !== 204) {
-                console.error(deletedProductImageResponse);
             }
         }
         return await fetch(`${process.env.REACT_APP_API}products`, {

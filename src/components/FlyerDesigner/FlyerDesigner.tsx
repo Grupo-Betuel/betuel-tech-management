@@ -1,7 +1,5 @@
 import {Position, ResizableDelta, Rnd} from "react-rnd";
-import React, {useCallback, useEffect, useRef} from "react";
-import {IProductData} from "../../model/products";
-import {CompanyTypes} from "../../model/common";
+import React, {useEffect, useRef} from "react";
 import logo from "../../assets/images/betueltech.png";
 import {toPng} from "html-to-image";
 import {dataURItoBlob} from "../../utils/blob";
@@ -40,8 +38,8 @@ import {passFlyerValueToFlyerContent} from "../../utils/flyer.utils";
 const fonts = ['Reey Regular', 'Rockwell Extra Bold']
 
 export interface IFlyerDesignerProps {
-    onChangeFlyer: (flyer: IFlyer) => void;
-    onSaveFlyer?: (image: string) => void;
+    onChangeFlyer?: (flyer: IFlyer) => void;
+    onSaveFlyer?: (flyer: IFlyer, image: string) => void;
     templateId?: string;
     flyerOptions?: IFlyer;
 }
@@ -65,10 +63,6 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
     const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
     const [redoFlyer, setRedoFlyer] = React.useState<IFlyer[]>([]);
     const [hideChangeProductPhotoIcon, setHideChangeProductPhotoIcon] = React.useState(false);
-    const [productPhotoName, setProductPhotoName] = React.useState('');
-    const [productPhoto, setProductPhoto] = React.useState(logo);
-    const [productImageFile, setProductImageFile] = React.useState<File | any>();
-    const [productImageChanged, setProductImageChanged] = React.useState(false);
     const [editBorderItemPanelIsOpen, setEditBorderItemPanelIsOpen] = React.useState<boolean>();
     const [editStrokeItemPanelIsOpen, setEditStrokeItemPanelIsOpen] = React.useState<boolean>();
     const [editShadowItemPanelIsOpen, setEditShadowItemPanelIsOpen] = React.useState<boolean>();
@@ -159,12 +153,10 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
 
     const saveProductPhoto =  (downloadImage?: boolean) => async () => {
         setLoading(true)
-
-        const productURLName = `${flyer.value?.name || 'photo'}-flyer`;
+        const flyerName = (flyer.value?.name || 'photo').replace(/[ ]/gi, '-');
+        const productURLName = `${flyerName}-flyer`;
         const photoName = `${productURLName}-${Date.now()}.png`;
-        // setProductPhotoName(photoName)
 
-        // setHideChangeProductPhotoIcon(true);
         if (productImageWrapper.current === null) {
             return
         }
@@ -190,7 +182,7 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
 
         setLoading(false)
 
-        onSaveFlyer && onSaveFlyer(gcloudPublicURL + photoName);
+        onSaveFlyer && onSaveFlyer(flyer, gcloudPublicURL + photoName);
     };
 
     const onChangeImage = (img: IImage) => {
@@ -209,46 +201,13 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
         }
     }
 
-    const onChangeElementImage = (id: number, type: 'content' | 'backgroundImage' = 'content') => (event: React.ChangeEvent<HTMLInputElement>) => {
-        const input = event.target;
-        const url = event.target.value;
-        const ext = '.' + url.substring(url.lastIndexOf('.') + 1).toLowerCase();
-
-        if (input.files && input.files[0]) {
-            const productFile = new File([input.files[0]], Date.now() + ext, {type: input.files[0].type});
-            const reader = new FileReader();
-            const element = flyer.elements.find(item => item.id === id) || {} as any;
-            const temporaryFiles = element.temporaryFiles || [];
-            reader.onload = function (e: any) {
-                changeFlyerElementProps(id, {
-                    [type]: e.target.result,
-                    temporaryFiles: [...temporaryFiles, {
-                        type: type === "backgroundImage" ? 'background' : 'image',
-                        file: productFile
-                    }]
-                });
-            }
-
-            reader.readAsDataURL(input.files[0]);
-            // renaming file
-        } else {
-            setProductPhoto(logo);
-        }
-
-    }
-
-
-
-
     const onKeyDownFlyerElement = (e: any) => {
-        // e.stopPropagation();
         const isEditing = !!e.target.getAttribute("contenteditable");
         if (e.key === 'Backspace' && !isEditing && flyer.elements) {
             removeElement();
         }
     }
 
-    // document.addEventListener('keydown', onKeyDownFlyer)
 
     const onDragElementStop = (id: number) => (e: any, position: IFlyerElementPosition) => {
         const element = flyer.elements.find(item => item.id === id) || {} as any;
@@ -417,7 +376,7 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
     }
 
     useEffect(() => {
-        onChangeFlyer(flyer);
+        onChangeFlyer && onChangeFlyer(flyer);
     }, [flyer]);
 
     // @ts-ignore
