@@ -113,7 +113,6 @@ const columns: IColum<IRate>[] = [
 
 
 export interface IBetuelTravelDashboardProps {
-    setLoading: (val: boolean) => any,
 }
 
 export type BudgetTypes = 'max_budget' | 'min_budget';
@@ -268,14 +267,13 @@ const BetuelTravelDashboard = ({}: IBetuelTravelDashboardProps) => {
                             const totalQuantity = generalQuoteDetails.budgetPerPerson ? perPersonPrice : total;
                             let success = true;
 
-                            if(rateFilters.max_budget?.data && rateFilters.min_budget?.data && totalQuantity) {
+                            if (rateFilters.max_budget?.data && rateFilters.min_budget?.data && totalQuantity) {
                                 success = rateFilters.min_budget.data <= totalQuantity && rateFilters.max_budget.data >= totalQuantity;
                             } else if (rateFilters.min_budget?.data && totalQuantity) {
                                 success = rateFilters.min_budget.data <= totalQuantity;
                             } else if (rateFilters.max_budget?.data && totalQuantity) {
                                 success = rateFilters.max_budget.data >= totalQuantity;
                             }
-
 
 
                             rate.total_amount = totalText;
@@ -597,7 +595,8 @@ ${habText}`,
                         </div>
                     </Label>
                     <InputGroup>
-                        <Input name="min_budget" id="min_budget" type="number" onChange={onChangeBudget} placeholder="De"/>
+                        <Input name="min_budget" id="min_budget" type="number" onChange={onChangeBudget}
+                               placeholder="De"/>
                         <Input name="max_budget" type="number" onChange={onChangeBudget} placeholder="Hasta"/>
                     </InputGroup>
                 </div>

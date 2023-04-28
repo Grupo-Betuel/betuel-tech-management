@@ -1025,7 +1025,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     </>
                 )}
                 {selectedCompany === 'betueltravel' ?
-                    <BetuelTravelDashboard setLoading={setLoadingApp}/> : <>
+                    <BetuelTravelDashboard /> : <>
                         <Col
                             lg={8}
                             md={10}

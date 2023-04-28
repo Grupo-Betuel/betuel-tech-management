@@ -32,10 +32,15 @@ import {
 import {toast} from "react-toastify";
 import {FlyerTemplateModel} from "../../model/flyerTemplateModel";
 import {Loading} from "../Loading/Loading";
-import {passFlyerValueToFlyerContent} from "../../utils/flyer.utils";
+import {passFlyerContentToFlyerValue, passFlyerValueToFlyerContent} from "../../utils/flyer.utils";
 
 
-const fonts = ['Reey Regular', 'Rockwell Extra Bold']
+const fonts = ['Reey Regular',
+    'Rockwell Extra Bold', 'Anisha',
+    'Abadi MT Condensed',
+    'Oswald', 'Beta', 'Montserrat Bold',
+    'Tondu Beta', 'Cubano'
+]
 
 export interface IFlyerDesignerProps {
     onChangeFlyer?: (flyer: IFlyer) => void;
@@ -58,7 +63,7 @@ const blankFlyer: IFlyer = {
     templateImage: 'https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/image-1682611001553.png?generation=1682611002092972&alt=media'
 }
 
-const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }: IFlyerDesignerProps) => {
+const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: IFlyerDesignerProps) => {
     const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
     const [redoFlyer, setRedoFlyer] = React.useState<IFlyer[]>([]);
@@ -83,12 +88,12 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
     }, 100);
 
     React.useEffect(() => {
-        onChangeTemplate({ target: { value: templateId } } as any)
+        onChangeTemplate({target: {value: templateId}} as any)
     }, [templateId, templates]);
 
     React.useEffect(() => {
-        if(JSON.stringify(flyer) !== '{}') {
-            const unitedF = {...flyer, ...flyerOptions };
+        if (JSON.stringify(flyer) !== '{}') {
+            const unitedF = {...flyer, ...flyerOptions};
             console.log('united g', unitedF);
             const newFlyer = passFlyerValueToFlyerContent(unitedF);
             console.log('altered flyer', flyer, flyerOptions);
@@ -135,11 +140,9 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
         const flyerValue = flyer.value;
         const newFlyerElements: FlyerElement[] = flyer.elements.map((element) => {
             if (element.id === id) {
-                if (element.ref) flyerValue[element.ref] = value.content;
-                return {
-                    ...element,
-                    ...value
-                }
+                const newElement = {...element, ...value};
+                setSelectedElement(newElement);
+                return newElement;
             }
             return element;
         });
@@ -151,7 +154,7 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
         })
     }
 
-    const saveProductPhoto =  (downloadImage?: boolean) => async () => {
+    const saveProductPhoto = (downloadImage?: boolean) => async () => {
         setLoading(true)
         const flyerName = (flyer.value?.name || 'photo').replace(/[ ]/gi, '-');
         const productURLName = `${flyerName}-flyer`;
@@ -181,8 +184,8 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
             })
 
         setLoading(false)
-
-        onSaveFlyer && onSaveFlyer(flyer, gcloudPublicURL + photoName);
+        const flyerWithValue = passFlyerContentToFlyerValue(flyer);
+        onSaveFlyer && onSaveFlyer(flyerWithValue, gcloudPublicURL + photoName);
     };
 
     const onChangeImage = (img: IImage) => {
@@ -201,10 +204,30 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
         }
     }
 
+    const duplicateElement = () => {
+        // eslint-disable-next-line no-undef
+        const newElement: FlyerElement = structuredClone({
+            ...selectedElement,
+            id: new Date().getTime(),
+            position: {
+                x: selectedElement.position.x + 30,
+                y: selectedElement.position.y + 30,
+            }
+        });
+        setFlyer({
+            ...flyer,
+            elements: [...flyer.elements, newElement]
+        })
+    }
+
     const onKeyDownFlyerElement = (e: any) => {
         const isEditing = !!e.target.getAttribute("contenteditable");
+        const controlPressed = e.ctrlKey || e.metaKey;
+
         if (e.key === 'Backspace' && !isEditing && flyer.elements) {
             removeElement();
+        } else if (controlPressed && e.key.toLowerCase() === 'd') {
+            duplicateElement();
         }
     }
 
@@ -234,6 +257,17 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
                 height: elementRef.offsetHeight,
             }
         });
+    };
+
+    const onResizeFlyerCanva = (e: any, dir: ResizeDirection, elementRef: HTMLElement) => {
+        setFlyer({
+            ...flyer,
+            canvaSize: {
+                ...flyer.canvaSize,
+                width: elementRef.offsetWidth,
+                height: elementRef.offsetHeight,
+            }
+        })
     };
 
     const onChangeElementText = (id: number) => ({target: {value}}: React.ChangeEvent<any>) => {
@@ -308,8 +342,10 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
     }
 
     const createTemplateModel = () => {
+        const flyerWithValue = passFlyerContentToFlyerValue(flyer);
+
         const flyerTemplate: FlyerTemplateModel = {
-            flyer: JSON.stringify(flyer),
+            flyer: JSON.stringify(flyerWithValue),
             name: templateName,
         };
 
@@ -356,7 +392,7 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
         const selectedTemplate = templates.find(template => template._id === value);
         const flyer = selectedTemplate?.flyer ? JSON.parse(selectedTemplate?.flyer) : blankFlyer;
         setFlyer(flyer);
-        setTimeout( () => setSelectedTemplate(selectedTemplate));
+        setTimeout(() => setSelectedTemplate(selectedTemplate));
         console.log('selected flyer', flyer, value);
         setTemplateName(selectedTemplate?.name || '');
     };
@@ -391,7 +427,7 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
                     <Button onClick={createTemplate} color="primary">Crear Plantilla</Button>
                     {selectedTemplate && <>
                         <Button onClick={updateTemplate} color="info">Update Plantilla</Button>
-                        <Button onClick={deleteTemplate} color="danger">Delete Plantilla</Button>
+                        {/*<Button onClick={deleteTemplate} color="danger">Delete Plantilla</Button>*/}
                     </>}
                     <FormGroup>
                         <Input placeholder="Style" onChange={onChangeTemplate}
@@ -405,9 +441,16 @@ const FlyerDesigner = ({ onChangeFlyer, flyerOptions, templateId, onSaveFlyer }:
                     </FormGroup>
                 </div>
                 <div className="flyer" id="product-image-result" ref={productImageWrapper}>
-                    <img src={flyer.templateImage} alt=""
-                         onClick={selectElement({} as FlyerElement)}
-                         className="flyer-designer-background-image"/>
+                    <Rnd
+                        className=""
+                        disableDragging={true}
+                        style={{position: 'relative', outline: '1px solid #000'}}
+                        onResize={onResizeFlyerCanva}
+                        size={{width: flyer.canvaSize?.width || 'auto', height: flyer.canvaSize?.height || 'auto'}}
+                    ><img src={flyer.templateImage} alt=""
+                          onClick={selectElement({} as FlyerElement)}
+                          className="flyer-designer-background-image"/>
+                    </Rnd>
                     {flyer.elements?.map((element, i) =>
                         (
                             <Rnd

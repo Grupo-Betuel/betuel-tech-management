@@ -13,3 +13,17 @@ export const passFlyerValueToFlyerContent = (flyer: IFlyer): IFlyer => {
 
     return flyer;
 }
+
+export const passFlyerContentToFlyerValue = (flyer: IFlyer): IFlyer => {
+    if(!flyer.elements.length) return flyer;
+    const value: any = {};
+    flyer.elements.forEach(element => {
+        if(!element.ref) return;
+        value[element.ref] = element.content;
+    });
+
+    flyer.value = value;
+
+    return flyer;
+}
+

@@ -3,32 +3,9 @@
 
 // ...or for webpack import:
 @import "~sass-text-stroke/_text-stroke";
+@import "Fonts.scss";
+
 $width: 2;
-
-
-@font-face {
-  font-family: Reey Regular;
-  src: url('../../assets/fonts/Reey-Regular.otf');
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: Rockwell Extra Bold;
-  src: url('../../assets/fonts/rockeb.ttf');
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: product-font;
-  src: url('../../assets/fonts/product-detail-text.ttf');
-  font-weight: bold;
-}
-
-@font-face {
-  font-family: betueldance-font;
-  src: url('../../assets/fonts/betueldance-font.otf');
-  font-weight: bold;
-}
 
 :root {
   --main-bg-color: pink;
@@ -46,6 +23,11 @@ $width: 2;
 .flyer-designer {
   position: relative;
   max-width: 32rem;
+
+  .flyer-designer-background-image {
+    width: 100%;
+    height: auto;
+  }
   &:focus {
     outline: none;
   }
@@ -65,7 +47,7 @@ $width: 2;
         background-size: 100% 100%;
         position: relative;
         &:focus-within, &:hover, &.selected {
-          border: 4px solid blue;
+          outline: 4px solid blue;
         }
       }
 
@@ -87,10 +69,7 @@ $width: 2;
       }
     }
 
-    .flyer-designer-background-image {
-      width: 100%;
-      height: auto;
-    }
+
 
     .flyer-element-focus-input {
       position: absolute;
