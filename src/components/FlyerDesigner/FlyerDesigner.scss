@@ -98,6 +98,9 @@ $width: 2;
     align-items: center;
     justify-items: center;
 
+    .expanded-action {
+      grid-column: 1 / -1;
+    }
     .bi {
       font-size: 1.5rem;
     }

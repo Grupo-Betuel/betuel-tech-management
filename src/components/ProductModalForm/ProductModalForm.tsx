@@ -36,6 +36,11 @@ export interface IProductFormProps {
     editProduct?: Partial<IProductData>;
     company: CompanyTypes;
 }
+const companyTemplatesIds: { [N in CompanyTypes]?: string } = {
+    betueldance: "644c1304ab4fab0008b0f99f",
+    betueltech: "644c1027f1b1860008ad0cca",
+    betueltravel: "644c1304ab4fab0008b0f99f",
+}
 
 const ProductModalForm: React.FC<IProductFormProps> = (
     {
@@ -51,31 +56,28 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
     const [isValidForm, setIsValidForm] = React.useState(false);
     const [isSubmiting, setIsSubmiting] = React.useState(false);
-    const [enableDropShadow, setEnableDropShadow] = React.useState(false);
 
 
     const [flyerOptions, setFlyerOptions] = React.useState<IFlyer>();
+    const [companyDefaultTemplateId, setCompanyDefaultTemplateId] = React.useState<string>();
 
+
+    React.useEffect(() => {
+        setCompanyDefaultTemplateId(companyTemplatesIds[company]);
+    }, [company]);
 
     useEffect(() => {
         setProduct(editProduct || {})
         const flyerOptionItem: IFlyer = editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions) : flyerOptions;
-        if (flyerOptionItem) {
-            flyerOptionItem.value = editProduct;
+        if (flyerOptionItem && editProduct) {
+            flyerOptionItem.value = {
+                ...editProduct,
+                price: `RD$${editProduct.price?.toLocaleString()}`,
+            };
             setFlyerOptions(flyerOptionItem);
         }
     }, [editProduct])
 
-
-    const enableDropShadowChange = async (e: any) => {
-        const {checked} = e.target;
-        await setEnableDropShadow(checked);
-        // setFlyerOptions({
-        //     ...flyerOptions,
-        //     enableShadow: checked
-        // })
-        // validForm()
-    };
 
     const onChangeProduct = async (ev: React.ChangeEvent<any>) => {
         const {name, value, type} = ev.target;
@@ -94,11 +96,16 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         validForm()
     };
 
+    const extractNumbersFromText = (text: string): number => {
+        return Number(text.replace(/[^0-9]/g, ''));
+    }
     const onSubmit = async (flyer: IFlyer, image: string) => {
         setIsSubmiting(true);
+        const price = extractNumbersFromText(flyer.value.price || product.price);
         const body = JSON.stringify({
             ...product,
             ...flyer.value,
+            price,
             company,
             image,
             flyerOptions: JSON.stringify(flyer),
@@ -226,7 +233,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 toggle={toggleModal}>{editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}</ModalHeader>
             <Form>
                 <FlyerDesigner flyerOptions={flyerOptions}
-                               templateId="644995b166af5e000808140c"
+                               templateId={companyDefaultTemplateId}
                                onSaveFlyer={onSubmit}
                 />
                 <ModalBody>
@@ -266,16 +273,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                     />
                                 </PromotionOption>
                             </div> : null}
-                    {!portfolioMode &&
-                        <div className="d-flex justify-content-center">
-                            <Input
-                                id="first2"
-                                type="switch"
-                                label="Colocar Sombra"
-                                checked={enableDropShadow}
-                                className="customized-switch"
-                                onChange={enableDropShadowChange}/>
-                        </div>}
+
                     <div className="d-flex justify-content-between">
                         {
                             editProduct ?

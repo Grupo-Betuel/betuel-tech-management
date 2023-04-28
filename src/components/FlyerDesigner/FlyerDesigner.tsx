@@ -88,7 +88,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
     }, 100);
 
     React.useEffect(() => {
-        onChangeTemplate({target: {value: templateId}} as any)
+        onChangeTemplate({target: {value: selectedTemplate?._id || templateId}} as any)
     }, [templateId, templates]);
 
     React.useEffect(() => {
@@ -427,18 +427,8 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                     <Button onClick={createTemplate} color="primary">Crear Plantilla</Button>
                     {selectedTemplate && <>
                         <Button onClick={updateTemplate} color="info">Update Plantilla</Button>
-                        {/*<Button onClick={deleteTemplate} color="danger">Delete Plantilla</Button>*/}
+                        <Button onClick={deleteTemplate} color="danger">Delete Plantilla</Button>
                     </>}
-                    <FormGroup>
-                        <Input placeholder="Style" onChange={onChangeTemplate}
-                               type="select" name="border.style" id="exampleSelect"
-                               value={selectedTemplate?._id || templateId}>
-                            <option value="">Blank Template</option>
-                            {templates.map(template => <option value={template._id}>
-                                {template.name}
-                            </option>)}
-                        </Input>
-                    </FormGroup>
                 </div>
                 <div className="flyer" id="product-image-result" ref={productImageWrapper}>
                     <Rnd
@@ -523,6 +513,16 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                     )}
                 </div>
                 <div className={`flyer-designer-actions ${!selectedElement.id ? 'd-none' : ''}`}>
+                    <FormGroup className="expanded-action">
+                        <Input placeholder="Style" onChange={onChangeTemplate}
+                               type="select" name="border.style" id="exampleSelect"
+                               value={selectedTemplate?._id || templateId}>
+                            <option value="">Blank Template</option>
+                            {templates.map(template => <option value={template._id}>
+                                {template.name}
+                            </option>)}
+                        </Input>
+                    </FormGroup>
                     <FormGroup>
                         <Label>Referencia</Label>
                         <Input type="text" name="ref" value={selectedElement.ref || ''}
