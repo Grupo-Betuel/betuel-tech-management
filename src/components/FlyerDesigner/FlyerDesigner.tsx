@@ -16,7 +16,7 @@ import ContentEditable from "react-contenteditable";
 import {
     Button, FormGroup,
     Input,
-    Label,
+    Label, Modal, ModalBody, ModalFooter, ModalHeader,
     Popover,
     PopoverBody,
     PopoverHeader
@@ -316,10 +316,12 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
         changeFlyerElementProps(changedElement.id, changedElement);
     }
 
-    const onChangeFlyerElementProps = ({target: {value, name, type}}: React.ChangeEvent<HTMLInputElement>) => {
-
+    const onChangeFlyerElementProps = ({target: {value, name, type, checked}}: React.ChangeEvent<HTMLInputElement>) => {
+        console.log(value, name, type);
         if (type === 'number') {
             value = Number(value) as any;
+        } else if(type === 'checkbox') {
+            value = checked as any;
         }
 
         // eslint-disable-next-line no-undef
@@ -383,9 +385,10 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
         if (!selectedTemplate) return;
         setLoading(true);
         await deleteFlyerTemplate(JSON.stringify({_id: selectedTemplate._id}));
-        toast('Template updated successfully');
+        toast('Template deleted successfully');
         await getTemplates();
         setLoading(false);
+        toggleDeleteTemplateModal();
     }
 
     const onChangeTemplate = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
@@ -393,7 +396,6 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
         const flyer = selectedTemplate?.flyer ? JSON.parse(selectedTemplate?.flyer) : blankFlyer;
         setFlyer(flyer);
         setTimeout(() => setSelectedTemplate(selectedTemplate));
-        console.log('selected flyer', flyer, value);
         setTemplateName(selectedTemplate?.name || '');
     };
 
@@ -415,6 +417,41 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
         onChangeFlyer && onChangeFlyer(flyer);
     }, [flyer]);
 
+    const designWrapperRef = useRef<any>();
+
+    useEffect(() => {
+        document.addEventListener("click", handleClick);
+        return () => document.removeEventListener("click", handleClick);
+
+        function handleClick(e: any) {
+            if (designWrapperRef && designWrapperRef.current) {
+                const popovers = Array.from(document.querySelectorAll('.popover')).map(item => item.contains(e.target)).reduce((a, b) => a || b, false);
+                const ref: any = designWrapperRef.current
+                if (!ref.contains(e.target) && !popovers) {
+                    setSelectedElement({} as FlyerElement);
+                    // put your action here
+                }
+            }
+        }
+    }, []);
+
+    const [deleteTemplateModal, setDeleteTemplateModal] = React.useState<boolean>();
+    const toggleDeleteTemplateModal = () => setDeleteTemplateModal(!deleteTemplateModal);
+    const moveElement = (type: 'up' | 'down') => () => {
+        const index = flyer.elements.findIndex(item => item.id === selectedElement.id);
+        const newElements = [...flyer.elements];
+        const element = newElements[index];
+        newElements.splice(index, 1);
+        if (type === 'up') {
+            newElements.splice(index + 1, 0, element);
+        } else {
+            newElements.splice(index - 1, 0, element);
+        }
+        setFlyer({
+            ...flyer,
+            elements: newElements,
+        });
+    }
     // @ts-ignore
     return (
         <>
@@ -427,375 +464,426 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                     <Button onClick={createTemplate} color="primary">Crear Plantilla</Button>
                     {selectedTemplate && <>
                         <Button onClick={updateTemplate} color="info">Update Plantilla</Button>
-                        <Button onClick={deleteTemplate} color="danger">Delete Plantilla</Button>
+                        <Button onClick={toggleDeleteTemplateModal} color="danger">Delete Plantilla</Button>
                     </>}
                 </div>
-                <div className="flyer" id="product-image-result" ref={productImageWrapper}>
-                    <Rnd
-                        className=""
-                        disableDragging={true}
-                        style={{position: 'relative', outline: '1px solid #000'}}
-                        onResize={onResizeFlyerCanva}
-                        size={{width: flyer.canvaSize?.width || 'auto', height: flyer.canvaSize?.height || 'auto'}}
-                    ><img src={flyer.templateImage} alt=""
-                          onClick={selectElement({} as FlyerElement)}
-                          className="flyer-designer-background-image"/>
-                    </Rnd>
-                    {flyer.elements?.map((element, i) =>
-                        (
-                            <Rnd
-                                className="flyer-element"
-                                id={element.id}
-                                onClick={selectElement(element)}
-                                key={i}
-                                position={{x: element.position.x, y: element.position.y}}
-                                size={{width: element.size.width, height: element.size.height}}
-                                onDragStop={onDragElementStop(element.id)}
-                                onResize={onResizeElement(element.id)}
-                            >
-                                <input className="flyer-element-focus-input"/>
-                                <div
-                                    tabIndex={0} onKeyDown={onKeyDownFlyerElement}
-                                    className={`flyer-element-content ${selectedElement.id === element.id ? 'selected' : ''} text-stroke-${element.stroke?.width}`}
-                                    style={{
-                                        // @ts-ignore
-                                        '--text-stroke-color': element.stroke?.color || 'transparent',
-                                        fontSize: element.size?.fontSize,
-                                        fontFamily: element.fontFamily,
-                                        color: element.color?.text,
-                                        backgroundColor: element.color?.background,
-                                        padding: element.padding,
-                                        borderRadius: element.border?.radius ? element.border?.radius : undefined,
-                                        borderColor: element.border?.color ? element.border?.color : undefined,
-                                        borderStyle: element.border?.style ? element.border?.style : undefined,
-                                        borderWidth: element.border?.width ? element.border?.width : undefined,
-                                        boxShadow: `${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color}`,
-                                        textShadow: element.textShadow ? `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}` : undefined,
-                                        backgroundImage: `url(${element.backgroundImage})`,
-                                        transform: `rotate(${element.transform?.rotation || 0}deg) skew(${element.transform?.skew?.x || 0}deg, ${element.transform?.skew?.y || 0}deg)`,
-                                    }}
+                <div className="flyer-design-wrapper" ref={designWrapperRef}>
+                    <div className="flyer" id="product-image-result" ref={productImageWrapper}>
+                        <Rnd
+                            className=""
+                            disableDragging={true}
+                            style={{position: 'relative', outline: '1px solid #000'}}
+                            onResize={onResizeFlyerCanva}
+                            size={{width: flyer.canvaSize?.width || 'auto', height: flyer.canvaSize?.height || 'auto'}}
+                        ><img src={flyer.templateImage} alt=""
+                              onClick={selectElement({} as FlyerElement)}
+                              className="flyer-designer-background-image"/>
+                        </Rnd>
+                        {flyer.elements?.map((element, i) =>
+                            (
+                                <Rnd
+                                    className="flyer-element"
+                                    id={element.id}
+                                    onClick={selectElement(element)}
+                                    key={i}
+                                    position={{x: element.position.x, y: element.position.y}}
+                                    size={{width: element.size.width, height: element.size.height}}
+                                    onDragStop={onDragElementStop(element.id)}
+                                    onResize={onResizeElement(element.id)}
                                 >
-                                    {
-                                        element.type === 'text' ?
-                                            <div style={{position: "relative"}}>
-                                                {/*<i className="bi bi-pencil" onClick={toggleEditTextPanel(i)}*/}
-                                                {/*   id={`editTextPanelToggle${i}`}/>*/}
 
+                                    <input className="flyer-element-focus-input"/>
+                                    <div
+                                        tabIndex={0} onKeyDown={onKeyDownFlyerElement}
+                                        className={`flyer-element-content ${selectedElement.id === element.id ? 'selected' : ''} text-stroke-${!element.stroke?.inside && element.stroke?.width}`}
+                                        style={{
+                                            // @ts-ignore
+                                            '--text-stroke-color': element.stroke?.color || 'transparent',
+                                            '-webkit-text-stroke': element.stroke?.inside ? `${element.stroke?.width}px ${element.stroke?.color || 'transparent'}` : undefined,
+                                            fontSize: element.size?.fontSize,
+                                            fontFamily: element.fontFamily,
+                                            color: element.color?.text,
+                                            backgroundColor: element.color?.background,
+                                            textAlign: element.text?.align,
+                                            letterSpacing: element.text?.letterSpacing,
+                                            padding: element.padding,
+                                            opacity: element.opacity,
+                                            borderRadius: element.border?.radius ? element.border?.radius : undefined,
+                                            borderColor: element.border?.color ? element.border?.color : undefined,
+                                            borderStyle: element.border?.style ? element.border?.style : undefined,
+                                            borderWidth: element.border?.width ? element.border?.width : undefined,
+                                            boxShadow: `${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color}`,
+                                            textShadow: element.textShadow ? `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}` : undefined,
+                                            backgroundImage: `url(${element.backgroundImage})`,
+                                            transform: `rotate(${element.transform?.rotation || 0}deg) skew(${element.transform?.skew?.x || 0}deg, ${element.transform?.skew?.y || 0}deg)`,
+                                        }}
+                                    >
+                                        <i className="bi bi-layer-forward flyer-element-shape-arrow top"
+                                           onClick={moveElement('up')}/>
+
+                                        {
+                                            element.type === 'text' ?
                                                 <ContentEditable
+                                                    className="flyer-element-content-editable"
                                                     html={element.content || '<span></span>'} // innerHTML of the editable div
                                                     onChange={onChangeElementText(element.id)} // handle innerHTML change
                                                 />
+                                                :
 
-                                            </div>
-                                            :
-                                            <div>
-                                                <label>
-                                                    <i className="bi bi-images flyer-element-change-image-action"
-                                                       onClick={changeImageToChangeType('content')}
+                                                <>
+                                                    <label>
+                                                        <i className="bi bi-images flyer-element-change-image-action"
+                                                           onClick={changeImageToChangeType('content')}
+                                                        />
+                                                    </label>
+                                                    <img
+                                                        src={element.content}
+                                                        width={element.size.width}
+                                                        height={element.size.height}
                                                     />
-                                                </label>
-                                                <img
-                                                    src={element.content}
-                                                    width={element.size.width}
-                                                    height={element.size.height}
-                                                    style={{
-                                                        borderRadius: element.border?.radius,
-                                                        borderColor: element.border?.color,
-                                                        borderStyle: element.border?.style,
-                                                        borderWidth: element.border?.width,
-                                                    }}
-                                                />
-                                            </div>
-                                    }
-                                </div>
-                            </Rnd>
-                        )
-                    )}
-                </div>
-                <div className={`flyer-designer-actions ${!selectedElement.id ? 'd-none' : ''}`}>
-                    <FormGroup className="expanded-action">
-                        <Input placeholder="Style" onChange={onChangeTemplate}
-                               type="select" name="border.style" id="exampleSelect"
-                               value={selectedTemplate?._id || templateId}>
-                            <option value="">Blank Template</option>
-                            {templates.map(template => <option value={template._id}>
-                                {template.name}
-                            </option>)}
-                        </Input>
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>Referencia</Label>
-                        <Input type="text" name="ref" value={selectedElement.ref || ''}
-                               onChange={onChangeElementRef}/>
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>Font size</Label>
-                        <Input type="number" name="size.fontSize" value={selectedElement.size?.fontSize || 0}
-                               onChange={onChangeFlyerElementProps}/>
-                    </FormGroup>
-                    <FormGroup className="flyer-designer-actions-text-item">
-                        <Label>Padding</Label>
-                        <Input type="number" name="padding" value={selectedElement.padding || 0}
-                               onChange={onChangeFlyerElementProps}/>
-                    </FormGroup>
-                    <FormGroup>
-                        <Label for="exampleSelect">Fuente</Label>
-                        <Input type="select" name="fontFamily"
-                               onChange={onChangeFlyerElementProps}
-                               value={selectedElement.fontFamily}>
-                            <option>Seleccionar Fuente</option>
-                            {fonts.map((font, i) =>
-                                <option key={i} value={font} style={{fontFamily: font}}>{font}</option>
-                            )}
-                        </Input>
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>
-                            <i className="bi bi-paint-bucket"></i>
-                            <Input onChange={onChangeFlyerElementProps} value={selectedElement.color?.background}
-                                   type="color" name="color.background"
-                                   id="exampleColor" placeholder="color placeholder"
-                                   className="invisible position-absolute"/>
-                        </Label>
-                        {selectedElement.color?.background &&
-                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
-                               onClick={resetFlyerElementProp(['color.background'])}
-                            />
-                        }
+                                                </>
 
-                    </FormGroup>
-                    <FormGroup>
-                        <Label>
-                            <i className="bi bi-fonts"></i>
-                            <Input type="color" value={selectedElement.color?.text}
-                                   onChange={onChangeFlyerElementProps} name="color.text"
-                                   placeholder="color placeholder" className="invisible position-absolute"/>
-                        </Label>
-                        {selectedElement.color?.text &&
-                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
-                               onClick={resetFlyerElementProp(['color.text'])}
-                            />
-                        }
-                    </FormGroup>
-                    <FormGroup>
-                        <i className="bi bi-square cursor-pointer" data-toggle="tooltip" data-placement="top"
-                           title="Tooltip on top" id="editTextItemBorderToggle"
-                           onClick={toggleEditBorderItemPanel}/>
-                        <Popover isOpen={editBorderItemPanelIsOpen}
-                                 target="editTextItemBorderToggle" toggle={toggleEditBorderItemPanel}>
-                            <PopoverHeader>Border Options</PopoverHeader>
-                            <PopoverBody>
-                                <FormGroup>
-                                    <Input placeholder="Style" placement="top" onChange={onChangeFlyerElementProps}
-                                           type="select" name="border.style" id="exampleSelect"
-                                           value={selectedElement.fontFamily}>
-                                        <option value="">Selecciona Estilo</option>
-                                        <option value="solid">Solid</option>
-                                        <option value="dashed">Dashed</option>
-                                        <option value="dotted">Dot</option>
-                                    </Input>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Input type="number" name="border.width" placeholder="width"
-                                           value={selectedElement.border?.width || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Input type="number" name="border.radius" placeholder="width"
-                                           value={selectedElement.border?.radius || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>
-                                        <i className="bi bi-palette"></i>
-                                        <Input type="color" value={selectedElement.border?.color}
-                                               onChange={onChangeFlyerElementProps} name="border.color"
-                                               placeholder="color placeholder" className=""/>
-                                    </Label>
-                                </FormGroup>
-                            </PopoverBody>
-                        </Popover>
-                        {selectedElement.border &&
-                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
-                               onClick={resetFlyerElementProp(['border'])}
-                            />
-                        }
-                    </FormGroup>
-                    <FormGroup>
-                        <i className="bi bi-border-width cursor-pointer" id="editTextItemStrokeToggle"
-                           onClick={toggleEditStrokeItemPanel}/>
-                        <Popover isOpen={editStrokeItemPanelIsOpen}
-                                 target="editTextItemStrokeToggle" toggle={toggleEditStrokeItemPanel}>
-                            <PopoverHeader>Bordes del Texto</PopoverHeader>
-                            <PopoverBody>
-                                <FormGroup>
-                                    <Input type="number" name="stroke.width" placeholder="width"
-                                           min={0}
-                                           max={50}
-                                           value={selectedElement.stroke?.width || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>
-                                        <i className="bi bi-palette"></i>
-                                        <Input type="color" value={selectedElement.stroke?.color}
-                                               onChange={onChangeFlyerElementProps} name="stroke.color"
-                                               placeholder="color placeholder" className=""/>
-                                    </Label>
-                                </FormGroup>
-                            </PopoverBody>
-                        </Popover>
-                        {selectedElement.stroke &&
-                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
-                               onClick={resetFlyerElementProp(['stroke'])}
-                            />
-                        }
-                    </FormGroup>
-                    <FormGroup>
-                        <i className="bi bi-back cursor-pointer" id="editTextItemShadowToggle"
-                           onClick={toggleEditShadowItemPanel}/>
-                        <Popover isOpen={editShadowItemPanelIsOpen}
-                                 target="editTextItemShadowToggle" toggle={toggleEditShadowItemPanel}>
-                            <PopoverHeader>Box Shadow</PopoverHeader>
-                            <PopoverBody>
-                                <FormGroup>
-                                    <Input type="number" name="shadow.horizontal" placeholder="Horizontal"
-                                           min={0}
-                                           value={selectedElement.shadow?.horizontal || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Input type="number" name="shadow.vertical" placeholder="vertical"
-                                           min={0}
-                                           value={selectedElement.shadow?.vertical || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Input type="number" name="shadow.blur" placeholder="Blur"
-                                           min={0}
-                                           value={selectedElement.shadow?.blur || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>
-                                        <i className="bi bi-palette"></i>
-                                        <Input type="color" value={selectedElement.shadow?.color}
-                                               onChange={onChangeFlyerElementProps} name="shadow.color"
-                                               placeholder="Color" className=""/>
-                                    </Label>
-                                </FormGroup>
-                            </PopoverBody>
-                        </Popover>
-                        {selectedElement.shadow &&
-                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
-                               onClick={resetFlyerElementProp(['shadow'])}
-                            />
-                        }
-                    </FormGroup>
-                    <FormGroup>
-                        <i className="bi bi-file-font cursor-pointer" id="editItemTextShadowToggle"
-                           onClick={toggleEditTextShadowItemPanel}/>
-                        <Popover isOpen={editTextShadowItemPanelIsOpen}
-                                 target="editItemTextShadowToggle" toggle={toggleEditTextShadowItemPanel}>
-                            <PopoverHeader>Text Shadow</PopoverHeader>
-                            <PopoverBody>
-                                <FormGroup>
-                                    <Input type="number" name="textShadow.horizontal" placeholder="Horizontal"
-                                           min={0}
-                                           value={selectedElement.textShadow?.horizontal || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Input type="number" name="textShadow.vertical" placeholder="vertical"
-                                           min={0}
-                                           value={selectedElement.textShadow?.vertical || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Input type="number" name="textShadow.blur" placeholder="Blur"
-                                           min={0}
-                                           value={selectedElement.textShadow?.blur || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>
-                                        <i className="bi bi-palette"></i>
-                                        <Input type="color" value={selectedElement.textShadow?.color}
-                                               onChange={onChangeFlyerElementProps} name="textShadow.color"
-                                               placeholder="Color" className=""/>
-                                    </Label>
-                                </FormGroup>
-                            </PopoverBody>
-                        </Popover>
-                        {selectedElement.textShadow &&
-                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
-                               onClick={resetFlyerElementProp(['textShadow'])}
-                            />
-                        }
-                    </FormGroup>
-                    <FormGroup>
-                        <i className="bi bi-bezier2 cursor-pointer" id="editItemTransformToggle"
-                           onClick={toggleTransformItemPanel}/>
-                        <Popover isOpen={editTransformItemPanelIsOpen}
-                                 target="editItemTransformToggle" toggle={toggleTransformItemPanel}>
-                            <PopoverHeader>Transform</PopoverHeader>
-                            <PopoverBody>
-                                <FormGroup className="flyer-designer-actions-text-item">
-                                    <Label>Rotation</Label>
-                                    <Input type="number" name="transform.rotation"
-                                           value={selectedElement.transform?.rotation || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>Deformar Horizontal</Label>
+                                        }
 
-                                    <Input type="number" name="transform.skew.x" placeholder="vertical"
-                                           value={selectedElement.transform?.skew?.x || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                                <FormGroup>
-                                    <Label>Deformar Vertical</Label>
-                                    <Input type="number" name="transform.skew.y" placeholder="Blur"
-                                           value={selectedElement.transform?.skew?.y || 0}
-                                           onChange={onChangeFlyerElementProps}/>
-                                </FormGroup>
-                            </PopoverBody>
-                        </Popover>
-                        {selectedElement.transform &&
-                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
-                               onClick={resetFlyerElementProp(['transform'])}
-                            />
-                        }
-                    </FormGroup>
+                                        <i className="bi bi-layer-backward flyer-element-shape-arrow bottom"
+                                           onClick={moveElement('down')}/>
 
-                    <FormGroup>
-                        <label>
-                            <i className="bi bi-image-fill flyer-element-change-image-action cursor-pointer"
-                               onClick={changeImageToChangeType('backgroundImage')}
-                            />
-                        </label>
-                        {selectedElement.backgroundImage &&
-                            <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
-                               onClick={resetFlyerElementProp(['backgroundImage'])}
-                            />
-                        }
-                    </FormGroup>
-                    <FormGroup>
-                        <label>
-                            <i className="bi bi-file-earmark-image flyer-element-change-image-action cursor-pointer"
-                               onClick={changeImageToChangeType('templateImage')}
-                            />
-                        </label>
-                    </FormGroup>
+                                    </div>
+                                </Rnd>
+                            )
+                        )}
+                    </div>
+                    <div className={`flyer-designer-actions ${!selectedElement.id ? 'd-none' : ''}`}>
+                        <FormGroup className="expanded-action">
+                            <Input placeholder="Style" onChange={onChangeTemplate}
+                                   type="select" name="border.style" id="exampleSelect"
+                                   value={selectedTemplate?._id || templateId}>
+                                <option value="">Blank Template</option>
+                                {templates.map(template => <option value={template._id}>
+                                    {template.name}
+                                </option>)}
+                            </Input>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>Referencia</Label>
+                            <Input type="text" name="ref" value={selectedElement.ref || ''}
+                                   onChange={onChangeElementRef}/>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>Font size</Label>
+                            <Input type="number" name="size.fontSize" value={selectedElement.size?.fontSize || 0}
+                                   onChange={onChangeFlyerElementProps}/>
+                        </FormGroup>
+                        <FormGroup className="flyer-designer-actions-text-item">
+                            <Label>Padding</Label>
+                            <Input type="number" name="padding" value={selectedElement.padding || 0}
+                                   onChange={onChangeFlyerElementProps}/>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>Letter Spacing</Label>
+                            <Input type="number" name="text.letterSpacing"
+                                   value={selectedElement.text?.letterSpacing || 0}
+                                   onChange={onChangeFlyerElementProps}/>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>Opacity</Label>
+                            <Input type="number" name="opacity" min={0} max={1} step={0.1} value={selectedElement.opacity}
+                                   onChange={onChangeFlyerElementProps}/>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="exampleSelect">Align</Label>
+                            <Input type="select" name="text.align"
+                                   onChange={onChangeFlyerElementProps}
+                                   value={selectedElement.text?.align}>
+                                <option>Seleccionar</option>
+                                <option value="left">left</option>
+                                <option value="center">center</option>
+                                <option value="right">right</option>
+                            </Input>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="exampleSelect">Fuente</Label>
+                            <Input type="select" name="fontFamily"
+                                   onChange={onChangeFlyerElementProps}
+                                   value={selectedElement.fontFamily}>
+                                <option>Seleccionar Fuente</option>
+                                {fonts.map((font, i) =>
+                                    <option key={i} value={font} style={{fontFamily: font}}>{font}</option>
+                                )}
+                            </Input>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>
+                                <i className="bi bi-paint-bucket"></i>
+                                <Input onChange={onChangeFlyerElementProps} value={selectedElement.color?.background}
+                                       type="color" name="color.background"
+                                       rgba
+                                       opacity
+                                       id="exampleColor" placeholder="color placeholder"
+                                       className="invisible position-absolute"/>
+                            </Label>
+                            {selectedElement.color?.background &&
+                                <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                                   onClick={resetFlyerElementProp(['color.background'])}
+                                />
+                            }
+
+                        </FormGroup>
+                        <FormGroup>
+                            <Label>
+                                <i className="bi bi-fonts"></i>
+                                <Input type="color" value={selectedElement.color?.text}
+                                       onChange={onChangeFlyerElementProps} name="color.text"
+                                       placeholder="color placeholder" className="invisible position-absolute"/>
+                            </Label>
+                            {selectedElement.color?.text &&
+                                <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                                   onClick={resetFlyerElementProp(['color.text'])}
+                                />
+                            }
+                        </FormGroup>
+                        <FormGroup>
+                            <i className="bi bi-square cursor-pointer" data-toggle="tooltip" data-placement="top"
+                               title="Tooltip on top" id="editTextItemBorderToggle"
+                               onClick={toggleEditBorderItemPanel}/>
+                            <Popover isOpen={editBorderItemPanelIsOpen}
+                                     target="editTextItemBorderToggle" toggle={toggleEditBorderItemPanel}>
+                                <PopoverHeader>Border Options</PopoverHeader>
+                                <PopoverBody>
+                                    <FormGroup>
+                                        <Input placeholder="Style" placement="top" onChange={onChangeFlyerElementProps}
+                                               type="select" name="border.style" id="exampleSelect"
+                                               value={selectedElement.fontFamily}>
+                                            <option value="">Selecciona Estilo</option>
+                                            <option value="solid">Solid</option>
+                                            <option value="dashed">Dashed</option>
+                                            <option value="dotted">Dot</option>
+                                        </Input>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Input type="number" name="border.width" placeholder="width"
+                                               value={selectedElement.border?.width || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Input type="number" name="border.radius" placeholder="width"
+                                               value={selectedElement.border?.radius || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>
+                                            <i className="bi bi-palette"></i>
+                                            <Input type="color" value={selectedElement.border?.color}
+                                                   onChange={onChangeFlyerElementProps} name="border.color"
+                                                   placeholder="color placeholder" className=""/>
+                                        </Label>
+                                    </FormGroup>
+                                </PopoverBody>
+                            </Popover>
+                            {selectedElement.border &&
+                                <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                                   onClick={resetFlyerElementProp(['border'])}
+                                />
+                            }
+                        </FormGroup>
+                        <FormGroup>
+                            <i className="bi bi-border-width cursor-pointer" id="editTextItemStrokeToggle"
+                               onClick={toggleEditStrokeItemPanel}/>
+                            <Popover isOpen={editStrokeItemPanelIsOpen}
+                                     target="editTextItemStrokeToggle" toggle={toggleEditStrokeItemPanel}>
+                                <PopoverHeader>Bordes del Texto</PopoverHeader>
+                                <PopoverBody>
+                                    <FormGroup>
+                                        <Input type="number" name="stroke.width" placeholder="width"
+                                               min={0}
+                                               max={50}
+                                               value={selectedElement.stroke?.width || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>
+                                            <i className="bi bi-palette"></i>
+                                            <Input type="color" value={selectedElement.stroke?.color}
+                                                   onChange={onChangeFlyerElementProps} name="stroke.color"
+                                                   placeholder="color placeholder" className=""/>
+                                        </Label>
+                                    </FormGroup>
+                                    <FormGroup className="d-flex flex-column align-items-center" switch>
+                                        <Label>Por dentro?</Label>
+                                        <Input
+                                            type="switch"
+                                            role="switch"
+                                            name="stroke.inside"
+                                            checked={selectedElement.stroke?.inside}
+                                            onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+
+                                </PopoverBody>
+                            </Popover>
+                            {selectedElement.stroke &&
+                                <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                                   onClick={resetFlyerElementProp(['stroke'])}
+                                />
+                            }
+                        </FormGroup>
+                        <FormGroup>
+                            <i className="bi bi-back cursor-pointer" id="editTextItemShadowToggle"
+                               onClick={toggleEditShadowItemPanel}/>
+                            <Popover isOpen={editShadowItemPanelIsOpen}
+                                     target="editTextItemShadowToggle" toggle={toggleEditShadowItemPanel}>
+                                <PopoverHeader>Box Shadow</PopoverHeader>
+                                <PopoverBody>
+                                    <FormGroup>
+                                        <Input type="number" name="shadow.horizontal" placeholder="Horizontal"
+                                               min={0}
+                                               value={selectedElement.shadow?.horizontal || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Input type="number" name="shadow.vertical" placeholder="vertical"
+                                               min={0}
+                                               value={selectedElement.shadow?.vertical || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Input type="number" name="shadow.blur" placeholder="Blur"
+                                               min={0}
+                                               value={selectedElement.shadow?.blur || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>
+                                            <i className="bi bi-palette"></i>
+                                            <Input type="color" value={selectedElement.shadow?.color}
+                                                   onChange={onChangeFlyerElementProps} name="shadow.color"
+                                                   placeholder="Color" className=""/>
+                                        </Label>
+                                    </FormGroup>
+                                </PopoverBody>
+                            </Popover>
+                            {selectedElement.shadow &&
+                                <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                                   onClick={resetFlyerElementProp(['shadow'])}
+                                />
+                            }
+                        </FormGroup>
+                        <FormGroup>
+                            <i className="bi bi-file-font cursor-pointer" id="editItemTextShadowToggle"
+                               onClick={toggleEditTextShadowItemPanel}/>
+                            <Popover isOpen={editTextShadowItemPanelIsOpen}
+                                     target="editItemTextShadowToggle" toggle={toggleEditTextShadowItemPanel}>
+                                <PopoverHeader>Text Shadow</PopoverHeader>
+                                <PopoverBody>
+                                    <FormGroup>
+                                        <Input type="number" name="textShadow.horizontal" placeholder="Horizontal"
+                                               min={0}
+                                               value={selectedElement.textShadow?.horizontal || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Input type="number" name="textShadow.vertical" placeholder="vertical"
+                                               min={0}
+                                               value={selectedElement.textShadow?.vertical || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Input type="number" name="textShadow.blur" placeholder="Blur"
+                                               min={0}
+                                               value={selectedElement.textShadow?.blur || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>
+                                            <i className="bi bi-palette"></i>
+                                            <Input type="color" value={selectedElement.textShadow?.color}
+                                                   onChange={onChangeFlyerElementProps} name="textShadow.color"
+                                                   placeholder="Color" className=""/>
+                                        </Label>
+                                    </FormGroup>
+                                </PopoverBody>
+                            </Popover>
+                            {selectedElement.textShadow &&
+                                <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                                   onClick={resetFlyerElementProp(['textShadow'])}
+                                />
+                            }
+                        </FormGroup>
+                        <FormGroup>
+                            <i className="bi bi-bezier2 cursor-pointer" id="editItemTransformToggle"
+                               onClick={toggleTransformItemPanel}/>
+                            <Popover isOpen={editTransformItemPanelIsOpen}
+                                     target="editItemTransformToggle" toggle={toggleTransformItemPanel}>
+                                <PopoverHeader>Transform</PopoverHeader>
+                                <PopoverBody>
+                                    <FormGroup className="flyer-designer-actions-text-item">
+                                        <Label>Rotation</Label>
+                                        <Input type="number" name="transform.rotation"
+                                               value={selectedElement.transform?.rotation || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>Deformar Horizontal</Label>
+
+                                        <Input type="number" name="transform.skew.x" placeholder="vertical"
+                                               value={selectedElement.transform?.skew?.x || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>Deformar Vertical</Label>
+                                        <Input type="number" name="transform.skew.y" placeholder="Blur"
+                                               value={selectedElement.transform?.skew?.y || 0}
+                                               onChange={onChangeFlyerElementProps}/>
+                                    </FormGroup>
+                                </PopoverBody>
+                            </Popover>
+                            {selectedElement.transform &&
+                                <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                                   onClick={resetFlyerElementProp(['transform'])}
+                                />
+                            }
+                        </FormGroup>
+
+                        <FormGroup>
+                            <label>
+                                <i className="bi bi-image-fill flyer-element-change-image-action cursor-pointer"
+                                   onClick={changeImageToChangeType('backgroundImage')}
+                                />
+                            </label>
+                            {selectedElement.backgroundImage &&
+                                <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
+                                   onClick={resetFlyerElementProp(['backgroundImage'])}
+                                />
+                            }
+                        </FormGroup>
+                        <FormGroup>
+                            <label>
+                                <i className="bi bi-file-earmark-image flyer-element-change-image-action cursor-pointer"
+                                   onClick={changeImageToChangeType('templateImage')}
+                                />
+                            </label>
+                        </FormGroup>
+                    </div>
+                    <GCloudImagesHandler open={!!imageToChangeType} toggle={toggleImageGrid}
+                                         onClickImage={onChangeImage}/>
                 </div>
                 <div className="flyer-designer-element-handler">
                     <Button onClick={addFlyerElement('text')}>Agregar Texto</Button>
                     <Button onClick={addFlyerElement('image')}>Agregar Imagen</Button>
                     <Button onClick={saveProductPhoto()} color="primary">Guardar</Button>
                 </div>
+
+                <Modal isOpen={!!deleteTemplateModal} toggle={toggleDeleteTemplateModal}>
+                    <ModalHeader toggle={toggleDeleteTemplateModal}>Confirmación</ModalHeader>
+                    <ModalBody>
+                        ¿Estas Seguro que deseas eliminar la plantilla <b>{selectedTemplate?.name}</b>?
+                    </ModalBody>
+                    <ModalFooter>
+                        <Button color="primary" onClick={deleteTemplate}>Confirmar</Button>{' '}
+                        <Button color="secondary" onClick={toggleDeleteTemplateModal}>Cancel</Button>
+                    </ModalFooter>
+                </Modal>
             </div>
 
-            <GCloudImagesHandler open={!!imageToChangeType} toggle={toggleImageGrid} onClickImage={onChangeImage}/>
         </>
     )
 }

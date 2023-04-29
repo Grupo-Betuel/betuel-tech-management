@@ -3,7 +3,7 @@ import {deletePhoto, getGCloudImages, uploadGCloudImage} from "../../services/gc
 import "./GCloudImagesHandler.scss";
 import {dataURItoBlob} from "../../utils/blob";
 import {toast} from "react-toastify";
-import {Spinner} from "reactstrap";
+import {Button, Modal, ModalBody, ModalFooter, ModalHeader, Spinner} from "reactstrap";
 import {ImageTypes} from "../../model/interfaces/FlyerDesigner.interfaces";
 
 export interface IImage {
@@ -22,6 +22,7 @@ export interface IGCloudImagesHandlerProps {
 export const GCloudImagesHandler = ({onClickImage, toggle, open }: IGCloudImagesHandlerProps) => {
     const [images, setImages] = React.useState<IImage[]>([]);
     const [loading, setLoading] = React.useState<boolean>(false);
+    const [imageToDelete, setImageToDelete] = React.useState<IImage>();
 
     const getImages = async () => {
         setLoading(true);
@@ -89,7 +90,7 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open }: IGCloudImages
         setLoading(false);
     }
 
-    const deleteImage = (image: IImage) => async () => {
+    const deleteImage = async (image: IImage) => {
         setLoading(true);
         try {
             await deletePhoto(image.name);
@@ -99,8 +100,16 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open }: IGCloudImages
             toast(err.message, {type: "error"})
         }
         setLoading(false);
+        resetImageToDelete()
     }
 
+    const resetImageToDelete = () => setImageToDelete(undefined);
+
+    const deleteSelectedImage = () => imageToDelete && deleteImage(imageToDelete)
+    const selectImageToDelete = (image: IImage) => (ev: any) => {
+        ev.stopPropagation();
+        setImageToDelete(image)
+    };
 
     return (
         <div className={`images-handler-grid ${open ? 'open' : ''}`} >
@@ -115,16 +124,26 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open }: IGCloudImages
                 <input type="file"
                        className="invisible position-absolute image-handler-input-file"
                        onChange={onChangeElementImage}
-                       accept="image/png, image/gif, image/jpeg"/>
+                       accept="image/png, image/gif, image/jpeg, image/webp"/>
             </label>
             {
                 images.map((image) =>
                     <div className="image-handler-wrapper" onClick={handleClickImage(image)}>
-                        <i className="bi bi-trash image-handler-delete" onClick={deleteImage(image)}/>
+                        <i className="bi bi-trash image-handler-delete" onClick={selectImageToDelete(image)}/>
                         <img className="image-item" src={image.content} alt=""/>
                     </div>
                 )
             }
+            <Modal isOpen={!!imageToDelete} toggle={resetImageToDelete}>
+                <ModalHeader toggle={resetImageToDelete}>Confirmación</ModalHeader>
+                <ModalBody>
+                    ¿Estas Seguro que deseas eliminar esta imagen?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={deleteSelectedImage}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={resetImageToDelete}>Cancel</Button>
+                </ModalFooter>
+            </Modal>
         </div>
     )
 }

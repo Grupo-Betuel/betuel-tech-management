@@ -25,6 +25,7 @@ export interface IFlyerElementStrokeBorder {
     color: string;
     width: number;
     radius: number;
+    inside?: boolean;
     style: 'dashed' | 'solid' | 'dotted';
 }
 
@@ -33,6 +34,11 @@ export interface IFlyerElementShadow {
     vertical: number;
     blur: number;
     color: string;
+}
+
+export interface IFlyerElementTextOptions {
+    letterSpacing: number;
+    align: 'center' | 'right' | 'left';
 }
 
 export interface IFlyerElementTemporaryFile {
@@ -54,8 +60,10 @@ export class FlyerElement {
     stroke?: Partial<IFlyerElementStrokeBorder>;
     shadow?: Partial<IFlyerElementShadow>;
     textShadow?: Partial<IFlyerElementShadow>;
+    text?: Partial<IFlyerElementTextOptions>;
     transform?: Partial<IFlyerElementTransform> = { rotation: 0, skew: {x: 0, y: 0} }
     padding?: number;
+    opacity?: number = 1;
     backgroundImage?: string;
     temporaryFiles?: IFlyerElementTemporaryFile[];
     ref?: string;

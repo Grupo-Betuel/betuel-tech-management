@@ -37,29 +37,78 @@ $width: 2;
     overflow: hidden;
 
     .flyer-element {
+      $actionSize: 24px;
+      $actionExtraSize:  calc($actionSize * 2 - 8px);
+      .flyer-element-action {
+        position: absolute;
+        font-size: $actionSize;
+        color: #bebebe;
+        cursor: pointer;
+        width: $actionExtraSize;
+        height: $actionExtraSize;
+        background: white;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        border-radius: $actionSize;
+        z-index: 99999;
+        opacity: 0;
+        transition: all 0.2s ease-in-out;
+      }
+
+      .fit-image {
+        transform: skew(-1deg, 9deg) scale(1.1);
+        object-fit: cover;
+        /* display: none; */
+        width: 110%;
+        height: 110%;
+      }
+
       .flyer-element-content {
         width: 100%;
         height: 100%;
         --text-stroke-width: 1;
         display: flex !important;
         align-items: center;
-        justify-content: center;
         background-size: 100% 100%;
         position: relative;
+        overflow: hidden;
         &:focus-within, &:hover, &.selected {
           outline: 4px solid blue;
         }
+
+        &.selected {
+          .flyer-element-action {
+            opacity: 1;
+          }
+        }
+
+        .flyer-element-content-editable {
+          width: 100%;
+        }
+
+        .flyer-element-image-wrapper {}
+
+        .flyer-element-shape-arrow {
+          @extend .flyer-element-action;
+          left: 50%;
+          margin-left: - calc($actionExtraSize / 2);
+
+          &.top {
+            top: -$actionExtraSize - 10px;
+          }
+
+          &.bottom {
+            bottom: -$actionExtraSize - 10px;
+          }
+        }
+
       }
 
       .flyer-element-change-image-action {
-        $size: 24px;
-        position: absolute;
-        right: -$size;
-        top: -$size;
-        font-size: $size;
-        z-index: 1;
-        color: white;
-        cursor: pointer;
+        @extend .flyer-element-action;
+        right: -$actionExtraSize;
+        top: -$actionExtraSize;
       }
 
 
