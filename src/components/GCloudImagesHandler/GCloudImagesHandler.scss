@@ -18,7 +18,7 @@
   }
 
   .images-handler-grid {
-    $gridSize: 300px;
+    $gridSize: 100px;
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax($gridSize, $gridSize));
     grid-template-rows: repeat(auto-fit, minmax($gridSize, $gridSize));
