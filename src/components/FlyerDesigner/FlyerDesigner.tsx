@@ -146,7 +146,11 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
         }
 
         document.addEventListener('keydown', handleKeyDown);
-        return () => document.removeEventListener('keydown', handleKeyDown);
+        return () => {
+            if(saveInterval) clearInterval(saveInterval);
+
+            document.removeEventListener('keydown', handleKeyDown);
+        }
     }, [undoFlyer, redoFlyer, flyer]);
 
 
