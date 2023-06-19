@@ -1,5 +1,5 @@
 import {Position, ResizableDelta, Rnd} from "react-rnd";
-import React, {useEffect, useRef} from "react";
+import React, {useCallback, useEffect, useRef} from "react";
 import logo from "../../assets/images/betueltech.png";
 import {toPng} from "html-to-image";
 import {dataURItoBlob} from "../../utils/blob";
@@ -63,8 +63,12 @@ const blankFlyer: IFlyer = {
     templateImage: 'https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/image-1682611001553.png?generation=1682611002092972&alt=media'
 }
 
+const saveIntervalTime = 1000 * 60;
+
+const flyerTemplateStoreKey = 'flyerTemplates';
 const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: IFlyerDesignerProps) => {
     const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
+    const [lastFlyer, setLastFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
     const [redoFlyer, setRedoFlyer] = React.useState<IFlyer[]>([]);
     const [hideChangeProductPhotoIcon, setHideChangeProductPhotoIcon] = React.useState(false);
@@ -79,7 +83,8 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
     const [loading, setLoading] = React.useState<boolean>();
     const toggleImageGrid = () => setImageToChangeType(undefined);
     const [imageToChangeType, setImageToChangeType] = React.useState<ImageTypes>();
-
+    const [saveInterval, setSaveInterval] = React.useState<any>();
+    // const [c]
     const productImageWrapper = useRef<HTMLDivElement>(null)
     const portfolioMode = false;
 
@@ -88,26 +93,35 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
     }, 100);
 
     React.useEffect(() => {
-        onChangeTemplate({target: {value: selectedTemplate?._id || templateId}} as any)
+        onChangeTemplate({target: {value: templateId}} as any);
+        if(flyerOptions?.elements) {
+            updateFlyerWithOptions();
+        }
     }, [templateId, templates]);
 
     React.useEffect(() => {
-        if (JSON.stringify(flyer) !== '{}') {
-            const unitedF = {...flyer, ...flyerOptions};
-            console.log('united g', unitedF);
-            const newFlyer = passFlyerValueToFlyerContent(unitedF);
-            console.log('altered flyer', flyer, flyerOptions);
-            setFlyer(newFlyer);
-        }
+        updateFlyerWithOptions();
+    }, [flyerOptions]);
 
-    }, [selectedTemplate]);
+
+    const updateFlyerWithOptions = () => {
+        if(flyer.elements || flyerOptions?.elements) {
+            const unitedF = { ...flyer, ...flyerOptions };
+            const newFlyer = passFlyerValueToFlyerContent(unitedF);
+            setFlyer(newFlyer);
+            setLastFlyer(newFlyer);
+        }
+    }
 
     React.useEffect(() => {
         getTemplates();
     }, []);
+
     useEffect(() => {
         updateUndoFlyer();
-    }, [flyer]);
+        if(saveInterval) clearInterval(saveInterval);
+        setSaveInterval(setInterval(handleAutomaticSave, saveIntervalTime));
+    }, [flyer, lastFlyer]);
 
 
     useEffect(() => {
@@ -154,16 +168,16 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
         })
     }
 
-    const saveProductPhoto = (downloadImage?: boolean) => async () => {
+    const saveFlyer = (downloadImage?: boolean) => async () => {
         setLoading(true)
         const flyerName = (flyer.value?.name || 'photo').replace(/[ ]/gi, '-');
         const productURLName = `${flyerName}-flyer`;
         const photoName = `${productURLName}-${Date.now()}.png`;
-
+        setSelectedElement({} as FlyerElement);
         if (productImageWrapper.current === null) {
             return
         }
-
+        // hidding options
         await toPng(productImageWrapper.current, {cacheBust: true,})
             .then(async (dataUrl: string) => {
                 if (downloadImage) {
@@ -174,7 +188,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                 } else {
                     const blob = dataURItoBlob(dataUrl)
                     const file = new File([blob], photoName);
-                    await uploadGCloudImage(file);
+                    await uploadGCloudImage(file, 'flyer');
                 }
 
                 setHideChangeProductPhotoIcon(false);
@@ -185,6 +199,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
 
         setLoading(false)
         const flyerWithValue = passFlyerContentToFlyerValue(flyer);
+        setLastFlyer(flyerWithValue);
         onSaveFlyer && onSaveFlyer(flyerWithValue, gcloudPublicURL + photoName);
     };
 
@@ -317,10 +332,9 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
     }
 
     const onChangeFlyerElementProps = ({target: {value, name, type, checked}}: React.ChangeEvent<HTMLInputElement>) => {
-        console.log(value, name, type);
         if (type === 'number') {
             value = Number(value) as any;
-        } else if(type === 'checkbox') {
+        } else if (type === 'checkbox') {
             value = checked as any;
         }
 
@@ -350,14 +364,20 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
             flyer: JSON.stringify(flyerWithValue),
             name: templateName,
         };
-
+        setLastFlyer(flyerWithValue);
         return flyerTemplate;
     }
 
     const getTemplates = async () => {
         setLoading(true);
+        const storedTemplates = JSON.parse(localStorage.getItem(flyerTemplateStoreKey) || '[]');
+        if(storedTemplates.length) {
+            setTemplates(storedTemplates);
+            setLoading(false);
+        }
         const data = await getFlyerTemplates();
         setTemplates(data);
+        localStorage.setItem(flyerTemplateStoreKey, JSON.stringify(data));
         setLoading(false);
     }
 
@@ -393,8 +413,11 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
 
     const onChangeTemplate = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
         const selectedTemplate = templates.find(template => template._id === value);
-        const flyer = selectedTemplate?.flyer ? JSON.parse(selectedTemplate?.flyer) : blankFlyer;
-        setFlyer(flyer);
+        const flyerData = selectedTemplate?.flyer ? JSON.parse(selectedTemplate?.flyer) : blankFlyer;
+        flyerData.value = flyerOptions?.value;
+        const newFlyer = passFlyerValueToFlyerContent(flyerData);
+        setFlyer(newFlyer);
+        setLastFlyer(newFlyer);
         setTimeout(() => setSelectedTemplate(selectedTemplate));
         setTemplateName(selectedTemplate?.name || '');
     };
@@ -419,9 +442,21 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
 
     const designWrapperRef = useRef<any>();
 
+    const handleAutomaticSave =  async () => {
+        if(JSON.stringify(flyer) === JSON.stringify(lastFlyer)) return;
+        if(flyerOptions) {
+            await saveFlyer(false)();
+            toast('Flyer Saved automatically saved')
+        } else {
+            await updateTemplate();
+        }
+
+    };
+
+
     useEffect(() => {
+
         document.addEventListener("click", handleClick);
-        return () => document.removeEventListener("click", handleClick);
 
         function handleClick(e: any) {
             if (designWrapperRef && designWrapperRef.current) {
@@ -433,6 +468,12 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                 }
             }
         }
+
+        return () => {
+            document.removeEventListener("click", handleClick);
+            clearInterval(saveInterval);
+        }
+
     }, []);
 
     const [deleteTemplateModal, setDeleteTemplateModal] = React.useState<boolean>();
@@ -452,6 +493,8 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
             elements: newElements,
         });
     }
+
+
     // @ts-ignore
     return (
         <>
@@ -460,7 +503,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                 <div className="template-actions">
                     <Input onChange={onChangeTemplateName}
                            value={templateName}/>
-                    <Button onClick={saveProductPhoto(true)} color="primary">Descargar Imagen</Button>
+                    <Button onClick={saveFlyer(true)} color="primary">Descargar Imagen</Button>
                     <Button onClick={createTemplate} color="primary">Crear Plantilla</Button>
                     {selectedTemplate && <>
                         <Button onClick={updateTemplate} color="info">Update Plantilla</Button>
@@ -482,7 +525,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                         {flyer.elements?.map((element, i) =>
                             (
                                 <Rnd
-                                    className="flyer-element"
+                                    className={`flyer-element ${selectedElement.id === element.id ? 'selected' : ''}`}
                                     id={element.id}
                                     onClick={selectElement(element)}
                                     key={i}
@@ -493,6 +536,8 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                                 >
 
                                     <input className="flyer-element-focus-input"/>
+                                    <i className="bi bi-layer-forward flyer-element-shape-arrow top"
+                                       onClick={moveElement('up')}/>
                                     <div
                                         tabIndex={0} onKeyDown={onKeyDownFlyerElement}
                                         className={`flyer-element-content ${selectedElement.id === element.id ? 'selected' : ''} text-stroke-${!element.stroke?.inside && element.stroke?.width}`}
@@ -513,13 +558,12 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                                             borderStyle: element.border?.style ? element.border?.style : undefined,
                                             borderWidth: element.border?.width ? element.border?.width : undefined,
                                             boxShadow: `${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color}`,
-                                            textShadow: element.textShadow ? `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}` : undefined,
+                                            textShadow: element.textShadow ? element.textShadow.custom || `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}` : undefined,
                                             backgroundImage: `url(${element.backgroundImage})`,
                                             transform: `rotate(${element.transform?.rotation || 0}deg) skew(${element.transform?.skew?.x || 0}deg, ${element.transform?.skew?.y || 0}deg)`,
                                         }}
                                     >
-                                        <i className="bi bi-layer-forward flyer-element-shape-arrow top"
-                                           onClick={moveElement('up')}/>
+
 
                                         {
                                             element.type === 'text' ?
@@ -545,25 +589,27 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
 
                                         }
 
-                                        <i className="bi bi-layer-backward flyer-element-shape-arrow bottom"
-                                           onClick={moveElement('down')}/>
+
 
                                     </div>
+                                    <i className="bi bi-layer-backward flyer-element-shape-arrow bottom"
+                                       onClick={moveElement('down')}/>
                                 </Rnd>
                             )
                         )}
                     </div>
+                    <FormGroup className="expanded-action">
+                        <Input placeholder="Style" onChange={onChangeTemplate}
+                               type="select" name="border.style" id="exampleSelect"
+                               value={selectedTemplate?._id || templateId}>
+                            <option value="">Blank Template</option>
+                            {templates.map(template => <option value={template._id}>
+                                {template.name}
+                            </option>)}
+                        </Input>
+                    </FormGroup>
                     <div className={`flyer-designer-actions ${!selectedElement.id ? 'd-none' : ''}`}>
-                        <FormGroup className="expanded-action">
-                            <Input placeholder="Style" onChange={onChangeTemplate}
-                                   type="select" name="border.style" id="exampleSelect"
-                                   value={selectedTemplate?._id || templateId}>
-                                <option value="">Blank Template</option>
-                                {templates.map(template => <option value={template._id}>
-                                    {template.name}
-                                </option>)}
-                            </Input>
-                        </FormGroup>
+
                         <FormGroup>
                             <Label>Referencia</Label>
                             <Input type="text" name="ref" value={selectedElement.ref || ''}
@@ -587,7 +633,8 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                         </FormGroup>
                         <FormGroup>
                             <Label>Opacity</Label>
-                            <Input type="number" name="opacity" min={0} max={1} step={0.1} value={selectedElement.opacity}
+                            <Input type="number" name="opacity" min={0} max={1} step={0.1}
+                                   value={selectedElement.opacity}
                                    onChange={onChangeFlyerElementProps}/>
                         </FormGroup>
                         <FormGroup>
@@ -635,6 +682,8 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                                 <Input type="color" value={selectedElement.color?.text}
                                        onChange={onChangeFlyerElementProps} name="color.text"
                                        placeholder="color placeholder" className="invisible position-absolute"/>
+                                <Input type="text" value={selectedElement.color?.text} onChange={onChangeFlyerElementProps} name="color.text"
+                                       placeholder="Custom Color"/>
                             </Label>
                             {selectedElement.color?.text &&
                                 <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
@@ -795,9 +844,17 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                                     <FormGroup>
                                         <Label>
                                             <i className="bi bi-palette"></i>
-                                            <Input type="color" value={selectedElement.textShadow?.color}
+                                            <Input type="color" value={selectedElement.textShadow?.color || "#000"}
                                                    onChange={onChangeFlyerElementProps} name="textShadow.color"
-                                                   placeholder="Color" className=""/>
+                                                   placeholder="Color" className="" />
+                                        </Label>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>
+                                            <i className="bi bi-palette"></i>
+                                            <Input type="text" value={selectedElement.textShadow?.custom}
+                                                   onChange={onChangeFlyerElementProps} name="textShadow.custom"
+                                                   placeholder="Custom Value" />
                                         </Label>
                                     </FormGroup>
                                 </PopoverBody>
@@ -869,7 +926,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                 <div className="flyer-designer-element-handler">
                     <Button onClick={addFlyerElement('text')}>Agregar Texto</Button>
                     <Button onClick={addFlyerElement('image')}>Agregar Imagen</Button>
-                    <Button onClick={saveProductPhoto()} color="primary">Guardar</Button>
+                    <Button onClick={saveFlyer()} color="primary">Guardar</Button>
                 </div>
 
                 <Modal isOpen={!!deleteTemplateModal} toggle={toggleDeleteTemplateModal}>

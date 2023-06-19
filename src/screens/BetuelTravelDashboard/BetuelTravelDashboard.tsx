@@ -129,7 +129,7 @@ export interface ExtraQuoteDetails {
     budgetPerPerson?: boolean;
 }
 
-const BetuelTravelDashboard = ({}: IBetuelTravelDashboardProps) => {
+const BetuelTravelDashboard = () => {
     const [hotels, setHotels] = React.useState<IHotel[]>([])
     const [filteredHotels, setFilteredHotels] = React.useState<IHotel[]>([])
     const [categories, setCategories] = React.useState<CategoryData[]>([])

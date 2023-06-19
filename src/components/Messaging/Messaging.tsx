@@ -159,7 +159,7 @@ const Messaging: React.FC<IMessaging> = (
         const whatsappUsers = getWhatsappUsers();
 
         if (selectedProducts && selectedProducts.length) {
-            selectedProducts.forEach(product => {
+            await Promise.all(selectedProducts.map(async product => {
                 const prefixText = message ? `${message} \n` : '';
                 let text = `${prefixText}${product.description || ''}`;
 
@@ -167,11 +167,11 @@ const Messaging: React.FC<IMessaging> = (
                     text = message;
                 }
 
-                parseUrlToBase64(product.image, (image: Blob) => {
+                parseUrlToBase64(product.image, async (image: Blob) => {
                     console.log("image", image)
-                    sendMessage(sessionId, whatsappUsers, {text, photo: image})
+                    await sendMessage(sessionId, whatsappUsers, {text, photo: image})
                 });
-            });
+            }));
         } else {
             sendMessage(sessionId, whatsappUsers, {text: message, photo})
         }

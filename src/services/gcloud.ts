@@ -1,6 +1,8 @@
-export const uploadGCloudImage = async (file: File) => {
+import {ImageTagTypes} from "../components/GCloudImagesHandler/GCloudImagesHandler";
+
+export const uploadGCloudImage = async (file: File, selectedTag: ImageTagTypes) => {
     const filename = encodeURIComponent(file.name);
-    const res = await fetch(`${process.env.REACT_APP_API}gcloud/upload-url/${filename}`);
+    const res = await fetch(`${process.env.REACT_APP_API}gcloud/upload-url/${filename}/${selectedTag}`);
     const {url, fields} = await res.json();
     const formData = new FormData();
 

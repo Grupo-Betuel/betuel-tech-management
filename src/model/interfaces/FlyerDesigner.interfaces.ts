@@ -1,5 +1,9 @@
 export type FlyerElementTypes = 'text' | 'image';
 
+export interface ICustomProperty {
+    custom?: string | any;
+}
+
 export interface IFlyerElementSize {
     width: number | 'auto' | 'inherit';
     height: number | 'auto' | 'inherit';
@@ -21,7 +25,7 @@ export interface IFlyerElementTransform {
     skew?: IFlyerElementPosition;
 }
 
-export interface IFlyerElementStrokeBorder {
+export interface IFlyerElementStrokeBorder extends ICustomProperty {
     color: string;
     width: number;
     radius: number;
@@ -29,7 +33,7 @@ export interface IFlyerElementStrokeBorder {
     style: 'dashed' | 'solid' | 'dotted';
 }
 
-export interface IFlyerElementShadow {
+export interface IFlyerElementShadow extends ICustomProperty {
     horizontal: number;
     vertical: number;
     blur: number;

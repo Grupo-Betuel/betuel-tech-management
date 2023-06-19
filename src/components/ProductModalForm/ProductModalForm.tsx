@@ -120,7 +120,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
         loadProducts();
         setIsSubmiting(false);
-        toggleModal();
+        // toggleModal();
     }
 
     const calculatePrice = (cost: number): ICalculatedPrice => {
