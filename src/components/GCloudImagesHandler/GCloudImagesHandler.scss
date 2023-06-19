@@ -1,5 +1,5 @@
 .images-handler-wrapper {
-  $grid-width: 1000px;
+  $grid-width: 600px;
   padding: 1rem;
   position: fixed;
   right: -$grid-width;
@@ -7,14 +7,16 @@
   height: 100vh;
   width: 100%;
   max-width: $grid-width;
-  background: #7a7a7a;
+  background: #e8e8e8;
   align-items: stretch;
   justify-items: stretch;
   transition: all 0.3s ease-in-out;
   overflow: auto;
+  opacity: 0;
 
   &.open {
     right: 0;
+    opacity: 1;
   }
 
   .images-handler-grid {

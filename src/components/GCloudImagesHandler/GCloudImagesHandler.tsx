@@ -166,7 +166,6 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open}: IGCloudImagesH
                         <div className="image-handler-wrapper" onClick={handleClickImage(image)}>
                             <i className="bi bi-trash image-handler-delete" onClick={selectImageToDelete(image)}/>
                             <img className="image-item" src={image.content} alt=""/>
-                            <p>{image.name}</p>
                         </div>
                     )
                 }
