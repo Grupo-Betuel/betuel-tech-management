@@ -5,8 +5,6 @@ export const login = async (body: string) => {
                 headers: {
                     'Accept': 'application/json',
                     'Content-Type': 'application/json',
-                    'Access-Control-Allow-Origin': '*',
-                    'Access-Control-Request-Method': 'POST',
                 },
                 body,
             }

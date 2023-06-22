@@ -52,3 +52,21 @@
   -webkit-filter: drop-shadow(5px 10px 6px #7a7a7a);
   filter: drop-shadow(5px 10px 6px #7a7a7a);
 }
+
+.product-param-wrapper {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(80px, 1fr));
+  gap: 1rem;
+  align-items: center;
+
+  .related-product-params {
+    @extend .product-param-wrapper;
+    grid-column: 1 / -1;
+  }
+
+  .related-param-select {
+    display: flex;
+    align-items: center;
+    width: 100%;
+  }
+}

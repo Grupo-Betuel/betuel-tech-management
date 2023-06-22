@@ -1,5 +1,5 @@
 import React from 'react';
-import {Button, Pagination, PaginationItem, PaginationLink, Table} from "reactstrap";
+import {Button, Input, Pagination, PaginationItem, PaginationLink, Table} from "reactstrap";
 
 export interface IHeader {
     label: string;
@@ -19,13 +19,27 @@ export interface ITable {
     actions?: IAction[];
 }
 
-const TableComponent: React.FunctionComponent<any> = ({headers, data, actions = []}) => {
+const TableComponent: React.FunctionComponent<any> = ({headers, data, actions = [], onSelectItem}) => {
+    const [selectedItems, setSelectedItems] = React.useState<any[]>([]);
+    const selectItem = (item: any) => (e: React.ChangeEvent<HTMLInputElement>) => {
+        let selected = [];
+        if (e.target.checked) {
+            selected = [...selectedItems, item]
+            setSelectedItems(selected);
+        } else {
+            selected = selectedItems.filter((it: any) => JSON.stringify(it) !== JSON.stringify(item))
+            setSelectedItems(selected);
+        }
+
+        onSelectItem && onSelectItem(selected, item);
+    }
 
     return (
         <div>
             <Table responsive>
                 <thead>
                 <tr>
+                    <th></th>
                     <th>#</th>
                     {
                         headers.map((item: any, u: number) =>
@@ -38,6 +52,7 @@ const TableComponent: React.FunctionComponent<any> = ({headers, data, actions = 
                 {data.map((item: any, i: number) =>
                     <tr key={i}>
                         <>
+                            <th><Input type="checkbox" checked={selectedItems.find(it => JSON.stringify(it) === JSON.stringify(item))} onChange={selectItem(item)}/></th>
                             <th>{i + 1}</th>
                             {
                                 headers.map((head: IHeader, i: number) => <td key={i}>{

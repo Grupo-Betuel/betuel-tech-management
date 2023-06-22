@@ -69,3 +69,21 @@ export const addProduct = async (body: string) => {
     }
 
 }
+
+
+export const deleteProductParam = async (id: string) => {
+    try {
+        const response = await fetch(`${process.env.REACT_APP_API}products/param/${id}`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+            }
+        );
+        return response;
+    } catch (e) {
+        throw e;
+    }
+
+};

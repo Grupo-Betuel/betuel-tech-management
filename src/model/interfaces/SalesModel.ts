@@ -1,4 +1,5 @@
 import { CompanyTypes } from "../common";
+import {IProductParam} from "../products";
 
 export interface ISale {
     _id: string;
@@ -12,4 +13,6 @@ export interface ISale {
     cost: number;
     quantity?: number;
     company: CompanyTypes;
+    productParams?: IProductParam[];
+    productParamId?: string;
 };

@@ -15,6 +15,8 @@ import {ISale} from "../../model/interfaces/SalesModel";
 import {addSales, deleteSale, updateSales} from "../../services/sales";
 import {toast} from "react-toastify";
 import {CompanyTypes} from "../../model/common";
+import {IProductParam} from "../../model/products";
+import "./CreateSaleModal.scss";
 
 export interface ICreateSaleModal {
     activeAddSaleModal?: boolean;
@@ -72,10 +74,14 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
     const [productSalesActive, setProductSalesActive] = React.useState(false);
     const [editSale, setEditSale] = React.useState<Partial<ISale>>(null as any);
     const [sale, setSale] = React.useState<Partial<ISale>>(selectedSale);
+    const [selectedSales, setSelectedSales] = React.useState<ISale[]>([]);
     const [useCommission, setUseCommission] = React.useState(false);
 
     useEffect(() => {
-        setSale(editSale || selectedSale)
+        const gotSale = editSale || selectedSale
+        setSale({
+            ...gotSale,
+        })
     }, [selectedSale, editSale])
 
     useEffect(() => {
@@ -117,14 +123,19 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         },
     ];
 
-    const handleDeleteSale = async (sale: ISale) => {
+    const handleDeleteSale = async (sale?: ISale) => {
         setActiveConfirmationModal(false);
 
         setAddingSale(true);
 
-        const response = await deleteSale(JSON.stringify({_id: sale._id, productId: sale.productId}));
+        const sales = selectedSales.length ? selectedSales : [sale];
+        const response = await deleteSale(JSON.stringify({
+            sales,
+            productId: sales[0]?.productId,
+        }));
         if (response.status === 204) {
             await getSalesData();
+            setSelectedSales([]);
             toast('¡Registro Eliminado Exitosamente!', {type: "default"});
         } else {
             toast('¡Error al eliminar!', {type: "error"});
@@ -196,6 +207,33 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
     };
 
 
+    const onChangeProductParamQuantity = (index: number) => ({target: {value}}: React.ChangeEvent<any>) => {
+        // eslint-disable-next-line no-undef
+        const newSale = structuredClone(sale);
+        if (!newSale.productParams) return;
+        newSale.productParams[index].quantity = Number(value);
+        const total = newSale.productParams.reduce((acc, item) => acc + (item.quantity || 0), 0);
+        setSale({...newSale, quantity: total});
+    }
+
+    const onChangeRelatedProductParamValue = (index: number, parentIndex: number) => ({target: {value}}: React.ChangeEvent<any>) => {
+        const newSale = structuredClone(sale);
+        // @ts-ignore
+        const relatedParams = newSale?.productParams[parentIndex]?.relatedParams;
+        if (!relatedParams) return;
+
+        // eslint-disable-next-line no-undef
+        relatedParams[index].quantity = Number(value);
+        if (newSale.productParams) {
+            newSale.productParams[parentIndex].relatedParams = relatedParams;
+            const relatedParamTotal = relatedParams.reduce((acc, item) => acc + (item.quantity || 0), 0);
+            newSale.productParams[parentIndex].quantity = relatedParamTotal;
+            const total = newSale.productParams.reduce((acc, item) => acc + (item.quantity || 0), 0);
+
+            setSale({...newSale, quantity: total});
+        }
+    }
+
     return (
         <>
             <Modal isOpen={activeConfirmationModal} toggle={toggleConfirmation}>
@@ -226,7 +264,16 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                             </Button> : null
                     }
                     {productSalesActive ?
-                        <TableComponent data={productSales} headers={salesHeader} actions={salesAction}/>
+                        <>
+                            {!!selectedSales.length &&
+                                <div className="selected-actinos">
+                                    <Button type="button" onClick={() => handleDeleteSale()}>
+                                        Eliminar Seleccionadas
+                                    </Button>
+                                </div>}
+                            <TableComponent onSelectItem={(items: any) =>  setSelectedSales(items)}
+                                            data={productSales} headers={salesHeader} actions={salesAction}/>
+                        </>
                         :
                         <>
                             <FormGroup>
@@ -234,33 +281,69 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                 <Input onChange={onChangeProduct} type="number" name="price" id="priceId"
                                        placeholder="Precio:" value={sale.price}/>
                             </FormGroup>
-                            <FormGroup>
-                                <Label for="shippingId">Envio:</Label>
-                                <Input onChange={onChangeProduct} type="number" name="shipping" id="shippingId"
-                                       placeholder="Envio:" value={sale.shipping}/>
-                            </FormGroup>
-                            <>
-                                <Input
-                                    id="commission"
-                                    type="switch"
-                                    label="¿Incluye Comisión?"
-                                    checked={useCommission}
-                                    className="customized-switch"
-                                    onChange={useCommissionChange}/>
-                            </>
-                            {
-                                !useCommission ? null :
-                                    <FormGroup>
-                                        <Label for="commissionId">Comisión:</Label>
-                                        <Input onChange={onChangeProduct} type="number" name="commission"
-                                               id="commissionId" placeholder="Comisión:" value={sale.commission}/>
-                                    </FormGroup>
-                            }
-                            <Button color="primary" className="mt-3" outline onClick={() => getAllSalesById(true)}>Todas
-                                las
-                                Ventas</Button>{' '}
+                            {(!sale.productParams?.length || editSale) && <FormGroup>
+                                <Label for="shippingId">Cantidad:</Label>
+                                <Input onChange={onChangeProduct} type="number" name="quantity" id="quantity"
+                                       placeholder="Cantidad:" value={sale.quantity}/>
+                            </FormGroup>}
+                            {/*<Input*/}
+                            {/*    id="commission"*/}
+                            {/*    type="switch"*/}
+                            {/*    label="¿Incluye Comisión?"*/}
+                            {/*    checked={useCommission}*/}
+                            {/*    className="customized-switch"*/}
+                            {/*    onChange={useCommissionChange}/>*/}
+
+                            {sale.productParams?.map((param: IProductParam, index: number) =>
+                                <>
+                                    <Label><b>{param.type.toUpperCase()}</b></Label>
+                                    <div className="product-param-wrapper">
+                                        <span>
+                                            {param.label}
+                                        </span>
+                                        {param.type === 'color' ?
+                                            <div className="color-value-param"
+                                                 style={{backgroundColor: param.value}}></div>
+                                            :
+                                            <span>{param.value}</span>
+                                        }
+                                        {!param.relatedParams?.length &&
+                                            <Input type="number" name="quantity" placeholder={'Cantidad'}
+                                                   onChange={onChangeProductParamQuantity(index)}/>
+                                        }
+                                        {param.relatedParams?.length &&
+                                            param.relatedParams.map((relatedParam: IProductParam, relatedIndex: number) =>
+                                                <div className="related-product-params" key={`related-${relatedIndex}`}>
+                                                        <span>
+                                                            {relatedParam.label}
+                                                        </span>
+                                                    {relatedParam.type === 'color' ?
+                                                        <div className="color-value-param"
+                                                             style={{backgroundColor: relatedParam.value}}></div>
+                                                        :
+                                                        <span>{relatedParam.value}</span>
+                                                    }
+                                                    <Input value={relatedParam.quantity} name="quantity"
+                                                           type={'number'}
+                                                           onChange={onChangeRelatedProductParamValue(relatedIndex, index)}/>
+                                                </div>
+                                            )}
+                                    </div>
+                                </>
+                            )}
                         </>
                     }
+                    {
+                        !useCommission ? null :
+                            <FormGroup>
+                                <Label for="commissionId">Comisión:</Label>
+                                <Input onChange={onChangeProduct} type="number" name="commission"
+                                       id="commissionId" placeholder="Comisión:" value={sale.commission}/>
+                            </FormGroup>
+                    }
+                    <Button color="primary" className="mt-3" outline onClick={() => getAllSalesById(true)}>Todas
+                        las Ventas
+                    </Button>{' '}
 
 
                 </ModalBody>

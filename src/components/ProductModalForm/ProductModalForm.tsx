@@ -10,9 +10,9 @@ import {
     ModalHeader, Spinner,
 } from "reactstrap";
 import React, {useEffect} from "react";
-import { IProductData} from "../../model/products";
+import {IProductData, IProductParam, ProductParamTypes} from "../../model/products";
 import "./ProductModalForm.scss";
-import {addProduct, updateProducts} from "../../services/products";
+import {addProduct, deleteProductParam, updateProducts} from "../../services/products";
 import {ECommerceTypes, getWhatsappMessageURL} from "../../services/promotions";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
@@ -20,6 +20,9 @@ import {PromotionOption} from "../../screens/Dashboard/Dashboard";
 import {CompanyTypes} from "../../model/common";
 import FlyerDesigner from "../FlyerDesigner/FlyerDesigner";
 import {IFlyer} from "../../model/interfaces/FlyerDesigner.interfaces";
+import {toast} from "react-toastify";
+
+export const productParamsTypes: ProductParamTypes[] = ['color', 'size']
 
 export interface ICalculatedPrice {
     price: number;
@@ -36,6 +39,7 @@ export interface IProductFormProps {
     editProduct?: Partial<IProductData>;
     company: CompanyTypes;
 }
+
 const companyTemplatesIds: { [N in CompanyTypes]?: string } = {
     betueldance: "644c1304ab4fab0008b0f99f",
     betueltech: "644c1027f1b1860008ad0cca",
@@ -56,6 +60,8 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
     const [isValidForm, setIsValidForm] = React.useState(false);
     const [isSubmiting, setIsSubmiting] = React.useState(false);
+    const [productParams, setProductParams] = React.useState<IProductParam[]>([]);
+    const [productParamToDelete, setProductParamToDelete] = React.useState<string | number>('');
 
 
     const [flyerOptions, setFlyerOptions] = React.useState<IFlyer>();
@@ -68,7 +74,9 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
     useEffect(() => {
         setProduct(editProduct || {})
+        setProductParams(editProduct?.productParams || []);
         const flyerOptionItem: IFlyer = editProduct && editProduct.flyerOptions ? JSON.parse(editProduct.flyerOptions) : flyerOptions;
+
         if (flyerOptionItem && editProduct) {
             flyerOptionItem.value = {
                 ...editProduct,
@@ -78,6 +86,27 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         }
     }, [editProduct])
 
+    React.useEffect(() => {
+        const stock = productParams.reduce((a, b) => a + Number(b.quantity || 0), 0);
+        setProduct({...product, stock});
+    }, [productParams]);
+
+    const resetProductParam = () => setProductParamToDelete('')
+
+    const deleteProductParamById = async () => {
+        setIsSubmiting(true);
+
+        if (typeof productParamToDelete === 'number') {
+            setProductParams(productParams.filter((param, i) => i !== productParamToDelete));
+        } else {
+            productParamToDelete && await deleteProductParam(productParamToDelete);
+            setProductParams(productParams.filter((param) => param._id !== productParamToDelete));
+        }
+
+        setProductParamToDelete('');
+        setIsSubmiting(false)
+        toast('Parametro Eliminado!');
+    }
 
     const onChangeProduct = async (ev: React.ChangeEvent<any>) => {
         const {name, value, type} = ev.target;
@@ -108,6 +137,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             price,
             company,
             image,
+            productParams,
             flyerOptions: JSON.stringify(flyer),
         });
 
@@ -218,6 +248,74 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         window.open(getWhatsappMessageURL(`Estoy interesado en este producto "${product.name}". ¿Aún está disponible?  \n \n ${product.image}`), '_blank');
     }
 
+
+    const addProductParam = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
+        setProductParams([...productParams, {type: value as any}]);
+    };
+    const addRelatedProductParam = (index: number) => ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
+        const newProductParams = [...productParams].map((param, i) => {
+            if (i === index) {
+                return {
+                    ...param,
+                    relatedParams: [...(param.relatedParams || []), {type: value as any, isChildren: true}]
+                }
+            }
+            return param;
+        });
+
+        setProductParams(newProductParams);
+    }
+
+
+    const onChangeProductParamValue = (index: number) => ({
+                                                              target: {
+                                                                  value,
+                                                                  name
+                                                              }
+                                                          }: React.ChangeEvent<HTMLInputElement>) => {
+        const newParams = [...productParams];
+        newParams[index] = {
+            ...newParams[index],
+            [name]: value
+        }
+        setProductParams(newParams);
+
+    }
+
+
+    const onChangeRelatedProductParamValue = (parentIndex: number, relatedIndex: number) =>
+        ({
+             target: {
+                 value,
+                 name
+             }
+         }: React.ChangeEvent<HTMLInputElement>) => {
+            const param = [...productParams][parentIndex];
+            if (!param.relatedParams?.length) return;
+
+            param.relatedParams[relatedIndex] = {
+                ...param.relatedParams[relatedIndex],
+                [name]: value
+            }
+            const quantity = param.relatedParams.reduce((a, b) => a + Number(b.quantity || 0), 0);
+            param.quantity = quantity;
+            const newParams = [...productParams];
+            newParams[parentIndex] = param;
+
+            setProductParams(newParams);
+        }
+
+    const deleteRelatedParam = (id: number | string, parentIndex: number) => () => {
+        if (typeof id === 'string') {
+            setProductParamToDelete(id)
+        } else {
+            const newParams = [...productParams];
+            if (!newParams[parentIndex] || !newParams[parentIndex].relatedParams?.length) return;
+            newParams[parentIndex].relatedParams = (newParams[parentIndex] as any).relatedParams.filter((param: any, i: number) => i !== id);
+            setProductParams(newParams);
+        }
+
+    }
     return (
 
         <Modal isOpen={isOpen} toggle={toggleModal}>
@@ -295,7 +393,8 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                         </FormGroup>
                         <FormGroup>
                             <Label for="priceId">Cantidad:</Label>
-                            <Input onChange={onChangeProduct} type="number" name="stock"
+                            <Input disabled={!!productParams.length} onChange={onChangeProduct} type="number"
+                                   name="stock"
                                    id="stockId"
                                    value={product.stock}/>
                         </FormGroup>
@@ -308,12 +407,107 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                       value={product.description}
                                       onChange={onChangeProduct}/>
                         </FormGroup>
+                        <FormGroup className="expanded-action">
+                            <Label>Agregar Parametro de tipo:</Label>
+                            <Input placeholder="Tipo" onChange={addProductParam} value={''}
+                                   type="select">
+                                <option value="">Select</option>
+                                {productParamsTypes.map((type: string) =>
+                                    <option value={type}>{type.toUpperCase()}</option>)
+                                }
+                            </Input>
+                        </FormGroup>
+                        {!!productParams && productParams.map((param: IProductParam, index: number) => <>
+                                <Label><b>{param.type.toUpperCase()}</b></Label>
+
+                                <div className="product-param-wrapper" key={`product-param-${index}`}>
+                                    <FormGroup>
+                                        <Label>
+                                            Nombre:
+                                        </Label>
+                                        <Input value={param.label} name="label" placeholder="Opcional"
+                                               onChange={onChangeProductParamValue(index)}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>
+                                            Valor:
+                                        </Label>
+                                        <Input value={param.value} name="value"
+                                               type={param.type === 'color' ? 'color' : 'text'}
+                                               onChange={onChangeProductParamValue(index)}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label>
+                                            Cantidad:
+                                        </Label>
+                                        <Input disabled={!!param.relatedParams?.length} value={param.quantity} type="number"
+                                               name="quantity"
+                                               onChange={onChangeProductParamValue(index)}/>
+                                    </FormGroup>
+                                    <FormGroup className="related-param-select">
+                                        <div>
+                                            <Label>Parametro Relacionado:</Label>
+                                            <Input placeholder="Tipo" onChange={addRelatedProductParam(index)} value={''}
+                                                   type="select">
+                                                <option value="">Select</option>
+                                                {productParamsTypes.map((type: string) =>
+                                                    <option value={type}>{type.toUpperCase()}</option>)
+                                                }
+                                            </Input>
+                                        </div>
+                                        <i className="bi bi-trash delete-product-icon text-danger cursor-pointer"
+                                           onClick={() => (setProductParamToDelete(param._id || index))}></i>
+                                    </FormGroup>
+
+                                    {!!param.relatedParams?.length &&
+                                        param.relatedParams.map((relatedParam: IProductParam, relatedIndex: number) =>
+                                            <div className="related-product-params" key={`related-${relatedIndex}`}>
+                                                <FormGroup className="expanded-action">
+                                                    <Label>
+                                                        Nombre:
+                                                    </Label>
+                                                    <Input value={relatedParam.label} name="label" placeholder="Opcional"
+                                                           onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
+                                                </FormGroup>
+                                                <FormGroup className="expanded-action" key={index}>
+                                                    <Label>
+                                                        Valor:
+                                                    </Label>
+                                                    <Input value={relatedParam.value} name="value"
+                                                           type={relatedParam.type === 'color' ? 'color' : 'text'}
+                                                           onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
+                                                </FormGroup>
+                                                <FormGroup className="expanded-action" key={index}>
+                                                    <Label>
+                                                        Quantity:
+                                                    </Label>
+                                                    <Input value={relatedParam.quantity} name="quantity"
+                                                           type={'number'}
+                                                           onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
+                                                </FormGroup>
+                                                <i className="bi bi-trash delete-product-icon text-danger cursor-pointer"
+                                                   onClick={deleteRelatedParam(relatedParam._id || relatedIndex, index)}></i>
+                                            </div>
+                                        )}
+                                </div>
+                            </>
+                        )}
                     </>}
                 </ModalBody>
                 <ModalFooter>
                     <Button color="danger" onClick={toggleModal} outline>Salir</Button>{' '}
                 </ModalFooter>
             </Form>
+            <Modal isOpen={productParamToDelete !== ''} toggle={resetProductParam}>
+                <ModalHeader toggle={resetProductParam}>Confirmación</ModalHeader>
+                <ModalBody>
+                    ¿Estas Seguro que deseas eliminar este parametro?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={deleteProductParamById}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={resetProductParam}>Cancel</Button>
+                </ModalFooter>
+            </Modal>
         </Modal>
     )
 }

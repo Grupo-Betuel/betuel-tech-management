@@ -19,7 +19,7 @@ import BetuelTravelLogo from "../../assets/images/betueltravel.png";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
 import "./Dashboard.scss";
-import {IProductData} from "../../model/products";
+import {IProductData, IProductParam} from "../../model/products";
 import {getRecordedDates, getSales} from "../../services/sales";
 import {ISale} from "../../model/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
@@ -225,6 +225,14 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             shipping: 0,
             commission: product.commission,
             date: recordedDate,
+            productParams: (product.productParams || []).map((item: IProductParam) => ({
+                ...item,
+                quantity: 0,
+                relatedParams: (item.relatedParams || []).map((related: IProductParam) => ({
+                    ...related,
+                    quantity: 0,
+                })),
+            })),
         };
 
         setEditSale(sale as any);
@@ -1025,7 +1033,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     </>
                 )}
                 {selectedCompany === 'betueltravel' ?
-                    <BetuelTravelDashboard /> : <>
+                    <BetuelTravelDashboard/> : <>
                         <Col
                             lg={8}
                             md={10}

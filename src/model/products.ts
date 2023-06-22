@@ -13,6 +13,19 @@ export interface IProductData {
   productImage: string;
   description: string;
   stock: number;
+  productParams: IProductParam[];
+}
+
+export type ProductParamTypes = 'color' | 'size';
+export interface IProductParam {
+  _id?: string;
+  quantity?: number,
+  value?: string,
+  label?: string,
+  type: ProductParamTypes,
+  productId?: string
+  isRelated?: boolean;
+  relatedParams?: IProductParam[];
 }
 
 export type IProductBackground = {
