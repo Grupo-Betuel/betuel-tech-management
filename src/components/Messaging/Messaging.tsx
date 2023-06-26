@@ -216,7 +216,7 @@ const Messaging: React.FC<IMessaging> = (
 
     const handleUserExcluding = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
         if (isRemove) {
-            setExcludedWhatsappUsers(excludedWhatsappUsers.filter(item => item.number !== currentUser.number));
+            setExcludedWhatsappUsers(excludedWhatsappUsers.filter(item => item.phone !== currentUser.phone));
         } else {
             setExcludedWhatsappUsers([...excludedWhatsappUsers, currentUser]);
         }
@@ -224,7 +224,7 @@ const Messaging: React.FC<IMessaging> = (
 
     const handleUserSelection = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
         if (isRemove) {
-            setSelectedWhatsappUsers(selectedWhatsappUsers.filter(item => item.number !== currentUser.number));
+            setSelectedWhatsappUsers(selectedWhatsappUsers.filter(item => item.phone !== currentUser.phone));
         } else {
             setSelectedWhatsappUsers([...selectedWhatsappUsers, currentUser]);
         }
@@ -232,10 +232,10 @@ const Messaging: React.FC<IMessaging> = (
 
     const getWhatsappUsers = (): IWsUser[] => {
         const excluded: { [N in string]: boolean } = {};
-        excludedWhatsappUsers.forEach(item => excluded[item.number] = true);
+        excludedWhatsappUsers.forEach(item => excluded[item.phone] = true);
 
         const data = [...labeledUsers, ...groupedUsers, ...selectedWhatsappUsers].filter(user => {
-            return !excluded[user.number]
+            return !excluded[user.phone]
         });
 
         return data;
