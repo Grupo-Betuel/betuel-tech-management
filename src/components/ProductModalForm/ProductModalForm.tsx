@@ -388,8 +388,11 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
                         <FormGroup>
                             <Label for="cost">Costo:</Label>
-                            <Input onChange={onChangeProduct} type="number" name="cost" id="cost"
-                                   value={product.cost}/>
+                            <div className="d-flex align-items-center">
+                                <Input onChange={onChangeProduct} type="number" name="cost" id="cost"
+                                       value={product.cost}/>
+                                <span className="text-nowrap ms-3">Precio: {product.price}</span>
+                            </div>
                         </FormGroup>
                         <FormGroup>
                             <Label for="priceId">Cantidad:</Label>
