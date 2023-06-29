@@ -316,6 +316,11 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         }
 
     }
+    const onChangeFlyer = (flyer: IFlyer) => {
+        console.log('flyer', flyer);
+        setProduct({...product, ...flyer.value});
+        // structuredClone()
+    }
     return (
 
         <Modal isOpen={isOpen} toggle={toggleModal}>
@@ -333,6 +338,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 <FlyerDesigner flyerOptions={flyerOptions}
                                templateId={companyDefaultTemplateId}
                                onSaveFlyer={onSubmit}
+                               onChangeFlyer={onChangeFlyer}
                 />
                 <ModalBody>
 

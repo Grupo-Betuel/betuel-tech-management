@@ -77,8 +77,10 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     const fetchWsSeedData = async (sessionId = whatsappSessionId) => {
         setLoading(true);
         const data = await (await getWhatsappSeedData(sessionId)).json()
-        localStorage.setItem(`${whatsappSeedStorePrefix}${sessionId}`, JSON.stringify(data));
-        setSeedData(data);
+        if(!data.error) {
+            localStorage.setItem(`${whatsappSeedStorePrefix}${sessionId}`, JSON.stringify(data));
+            setSeedData(data);
+        }
         setLoading(false);
     }
 
