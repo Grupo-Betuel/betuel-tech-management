@@ -800,7 +800,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                 >
                                     {registeredDates ? (
                                         registeredDates.map((item, i) => {
-                                            const split = item.split("-");
+                                            const split = item?.split("-");
                                             const selected = item === recordedDate;
                                             return (
                                                 <option selected={selected} key={i} value={item}>
