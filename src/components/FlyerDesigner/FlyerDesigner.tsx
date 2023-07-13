@@ -34,7 +34,6 @@ import {FlyerTemplateModel} from "../../model/flyerTemplateModel";
 import {Loading} from "../Loading/Loading";
 import {passFlyerContentToFlyerValue, passFlyerValueToFlyerContent} from "../../utils/flyer.utils";
 
-
 const fonts = ['Reey Regular',
     'Rockwell Extra Bold', 'Anisha',
     'Abadi MT Condensed',
@@ -47,6 +46,7 @@ export interface IFlyerDesignerProps {
     onSaveFlyer?: (flyer: IFlyer, image: string) => void;
     templateId?: string;
     flyerOptions?: IFlyer;
+    saveFlyerButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
 }
 
 const blankFlyer: IFlyer = {
@@ -66,7 +66,7 @@ const blankFlyer: IFlyer = {
 const saveIntervalTime = 1000 * 60;
 
 const flyerTemplateStoreKey = 'flyerTemplates';
-const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: IFlyerDesignerProps) => {
+const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer, saveFlyerButtonProps }: IFlyerDesignerProps) => {
     const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [lastFlyer, setLastFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
@@ -930,7 +930,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer}: I
                 <div className="flyer-designer-element-handler">
                     <Button onClick={addFlyerElement('text')}>Agregar Texto</Button>
                     <Button onClick={addFlyerElement('image')}>Agregar Imagen</Button>
-                    <Button onClick={saveFlyer()} color="primary">Guardar</Button>
+                    <Button onClick={saveFlyer()} color="primary" {...saveFlyerButtonProps}>Guardar</Button>
                 </div>
 
                 <Modal isOpen={!!deleteTemplateModal} toggle={toggleDeleteTemplateModal}>

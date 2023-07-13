@@ -1,4 +1,5 @@
 import { CompanyTypes } from "./common";
+import {ICategory} from "./CategoryModel";
 
 export interface IProductData {
   _id: string;
@@ -14,6 +15,7 @@ export interface IProductData {
   description: string;
   stock: number;
   productParams: IProductParam[];
+  category: ICategory;
 }
 
 export type ProductParamTypes = 'color' | 'size';

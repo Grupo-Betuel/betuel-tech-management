@@ -25,3 +25,9 @@
 .App {
     height: 100vh;
 }
+
+.disabled {
+    background: #bebebe !important;
+    color: white !important;
+    border: gray !important;
+}

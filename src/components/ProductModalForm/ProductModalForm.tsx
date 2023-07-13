@@ -21,6 +21,9 @@ import {CompanyTypes} from "../../model/common";
 import FlyerDesigner from "../FlyerDesigner/FlyerDesigner";
 import {IFlyer} from "../../model/interfaces/FlyerDesigner.interfaces";
 import {toast} from "react-toastify";
+import {Multiselect} from "multiselect-react-dropdown";
+import {ICategory} from "../../model/CategoryModel";
+import {addCategory, getCategories, updateCategory} from "../../services/categoryService";
 
 export const productParamsTypes: ProductParamTypes[] = ['color', 'size']
 
@@ -58,16 +61,27 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         company,
     }) => {
     const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
+    const [categories, setCategories] = React.useState<ICategory[]>([]);
     const [isValidForm, setIsValidForm] = React.useState(false);
     const [isSubmiting, setIsSubmiting] = React.useState(false);
     const [productParams, setProductParams] = React.useState<IProductParam[]>([]);
     const [productParamToDelete, setProductParamToDelete] = React.useState<string | number>('');
+    const [categoryTitle, setCategoryTitle] = React.useState<string>();
+    const [loadingCategories, setLoadingCategories] = React.useState<boolean>();
 
 
     const [flyerOptions, setFlyerOptions] = React.useState<IFlyer>();
     const [companyDefaultTemplateId, setCompanyDefaultTemplateId] = React.useState<string>();
 
-
+    React.useEffect(() => {
+        // setIsSubmiting()
+        const get = async () => {
+            setLoadingCategories(true);
+            setCategories(await getCategories(company));
+            setLoadingCategories(false);
+        }
+       get();
+    }, [company]);
     React.useEffect(() => {
         setCompanyDefaultTemplateId(companyTemplatesIds[company]);
     }, [company]);
@@ -90,6 +104,37 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         const stock = productParams.reduce((a, b) => a + Number(b.quantity || 0), 0);
         setProduct({...product, stock});
     }, [productParams]);
+
+    const onChangeNewCategory = (value:string) => {
+        console.log('value', value)
+        setCategoryTitle(value)
+    };
+    const handleCategory = (isUpdate?: boolean) => async () => {
+
+        if (categoryTitle) {
+            setLoadingCategories(true);
+            console.log('newCategory', categoryTitle)
+            if(isUpdate) {
+                const categoryData =  { ...product.category, title: categoryTitle, company } as ICategory
+                const updatedCategoryData = await (await updateCategory(JSON.stringify(categoryData))).json();
+                setCategories(categories.map((category) => category._id === updatedCategoryData._id ? categoryData : category));
+                setProduct({...product, category: categoryData});
+            } else {
+                const newCategoryData = await (await addCategory(JSON.stringify({ title: categoryTitle, company }))).json();
+                setCategories([...categories, newCategoryData]);
+                setProduct({...product, category: newCategoryData});
+                setCategoryTitle('');
+            }
+
+            setLoadingCategories(false);
+        } else {
+            toast('Debe escribir un nombre para la categoria');
+        }
+    }
+
+    const onSelectCategory =  (isRemove: boolean) => (list: ICategory[], item: ICategory) => {
+        setProduct({...product, category: !isRemove ? item : undefined });
+    }
 
     const resetProductParam = () => setProductParamToDelete('')
 
@@ -339,6 +384,9 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                templateId={companyDefaultTemplateId}
                                onSaveFlyer={onSubmit}
                                onChangeFlyer={onChangeFlyer}
+                               saveFlyerButtonProps={{
+                                   disabled: !product.category,
+                               }}
                 />
                 <ModalBody>
 
@@ -391,24 +439,53 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                     </div>
                     {portfolioMode && <pre className="mt-3">{product.description}</pre>}
                     {!portfolioMode && <>
-
                         <FormGroup>
                             <Label for="cost">Costo:</Label>
                             <div className="d-flex align-items-center">
                                 <Input onChange={onChangeProduct} type="number" name="cost" id="cost"
                                        value={product.cost}/>
-                                <span className="text-nowrap ms-3">Precio: {product.price}</span>
+                                {/*<span className="text-nowrap ms-3">Precio: {product.price}</span>*/}
                             </div>
                         </FormGroup>
                         <FormGroup>
-                            <Label for="priceId">Cantidad:</Label>
+                            <Label for="price">Precio:</Label>
+                            <Input onChange={onChangeProduct} type="number" name="price" id="price"
+                                   value={product.price}/>
+                        </FormGroup>
+                        <FormGroup>
+                            <Label for="price">Categoria:</Label>
+                            <div className="d-flex align-items-center category-wrapper">
+                                <Multiselect
+                                    style={{width: '100%'}}
+                                    placeholder="Categoria"
+                                    className="w-100 me-3"
+                                    selectionLimit={1}
+                                    loading={loadingCategories}
+                                    selectedValues={product.category ? [product.category] : undefined}
+                                    onSearch={onChangeNewCategory}
+                                    onSelect={onSelectCategory(false)}
+                                    onRemove={onSelectCategory(true)}
+                                    options={categories || []}
+                                    keepSearchTerm={true}
+                                    displayValue="title"
+                                />
+                                <Button color="info" className="w-100 mb-2"
+                                        disabled={loadingCategories}
+                                        onClick={handleCategory(!!product.category)}>
+                                    { !product.category ? 'Crear Nueva' : 'Actualizar' }
+                                </Button>
+                            </div>
+                        </FormGroup>
+
+                        <FormGroup>
+                            <Label htmlFor="stockId">Cantidad:</Label>
                             <Input disabled={!!productParams.length} onChange={onChangeProduct} type="number"
                                    name="stock"
                                    id="stockId"
                                    value={product.stock}/>
                         </FormGroup>
                         <FormGroup>
-                            <Label for="productImage">Descripción:</Label>
+                            <Label>Descripción:</Label>
                             <textarea rows={5}
                                       name="description"
                                       id="description"
@@ -518,7 +595,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 </ModalFooter>
             </Modal>
         </Modal>
-    )
+    );
 }
 
 export default ProductModalForm;
