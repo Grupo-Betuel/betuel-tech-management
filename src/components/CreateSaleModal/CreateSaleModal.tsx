@@ -31,16 +31,28 @@ export interface ICreateSaleModal {
 
 const salesHeader: IHeader[] = [
     {
-        label: 'Precio',
-        property: 'price',
+        label: 'Cantidad',
+        property: 'quantity',
     },
     {
-        label: 'Costo',
-        property: 'cost',
+        label: 'Costo por unidad',
+        property: 'unitCost',
     },
     {
-        label: 'Ganancia',
+        label: 'Precio por unidad',
+        property: 'unitPrice',
+    },
+    {
+        label: 'Ganancia por unidad',
+        property: 'unitProfit',
+    },
+    {
+        label: 'Ganancia Total',
         property: 'profit',
+    },
+    {
+        label: 'Venta Total',
+        property: 'amount',
     },
     {
         label: 'Costo de Envio',
@@ -127,11 +139,12 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         setActiveConfirmationModal(false);
 
         setAddingSale(true);
+        const pId = (selectedSales[0]?.product?._id || selectedSales[0]?.productId) || sale?.product?._id || sale?.productId;
+        const sales = selectedSales.length ? selectedSales.map(item => item._id) : [sale?._id];
 
-        const sales = selectedSales.length ? selectedSales : [sale];
         const response = await deleteSale(JSON.stringify({
             sales,
-            productId: sales[0]?.productId,
+            productId: pId,
         }));
         if (response.status === 204) {
             await getSalesData();
@@ -153,7 +166,10 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
 
     const getAllSalesById = (enableProductSales?: boolean) => {
         if (salesData) {
-            const newProductSales = salesData.filter((item, i) => item.productId === sale.productId);
+            const newProductSales = salesData
+                .filter((item, i) => (item?.product?._id || item?.productId) === (sale?.product?._id || sale?.productId) )
+
+            console.log("salesss", newProductSales, salesData, sale)
             setProductSales([...newProductSales]);
             if (enableProductSales) {
                 setProductSalesActive(true);
@@ -166,9 +182,12 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         const saleData: Partial<ISale> = {
             ...sale,
             company,
+            productId: sale.product?._id || sale.productId,
+            product: undefined,
+            unitCost: sale.product?.cost || sale.unitCost,
             commission: useCommission ? sale.commission : 0,
-            profit: useCommission ? (sale as any).profit - (sale as any).commission : (sale as any).price - (sale as any).cost,
         }
+
         const body = JSON.stringify(saleData);
         let response: Response = {} as any;
 
@@ -210,25 +229,25 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
     const onChangeProductParamQuantity = (index: number) => ({target: {value}}: React.ChangeEvent<any>) => {
         // eslint-disable-next-line no-undef
         const newSale = structuredClone(sale);
-        if (!newSale.productParams) return;
-        newSale.productParams[index].quantity = Number(value);
-        const total = newSale.productParams.reduce((acc, item) => acc + (item.quantity || 0), 0);
+        if (!newSale.params) return;
+        newSale.params[index].quantity = Number(value);
+        const total = newSale.params.reduce((acc, item) => acc + (item.quantity || 0), 0);
         setSale({...newSale, quantity: total});
     }
 
     const onChangeRelatedProductParamValue = (index: number, parentIndex: number) => ({target: {value}}: React.ChangeEvent<any>) => {
         const newSale = structuredClone(sale);
         // @ts-ignore
-        const relatedParams = newSale?.productParams[parentIndex]?.relatedParams;
+        const relatedParams = newSale?.params[parentIndex]?.relatedParams;
         if (!relatedParams) return;
 
         // eslint-disable-next-line no-undef
         relatedParams[index].quantity = Number(value);
-        if (newSale.productParams) {
-            newSale.productParams[parentIndex].relatedParams = relatedParams;
+        if (newSale.params) {
+            newSale.params[parentIndex].relatedParams = relatedParams;
             const relatedParamTotal = relatedParams.reduce((acc, item) => acc + (item.quantity || 0), 0);
-            newSale.productParams[parentIndex].quantity = relatedParamTotal;
-            const total = newSale.productParams.reduce((acc, item) => acc + (item.quantity || 0), 0);
+            newSale.params[parentIndex].quantity = relatedParamTotal;
+            const total = newSale.params.reduce((acc, item) => acc + (item.quantity || 0), 0);
 
             setSale({...newSale, quantity: total});
         }
@@ -248,7 +267,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
             </Modal>
             <Modal isOpen={activeAddSaleModal} toggle={toggleModal}>
                 <ModalHeader
-                    toggle={toggleModal}>{sale.productName} | {editSale ? 'Editar Venta ' + editSale._id : 'Nueva Venta'}</ModalHeader>
+                    toggle={toggleModal}>{sale?.product?.name} | {editSale ? 'Editar Venta ' + editSale._id : 'Nueva Venta'}</ModalHeader>
                 <ModalBody>
                     {
                         addingSale ?
@@ -277,11 +296,11 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                         :
                         <>
                             <FormGroup>
-                                <Label for="priceId">Precio:</Label>
-                                <Input onChange={onChangeProduct} type="number" name="price" id="priceId"
-                                       placeholder="Precio:" value={sale.price}/>
+                                <Label for="priceId">Precio por unidad:</Label>
+                                <Input onChange={onChangeProduct} type="number" name="unitPrice" id="priceId"
+                                       placeholder="Precio:" value={sale.unitPrice || (sale as any).price}/>
                             </FormGroup>
-                            {(!sale.productParams?.length || editSale) && <FormGroup>
+                            {(!sale.params?.length || editSale) && <FormGroup>
                                 <Label for="shippingId">Cantidad:</Label>
                                 <Input onChange={onChangeProduct} type="number" name="quantity" id="quantity"
                                        placeholder="Cantidad:" value={sale.quantity}/>
@@ -294,7 +313,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                             {/*    className="customized-switch"*/}
                             {/*    onChange={useCommissionChange}/>*/}
 
-                            {sale.productParams?.map((param: IProductParam, index: number) =>
+                            {sale.params?.map((param: IProductParam, index: number) =>
                                 <>
                                     <Label><b>{param.type.toUpperCase()}</b></Label>
                                     <div className="product-param-wrapper">
@@ -308,7 +327,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                             <span>{param.value}</span>
                                         }
                                         {!param.relatedParams?.length &&
-                                            <Input type="number" name="quantity" placeholder={'Cantidad'}
+                                            <Input type="number" name="quantity" value={param.quantity} placeholder={'Cantidad'}
                                                    onChange={onChangeProductParamQuantity(index)}/>
                                         }
                                         {param.relatedParams?.length &&

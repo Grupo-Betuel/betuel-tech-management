@@ -215,21 +215,22 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     };
     const selectProduct = (product: IProductData) => {
         const profit = product.price - product.cost;
-
         const sale: Partial<ISale> = {
             profit,
-            productId: product._id,
-            price: product.price,
-            cost: product.cost,
-            productName: product.name,
+            product: product,
+            unitPrice: product.price,
             shipping: 0,
             commission: product.commission,
             date: recordedDate,
-            productParams: (product.productParams || []).map((item: IProductParam) => ({
+            params: (product.productParams || []).map((item: IProductParam) => ({
                 ...item,
+                _id: undefined,
+                productParam: item._id,
                 quantity: 0,
                 relatedParams: (item.relatedParams || []).map((related: IProductParam) => ({
                     ...related,
+                    _id: undefined,
+                    productParam: related._id,
                     quantity: 0,
                 })),
             })),
@@ -282,7 +283,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             Object.keys({
                 shipping: 0,
                 commission: 0,
-                price: 0,
+                amount: 0,
                 profit: 0,
             } as ITotals) as any
         ).forEach((key: keyof ITotals) => {
@@ -307,15 +308,16 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             .filter((item) => !!item)
             .reduce((a: number, b: number) => a + b, 0);
 
-    const getProductSales = (productId: string) =>
-        !salesData
+    const getProductSales = (productId: string) => {
+        return !salesData
             ? 0
-            : salesData.filter((sale) => sale.productId === productId).length;
+            : salesData.filter((sale) => (sale.product?._id || sale.productId) === productId).length;
+    }
 
     const getProductMoney = (productId: string) => {
         if (!salesData) return 0;
         const totalSold = salesData
-            .filter((sale) => sale.productId === productId)
+            .filter((sale) => (sale.product?._id || sale.productId) === productId)
             .map((item) => item.profit)
             .reduce((a, b) => a + b, 0);
 
@@ -332,12 +334,12 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const mostProfitProducts = (sales: ISale[]): IProductData[] => {
         return products.sort((a: IProductData, b: IProductData) => {
             const aProfit = sales
-                .map((sale) => (sale.productId === a._id ? sale.profit : undefined))
+                .map((sale) => ((sale.product?._id || sale.productId) === a._id ? sale.profit : undefined))
                 .filter((item) => !!item)
                 .reduce((a, b) => Number(a) + Number(b), 0);
 
             const bProfit = sales
-                .map((sale) => (sale.productId === b._id ? sale.profit : undefined))
+                .map((sale) => ((sale.product?._id || sale.productId) === b._id ? sale.profit : undefined))
                 .filter((item) => !!item)
                 .reduce((a, b) => Number(a) + Number(b), 0);
             return Number(bProfit) - Number(aProfit);
@@ -346,8 +348,8 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const mostSalesProducts = (sales: ISale[]): IProductData[] => {
         return products.sort((a: IProductData, b: IProductData) => {
-            const aSales = sales.filter((sale) => sale.productId === a._id).length;
-            const bSales = sales.filter((sale) => sale.productId === b._id).length;
+            const aSales = sales.filter((sale) => (sale.product?._id || sale.productId) === a._id).length;
+            const bSales = sales.filter((sale) => (sale.product?._id || sale.productId) === b._id).length;
 
             return Number(bSales) - Number(aSales);
         });
@@ -1000,7 +1002,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                             <Row className="justify-content-center label-grid col-lg-10">
                                 <MoneyStatisticLabel
                                     label="Vendido"
-                                    amount={salesTotals.price}
+                                    amount={salesTotals.amount}
                                     className="total-label"
                                 />
                                 <MoneyStatisticLabel

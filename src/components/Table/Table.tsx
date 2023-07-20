@@ -34,6 +34,8 @@ const TableComponent: React.FunctionComponent<any> = ({headers, data, actions = 
         onSelectItem && onSelectItem(selected, item);
     }
 
+    console.log('table data', data);
+
     return (
         <div>
             <Table responsive>

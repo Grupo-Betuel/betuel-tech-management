@@ -1,18 +1,24 @@
 import { CompanyTypes } from "../common";
-import {IProductParam} from "../products";
+import {IProductData, IProductParam} from "../products";
 
+
+export interface IProductSaleParam extends IProductParam {
+    productParam?: string;
+}
 export interface ISale {
     _id: string;
+    product: IProductData;
     productId: string;
-    price: number;
+    amount: number;
+    unitPrice: number;
+    unitProfit: number;
+    unitCost: number;
     profit: number;
     commission?: number;
     shipping?: number;
-    productName: string;
     date: string;
-    cost: number;
     quantity?: number;
     company: CompanyTypes;
-    productParams?: IProductParam[];
+    params?: IProductSaleParam[];
     productParamId?: string;
 };
