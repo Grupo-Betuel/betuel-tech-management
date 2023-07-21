@@ -62,7 +62,7 @@ const Messaging: React.FC<IMessaging> = (
         setSelectedProducts,
     }
 ) => {
-    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.betueltravel)
+    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.betuelgroup)
     const [message, setMessage] = useState<string>('')
     const [onlySendImagesIds, setOnlySendImagesIds] = useState<string[]>([]);
     const [photo, setPhoto] = useState<any>()
