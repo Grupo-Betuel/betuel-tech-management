@@ -20,8 +20,10 @@ import {OrderEvents} from "../../model/socket-events";
 import {useHistory, useParams} from "react-router";
 import {toast} from "react-toastify";
 import {productParamsTypes} from "../../components/ProductModalForm/ProductModalForm";
+import {IMessenger, messengerStatusList, MessengerStatusTypes} from "../../model/messengerModels";
+import {getMessengers, updateMessenger} from "../../services/messengerService";
 
-export const statusCardColor: { [N in OrderStatusTypes]: string } = {
+export const orderStatusCardColor: { [N in OrderStatusTypes]: string } = {
     'pending': 'secondary',
     'confirmed': 'info',
     'canceled': 'danger',
@@ -33,11 +35,23 @@ export const statusCardColor: { [N in OrderStatusTypes]: string } = {
     'delivering': 'warning',
     'delivered': 'light',
 }
+
+export const messengerStatusCardColor: { [N in MessengerStatusTypes]: string } = {
+    'available': 'success',
+    'unavailable': 'danger',
+    'quoting': 'info',
+    'on-trip-to-office': 'warning',
+    'on-trip-to-client': 'warning',
+}
+
 export const OrdersManagement = () => {
     const [orders, setOrders] = useState<IOrder[]>([]);
+    const [messengers, setMessengers] = useState<IMessenger[]>([]);
+    const [originalMessengers, setOriginalMessengers] = useState<IMessenger[]>([]);
     const [originalOrders, setOriginalOrders] = useState<IOrder[]>([]);
     const [orderToDelete, setOrderToDelete] = useState<IOrder>();
     const [loading, setLoading] = useState<boolean>();
+    const [activeTab, setActiveTab] = useState<'order' | 'messenger'>('order');
     const {connected, socket} = useSocket()
     const history = useHistory();
 
@@ -49,8 +63,17 @@ export const OrdersManagement = () => {
         setLoading(false);
     }
 
+    const handleGetMessengers = async () => {
+        setLoading(true);
+        const messengers = await getMessengers();
+        setMessengers(messengers);
+        setOriginalMessengers(messengers);
+        setLoading(false);
+    }
+
     useEffect(() => {
         handleGetOrders()
+        handleGetMessengers()
     }, [])
 
     useEffect(() => {
@@ -69,6 +92,19 @@ export const OrdersManagement = () => {
                 setOrders(newOrders)
                 toast('Orden actualizada')
             })
+
+            onSocketOnce(socket, OrderEvents.UPDATED_MESSENGER, (messenger: IMessenger) => {
+                const newMessengers = messengers.map((m) => {
+                    if (m._id === messenger._id) {
+                        return {...messenger, fromSocket: true};
+                    }
+                    return m;
+                })
+                setMessengers(newMessengers)
+                toast('Mensajero actualizado')
+            });
+
+
         }
     }, [connected])
 
@@ -108,6 +144,11 @@ export const OrdersManagement = () => {
         return JSON.stringify(order) !== JSON.stringify(originalOrder);
     }
 
+    const hasMessengerChanged = (messenger: IMessenger) => {
+        const originalMessenger = originalMessengers.find((m) => m._id === messenger._id);
+        return JSON.stringify(messenger) !== JSON.stringify(originalMessenger);
+    }
+
     const handleUpdateOrder = (order: IOrder) => async () => {
         setLoading(true);
         await updateOrder(JSON.stringify(order));
@@ -125,27 +166,59 @@ export const OrdersManagement = () => {
         setOrders(newOrders)
     }
 
+    const handleActiveTab = (tab: 'order' | 'messenger') => () => setActiveTab(tab);
+
+    const changeMessengerStatus = (messenger: IMessenger) => ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
+        const newMessengers = messengers.map((m) => {
+            if (m._id === messenger._id) {
+                return {...m, status: value} as IMessenger
+            }
+            return m as IMessenger;
+        })
+
+        setMessengers(newMessengers)
+    }
+
+    const hostname: string = useMemo(() => window.location.origin, [window.location.origin])
+    console.log('hostname', hostname);
+
+    const handleUpdateMessenger = (messenger: IMessenger) => async () => {
+        setLoading(true);
+        await updateMessenger(JSON.stringify(messenger));
+        setLoading(false);
+        handleGetMessengers();
+        toast('Mensajero actualizado');
+    }
     return (
         <>
+            {loading && (
+                <>
+                    <div className="loading-sale-container">
+                        <Spinner animation="grow" variant="secondary"/>
+                    </div>
+                </>
+            )}
             <div className="d-flex align-items-center justify-content-between gap-3 p-3">
                 <h1>Ultimas Ordenes</h1>
                 <Button onClick={goToDashboard} color="primary">Dashboard</Button>
             </div>
+            <ul className="nav nav-tabs">
+                <li className="nav-item">
+                    <a className="nav-link active" aria-current="page" href="#" onClick={handleActiveTab('order')}>Ordenes</a>
+                </li>
+                <li className="nav-item">
+                    <a className="nav-link" href="#" onClick={handleActiveTab('messenger')}>Mensajeros</a>
+                </li>
+            </ul>
             <div className="orders-management-browser-wrapper p-4">
                 <Input bsSize="lg" placeholder="Buscar" onChange={onSearch}/>
             </div>
             <div className="orders-management-grid" style={{width: "100vw"}}>
-                {loading && (
-                    <>
-                        <div className="loading-sale-container">
-                            <Spinner animation="grow" variant="secondary"/>
-                        </div>
-                    </>
-                )}
-                {orders.map((order) => (
+
+                { activeTab === 'order' && orders.map((order) => (
                     <Card
                         key={order._id}
-                        color={order.fromSocket ? "success" : statusCardColor[order.status]}
+                        color={order.fromSocket ? "success" : orderStatusCardColor[order.status]}
                         outline={order.fromSocket}
                         inverse={order.status === 'personal-assistance'}
                     >
@@ -181,7 +254,7 @@ export const OrdersManagement = () => {
                                                       onChange={changeOrderStatus(order)} value={order.status}
                                                       type="select">
                                 {orderStatusList.map((type: string) =>
-                                    <option value={type}>{type}</option>)
+                                    <option value={type} key={type}>{type}</option>)
                                 }
                             </Input>
 
@@ -207,6 +280,53 @@ export const OrdersManagement = () => {
                                     onClick={goToDetail(order)}>
                                 Editar
                             </Button>
+                        </CardBody>
+                    </Card>))}
+
+                { activeTab === 'messenger' && messengers.map((messenger) => (
+                    <Card
+                        key={messenger._id}
+                        color={messengerStatusCardColor[messenger.status]}
+                        outline={messenger.fromSocket}
+                    >
+                        <CardBody>
+                            <CardText>
+                                <b>{messenger.firstName} {messenger.lastName}</b>
+                            </CardText>
+                        </CardBody>
+                        <ListGroup flush>
+                            <ListGroupItem>
+                                <b>Whatsapp</b>: <a href={`https://wa.me/${messenger.phone}`} target="_blank">{messenger.phone}</a>
+                            </ListGroupItem>
+                            <ListGroupItem className="d-flex gap-2 align-items-center">
+                                <b>Estado:</b> <Input placeholder="Estado"
+                                                      onChange={changeMessengerStatus(messenger)} value={messenger.status}
+                                                      type="select">
+                                {messengerStatusList.map((type: string) =>
+                                    <option value={type} key={type}>{type}</option>)
+                                }
+                            </Input>
+
+                            </ListGroupItem>
+
+                            <ListGroupItem>
+                                <b>Cotizando orden:</b> <a href={`${hostname}/order-detail/${messenger.quotingOrder}`} target="_blank">{messenger.quotingOrder}</a>
+                            </ListGroupItem>
+                            <ListGroupItem>
+                                <b>Ordenes asignadas:</b>
+                                {
+                                    messenger
+                                    .currentOrders?.map(id =>
+                                        <div key={id}><a href={`${hostname}/order-detail/${id}`} target="_blank">{id}</a> <br/></div>)
+                                }
+                            </ListGroupItem>
+                        </ListGroup>
+                        <CardBody className="d-flex justify-content-between flex-wrap gap-2">
+                            {hasMessengerChanged(messenger) &&
+                                <Button color="primary" className="text-nowrap w-100 align-self-start"
+                                        onClick={handleUpdateMessenger(messenger)}>
+                                    Guardar Cambios
+                                </Button>}
                         </CardBody>
                     </Card>))}
             </div>

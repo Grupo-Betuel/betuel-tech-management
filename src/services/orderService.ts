@@ -12,6 +12,7 @@ export const getOrders = async () => {
 
 };
 
+
 export const getOrderById = async (id: string) => {
     try {
         const response = await fetch(`${process.env.REACT_APP_API}orders/by-id/${id}`);
