@@ -20,7 +20,7 @@ function App() {
                         <Route path="/dashboard" component={() => <Dashboard setToken={setToken}/>}/>
                         <Route path="/templates" component={() => <TemplatesDesign/>}/>
                         <Route path="/orders" component={() => <OrdersManagement/>}/>
-                        <Route path="/orders-detail/:orderId" component={() => <OrderDetail/>}/>
+                        <Route path="/order-detail/:orderId" component={() => <OrderDetail/>}/>
                     </> :
                     <Route path="/login" component={() => <Login setToken={setToken}/>}/>
                 }

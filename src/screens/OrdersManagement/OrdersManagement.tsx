@@ -89,7 +89,7 @@ export const OrdersManagement = () => {
     }
 
     const goToDetail = (order: IOrder) => () => {
-        history.push(`/orders-detail/${order._id}`, order)
+        history.push(`/order-detail/${order._id}`, order)
     }
 
     const changeOrderStatus = (order: IOrder) => ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
