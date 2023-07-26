@@ -5,6 +5,8 @@ import {ToastContainer} from "react-toastify";
 import {Switch, Route, Redirect} from 'react-router-dom';
 import FlyerDesigner from "./components/FlyerDesigner/FlyerDesigner";
 import {TemplatesDesign} from "./screens/TemplateDesign/TemplatesDesign";
+import {OrdersManagement} from "./screens/OrdersManagement/OrdersManagement";
+import {OrderDetail} from "./screens/OrdersManagement/components/OrderDetail";
 
 function App() {
     const [token, setToken] = React.useState(localStorage.getItem('authToken'));
@@ -17,7 +19,8 @@ function App() {
                     <>
                         <Route path="/dashboard" component={() => <Dashboard setToken={setToken}/>}/>
                         <Route path="/templates" component={() => <TemplatesDesign/>}/>
-                        <Route path="*" component={() => <Redirect to={token ? "/dashboard" : "/login"}/>}/>
+                        <Route path="/orders" component={() => <OrdersManagement/>}/>
+                        <Route path="/orders-detail/:orderId" component={() => <OrderDetail/>}/>
                     </> :
                     <Route path="/login" component={() => <Login setToken={setToken}/>}/>
                 }

@@ -22,3 +22,9 @@ export enum ScheduleEvents {
     EMIT_STOPPED = 'schedule-stopped',
     EMIT_FAILED = 'schedule-failed',
 }
+
+export enum OrderEvents {
+    UPDATED_ORDER = 'updated-order',
+    CREATED_ORDER = 'created-order',
+    UPDATED_MESSENGER = 'updated-messenger',
+}

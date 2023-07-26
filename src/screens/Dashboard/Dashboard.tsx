@@ -717,6 +717,11 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         });
         setFilteredProducts(filteredProducts);
     }
+
+    const goToOrders = () => {
+        history.push('/orders');
+    }
+
     return (
         <>
             {!loadingApp ? null : (
@@ -831,16 +836,19 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                     />
                                     <span>Habilitar Selection</span>
                                 </Label>
+
                             </div>
+
                             <div className="d-flex align-items-center">
-                                <label className="me-2 mb-0">Más Ingresos</label>
-                                <Input
-                                    id="sales"
-                                    type="switch"
-                                    label="Más Vendidos"
-                                    className="customize-switch"
-                                    onChange={filterChange}
-                                />
+                                <Button onClick={goToOrders} color="primary" outline>Ver Ordenes</Button>
+                                {/*<label className="me-2 mb-0">Más Ingresos</label>*/}
+                                {/*<Input*/}
+                                {/*    id="sales"*/}
+                                {/*    type="switch"*/}
+                                {/*    label="Más Vendidos"*/}
+                                {/*    className="customize-switch"*/}
+                                {/*    onChange={filterChange}*/}
+                                {/*/>*/}
                             </div>
                             <div
                                 className={`d-flex align-items-center ${

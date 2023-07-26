@@ -1,0 +1,30 @@
+.order-detail {
+  margin: 0 auto;
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+
+  .order-detail-wrapper {
+    padding: 2rem;
+    min-height: 100vh;
+  }
+
+  .orders-detail-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+
+  }
+
+  .order-detail-footer-actions {
+    position: sticky;
+    bottom: 0;
+    background: white;
+    box-shadow: 0 0 5px #c3c3c3;
+    padding: 1rem 2rem;
+    display: flex;
+    justify-content: end;
+    gap: 1rem;
+  }
+}
