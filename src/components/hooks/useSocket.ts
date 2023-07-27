@@ -1,6 +1,6 @@
 import React from "react";
 import * as io from "socket.io-client";
-import {CONNECTED_EVENT, PROD_SOCKET_URL} from "../../utils/socket.io";
+import {CONNECTED_EVENT, DEV_SOCKET_URL, PROD_SOCKET_URL} from "../../utils/socket.io";
 
 export interface ISocketHookProps {
     socket: io.Socket | undefined;

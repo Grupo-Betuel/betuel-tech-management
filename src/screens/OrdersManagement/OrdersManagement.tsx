@@ -78,22 +78,38 @@ export const OrdersManagement = () => {
 
     useEffect(() => {
         if (connected && socket) {
+            console.log('orders!', orders);
             onSocketOnce(socket, OrderEvents.CREATED_ORDER, (order: IOrder) => {
-                setOrders([{...order, fromSocket: true}, ...orders])
+                console.log('order create', order, orders);
+                const newOrders =  [{...order, fromSocket: true}, ...orders]
+                setOrders(newOrders)
+                setOriginalOrders([{...order, fromSocket: true}, ...originalOrders])
+                console.log('orders', newOrders)
                 toast('Nueva orden creada')
             })
             onSocketOnce(socket, OrderEvents.UPDATED_ORDER, (order: IOrder) => {
+                console.log('order updated', order)
                 const newOrders = orders.map((o) => {
                     if (o._id === order._id) {
                         return {...order, fromSocket: true};
                     }
                     return o;
                 })
+                const newOriginalOrders = originalOrders.map((o) => {
+                    if (o._id === order._id) {
+                        return {...order, fromSocket: true};
+                    }
+                    return o;
+                })
                 setOrders(newOrders)
+                console.log('updated orders', newOrders)
+                setOriginalOrders(newOriginalOrders)
                 toast('Orden actualizada')
             })
 
             onSocketOnce(socket, OrderEvents.UPDATED_MESSENGER, (messenger: IMessenger) => {
+                console.log('messenger updated', messenger)
+
                 const newMessengers = messengers.map((m) => {
                     if (m._id === messenger._id) {
                         return {...messenger, fromSocket: true};
@@ -106,7 +122,7 @@ export const OrdersManagement = () => {
 
 
         }
-    }, [connected])
+    }, [connected, orders, originalOrders, messengers, originalMessengers])
 
     const selectOrderToDelete = (order: IOrder) => () => {
         setOrderToDelete(order);
@@ -204,10 +220,10 @@ export const OrdersManagement = () => {
             </div>
             <ul className="nav nav-tabs">
                 <li className="nav-item">
-                    <a className="nav-link active" aria-current="page" href="#" onClick={handleActiveTab('order')}>Ordenes</a>
+                    <a className={`nav-link ${activeTab === 'order' ? 'active' : ''}`} aria-current="page" href="#" onClick={handleActiveTab('order')}>Ordenes</a>
                 </li>
                 <li className="nav-item">
-                    <a className="nav-link" href="#" onClick={handleActiveTab('messenger')}>Mensajeros</a>
+                    <a className={`nav-link ${activeTab === 'messenger' ? 'active' : ''}`} href="#" onClick={handleActiveTab('messenger')}>Mensajeros</a>
                 </li>
             </ul>
             <div className="orders-management-browser-wrapper p-4">
@@ -218,7 +234,7 @@ export const OrdersManagement = () => {
                 { activeTab === 'order' && orders.map((order) => (
                     <Card
                         key={order._id}
-                        color={order.fromSocket ? "success" : orderStatusCardColor[order.status]}
+                        color={orderStatusCardColor[order.status]}
                         outline={order.fromSocket}
                         inverse={order.status === 'personal-assistance'}
                     >
