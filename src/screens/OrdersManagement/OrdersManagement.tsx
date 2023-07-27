@@ -205,6 +205,12 @@ export const OrdersManagement = () => {
         handleGetMessengers();
         toast('Mensajero actualizado');
     }
+
+    const getOrderProfit = (order: IOrder) => {
+        return `RD$${order.sales.reduce((acc, sale) => {
+            return acc + sale.profit;
+        }, 0).toLocaleString()}`
+    }
     return (
         <>
             {loading && (
@@ -258,6 +264,9 @@ export const OrdersManagement = () => {
                             </ListGroupItem>
                             <ListGroupItem>
                                 <b>Total</b>: RD${(order.total + order.shippingPrice)?.toLocaleString()}
+                            </ListGroupItem>
+                            <ListGroupItem>
+                                <b>Beneficio</b>: {getOrderProfit(order)}
                             </ListGroupItem>
                             <ListGroupItem>
                                 <b>Tipo de Pago</b>: {order.paymentType}
