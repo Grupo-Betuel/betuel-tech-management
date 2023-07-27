@@ -47,7 +47,10 @@ export const OrderDetail = () => {
 
     const getOrderDetails = async () => {
         const order = await getOrderById(params.orderId);
-        if (!order) return history.push('/orders');
+        if (!order) {
+            toast('Esta orden no existe', {type: 'error'});
+            return history.push('/orders')
+        }
         setOrder(order);
         setOriginalOrder(order)
         location.state = order;
@@ -180,7 +183,7 @@ export const OrderDetail = () => {
                         <Card>
                             <img
                                 alt="Card"
-                                src={order.transferReceipt?.image}
+                                src={`data:image/png;base64,${order.transferReceipt?.image}`}
                             />
                             <CardBody>
                                 <CardText>
