@@ -54,6 +54,7 @@ export type OrderPaymentTypes = 'cash' | 'transfer' | 'card';
 export type OrderStatusTypes = 'pending' | 'personal-assistance' | 'confirmed' | 'checking-transfer' | 'pending-info' | 'delivering' | 'delivered' | 'canceled' | 'cancel-attempt' | 'completed';
 export const orderStatusList: OrderStatusTypes[] = ['pending', 'pending-info', 'checking-transfer', 'confirmed', 'delivering', 'delivered', 'cancel-attempt', 'canceled', 'completed', 'personal-assistance'];
 export interface IOrder {
+  orderNumber: number;
   client: IClient
   status: OrderStatusTypes
   paymentType: OrderPaymentTypes

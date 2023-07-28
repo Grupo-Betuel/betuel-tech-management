@@ -1,6 +1,6 @@
 import React, {useEffect, useMemo, useState} from "react";
 import FlyerDesigner from "../../components/FlyerDesigner/FlyerDesigner";
-import {deleteOrder, getOrders, updateOrder} from "../../services/orderService";
+import {deleteOrder, getOrders, refreshBotOrders, updateOrder} from "../../services/orderService";
 import {IOrder, orderStatusList, OrderStatusTypes} from "../../model/ordersModels";
 import "./OrdersManagement.scss";
 import {
@@ -211,6 +211,13 @@ export const OrdersManagement = () => {
             return acc + sale.profit;
         }, 0).toLocaleString()}`
     }
+
+    const handleRefreshBotOrders = async () => {
+        setLoading(true);
+        await refreshBotOrders();
+        setLoading(false);
+        toast('Ordenes del bot actualizadas');
+    }
     return (
         <>
             {loading && (
@@ -223,6 +230,7 @@ export const OrdersManagement = () => {
             <div className="d-flex align-items-center justify-content-between gap-3 p-3">
                 <h1>Ultimas Ordenes</h1>
                 <Button onClick={goToDashboard} color="primary">Dashboard</Button>
+                <Button onClick={handleRefreshBotOrders} color="primary">Actualizar las ordenes del bot</Button>
             </div>
             <ul className="nav nav-tabs">
                 <li className="nav-item">
@@ -246,7 +254,7 @@ export const OrdersManagement = () => {
                     >
                         <CardBody>
                             <CardText>
-                                <b>ID: </b> {order._id} <br/>{new Date(order.createDate).toLocaleDateString()}.
+                                <b>ID: </b> {order.orderNumber || order._id}  <br/>{new Date(order.createDate).toLocaleDateString()}.
                             </CardText>
                         </CardBody>
                         <ListGroup flush>
