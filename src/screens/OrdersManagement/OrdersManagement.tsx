@@ -153,6 +153,8 @@ export const OrdersManagement = () => {
         setLoading(false)
         handleGetOrders();
         toast('Orden eliminada')
+        handleRefreshBotOrders();
+
     }
 
     const goToDetail = (order: IOrder) => () => {
