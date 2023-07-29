@@ -200,8 +200,9 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer, sa
             .catch((err: any) => {
                 console.log(err)
             })
-
         setLoading(false)
+        if(downloadImage) return;
+
         const flyerWithValue = passFlyerContentToFlyerValue(flyer);
         setLastFlyer(flyerWithValue);
         onSaveFlyer && onSaveFlyer(flyerWithValue, gcloudPublicURL + photoName);

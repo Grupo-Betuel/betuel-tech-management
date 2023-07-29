@@ -71,6 +71,24 @@ export const refreshBotOrders = async () => {
 
 };
 
+export const handleOrderWithBot = async (body: string) => {
+    try {
+        const response = await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/handle-order`,
+            {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            });
+        return await response.json() as any;
+    } catch (e) {
+        throw e;
+    }
+
+};
+
 export const addProduct = async (body: string) => {
     try {
         return await fetch(`${process.env.REACT_APP_API}products`, {
