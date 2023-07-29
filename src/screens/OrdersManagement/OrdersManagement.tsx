@@ -201,7 +201,7 @@ export const OrdersManagement = () => {
 
     const handleOrderBot = (order: IOrder) => async () => {
         setLoading(true);
-        await handleOrderWithBot(JSON.stringify({order, type: 'update'}));
+        await handleOrderWithBot(JSON.stringify({order, type: 'push'}));
         setLoading(false);
         toast('El bot se ejecuto correctamente');
     }
