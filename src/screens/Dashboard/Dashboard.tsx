@@ -50,11 +50,12 @@ import {Socket} from "socket.io-client";
 import {ScheduleResponse} from "../../model/schedule";
 import {whatsappSessionNames, WhatsappSessionTypes} from "../../model/interfaces/WhatsappModels";
 import BetuelTravelDashboard from "../BetuelTravelDashboard/BetuelTravelDashboard";
+import useWhatsapp from "../../components/hooks/UseWhatsapp";
 
 const Marvin = require("marvinj");
 // export const accountLogos: { [N in ]} ;
 
-const CreateNewProductButton = styled.button`
+export const CreateNewFloatButton = styled.button`
   position: fixed;
   bottom: 30px;
   right: 30px;
@@ -69,7 +70,7 @@ const CreateNewProductButton = styled.button`
     font-size: 30px;
   }
 `;
-export const LogOutButton = styled(CreateNewProductButton)`
+export const LogOutButton = styled(CreateNewFloatButton)`
   position: absolute;
   top: 15px;
   bottom: unset;
@@ -185,6 +186,9 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const promotionPercent = 0.3;
     const history = useHistory();
     const [socket, setSocket] = React.useState<io.Socket>();
+    const {
+        login,
+    } = useWhatsapp('betuelgroup');
 
     // initializing socket
     React.useEffect(() => {
@@ -1077,12 +1081,12 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             </div>}
 
             {!portfolioMode && (
-                <CreateNewProductButton
+                <CreateNewFloatButton
                     className="btn btn-outline-danger"
                     onClick={toggleProductForm}
                 >
                     <i className="bi-plus"/>
-                </CreateNewProductButton>
+                </CreateNewFloatButton>
             )}
 
             <ProductModalForm

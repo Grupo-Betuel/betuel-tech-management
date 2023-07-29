@@ -22,6 +22,7 @@ import {toast} from "react-toastify";
 import {productParamsTypes} from "../../components/ProductModalForm/ProductModalForm";
 import {IMessenger, messengerStatusList, MessengerStatusTypes} from "../../model/messengerModels";
 import {getMessengers, updateMessenger} from "../../services/messengerService";
+import {CreateNewFloatButton} from "../Dashboard/Dashboard";
 
 export const orderStatusCardColor: { [N in OrderStatusTypes]: string } = {
     'pending': 'secondary',
@@ -95,6 +96,7 @@ export const OrdersManagement = () => {
                 console.log('orders', newOrders)
                 toast('Nueva orden creada')
             })
+
             onSocketOnce(socket, OrderEvents.UPDATED_ORDER, (order: IOrder) => {
                 console.log('order updated', order)
                 const newOrders = orders.map((o) => {
@@ -185,6 +187,16 @@ export const OrdersManagement = () => {
         setLoading(false);
         handleGetOrders();
         toast('Orden actualizada');
+    }
+
+    const resetOrderChanges = (order: IOrder) => () => {
+        const newOrders = orders.map((o) => {
+            if (o._id === order._id) {
+                return originalOrders[order._id];
+            }
+            return o;
+        })
+        setOrders(newOrders);
     }
 
     const handleOrderBot = (order: IOrder) => async () => {
@@ -361,10 +373,17 @@ export const OrdersManagement = () => {
                         </ListGroup>
                         <CardBody className="d-flex justify-content-between flex-wrap gap-2">
                             {orderHasChanged(order) &&
+                                <>
                                 <Button color="primary" className="text-nowrap w-100 align-self-start"
                                         onClick={handleUpdateOrder(order)}>
                                     Guardar Cambios
-                                </Button>}
+                                </Button>
+                                    <Button color="warning" className="text-nowrap w-100 align-self-start"
+                                            onClick={resetOrderChanges(order)}>
+                                        Revertir Cambios
+                                    </Button>
+                                </>
+                            }
                             <Button color="danger" className="text-nowrap align-self-start"
                                     onClick={selectOrderToDelete(order)}>
                                 Eliminar
@@ -441,6 +460,12 @@ export const OrdersManagement = () => {
                     <Button color="secondary" onClick={resetOrderToDelete}>Cancel</Button>
                 </ModalFooter>
             </Modal>
+            {activeTab === 'messenger' && <CreateNewFloatButton
+                className="btn btn-outline-danger"
+                // onClick={toggleMessengerForm}
+            >
+                <i className="bi-plus"/>
+            </CreateNewFloatButton>}
         </>
     )
 }
