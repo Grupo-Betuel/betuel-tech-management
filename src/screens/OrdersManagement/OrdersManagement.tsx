@@ -94,7 +94,6 @@ export const OrdersManagement = () => {
                 const originalValues = (Object.values(originalOrders) as IOrder[])
                 setOriginalOrders(parseOrdersToObject([{...order, fromSocket: true}, ...originalValues]))
                 console.log('orders', newOrders)
-                toast('Nueva orden creada')
             })
 
             onSocketOnce(socket, OrderEvents.UPDATED_ORDER, (order: IOrder) => {
@@ -112,7 +111,6 @@ export const OrdersManagement = () => {
                 setOrders(newOrders)
                 console.log('updated orders', newOrders)
                 setOriginalOrders(newOriginalOrders)
-                toast('Orden actualizada')
             })
 
             onSocketOnce(socket, OrderEvents.UPDATED_MESSENGER, (messenger: IMessenger) => {
@@ -132,7 +130,6 @@ export const OrdersManagement = () => {
                 })
                 setMessengers(newMessengers)
                 setOriginalMessengers(newOriginalMessengers)
-                toast('Mensajero actualizado')
             });
 
 
