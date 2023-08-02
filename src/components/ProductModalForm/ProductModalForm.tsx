@@ -175,7 +175,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     }
     const onSubmit = async (flyer: IFlyer, image: string) => {
         setIsSubmiting(true);
-        const price = extractNumbersFromText(flyer.value.price || product.price);
+        const price = extractNumbersFromText((flyer.value.price || product.price).toString());
         const body = JSON.stringify({
             ...product,
             ...flyer.value,
