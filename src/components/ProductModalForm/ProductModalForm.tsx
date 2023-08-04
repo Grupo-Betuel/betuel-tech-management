@@ -369,7 +369,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     }
     return (
 
-        <Modal isOpen={isOpen} toggle={toggleModal}>
+        <Modal backdrop="static" isOpen={isOpen} toggle={toggleModal}>
             {
                 !isSubmiting ? null :
                     <>
