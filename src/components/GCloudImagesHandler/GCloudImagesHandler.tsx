@@ -69,7 +69,7 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open}: IGCloudImagesH
         if (input.files && input.files[0]) {
             const productFile = new File([input.files[0]], Date.now() + ext, {type: input.files[0].type});
             const reader = new FileReader();
-            reader.onload = function (e: any) {
+            reader.onload = async function (e: any) {
                 const res = e.target.result;
                 const imgObject: IImage = {
                     name: productFile.name,
@@ -77,11 +77,9 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open}: IGCloudImagesH
                     type: productFile.type,
                     tag: selectedTag,
                 };
-                uploadImage(imgObject);
+                const image = await uploadImage(imgObject);
 
-
-                console.log("productFile", productFile, imgObject);
-                onClickImage(imgObject);
+                image && onClickImage(image);
             }
 
             reader.readAsDataURL(input.files[0]);
@@ -105,6 +103,7 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open}: IGCloudImagesH
 
             console.log(responseImage, "image");
             toast("Foto Agregada", {type: "default"})
+            return image;
         } catch (err: any) {
             toast(err.message, {type: "error"})
         }
