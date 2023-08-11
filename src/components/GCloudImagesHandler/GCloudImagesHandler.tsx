@@ -70,6 +70,7 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open}: IGCloudImagesH
             const productFile = new File([input.files[0]], Date.now() + ext, {type: input.files[0].type});
             const reader = new FileReader();
             reader.onload = async function (e: any) {
+                setLoading(true);
                 const res = e.target.result;
                 const imgObject: IImage = {
                     name: productFile.name,
@@ -80,6 +81,8 @@ export const GCloudImagesHandler = ({onClickImage, toggle, open}: IGCloudImagesH
                 const image = await uploadImage(imgObject);
 
                 image && onClickImage(image);
+                setLoading(false);
+
             }
 
             reader.readAsDataURL(input.files[0]);
