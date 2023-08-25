@@ -80,7 +80,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             setCategories(await getCategories(company));
             setLoadingCategories(false);
         }
-       get();
+        get();
     }, [company]);
     React.useEffect(() => {
         setCompanyDefaultTemplateId(companyTemplatesIds[company]);
@@ -105,7 +105,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         setProduct({...product, stock});
     }, [productParams]);
 
-    const onChangeNewCategory = (value:string) => {
+    const onChangeNewCategory = (value: string) => {
         console.log('value', value)
         setCategoryTitle(value)
     };
@@ -114,13 +114,16 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         if (categoryTitle) {
             setLoadingCategories(true);
             console.log('newCategory', categoryTitle)
-            if(isUpdate) {
-                const categoryData =  { ...product.category, title: categoryTitle, company } as ICategory
+            if (isUpdate) {
+                const categoryData = {...product.category, title: categoryTitle, company} as ICategory
                 const updatedCategoryData = await (await updateCategory(JSON.stringify(categoryData))).json();
                 setCategories(categories.map((category) => category._id === updatedCategoryData._id ? categoryData : category));
                 setProduct({...product, category: categoryData});
             } else {
-                const newCategoryData = await (await addCategory(JSON.stringify({ title: categoryTitle, company }))).json();
+                const newCategoryData = await (await addCategory(JSON.stringify({
+                    title: categoryTitle,
+                    company
+                }))).json();
                 setCategories([...categories, newCategoryData]);
                 setProduct({...product, category: newCategoryData});
                 setCategoryTitle('');
@@ -132,8 +135,8 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         }
     }
 
-    const onSelectCategory =  (isRemove: boolean) => (list: ICategory[], item: ICategory) => {
-        setProduct({...product, category: !isRemove ? item : undefined });
+    const onSelectCategory = (isRemove: boolean) => (list: ICategory[], item: ICategory) => {
+        setProduct({...product, category: !isRemove ? item : undefined});
     }
 
     const resetProductParam = () => setProductParamToDelete('')
@@ -176,9 +179,12 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     const onSubmit = async (flyer: IFlyer, image: string) => {
         setIsSubmiting(true);
         const price = extractNumbersFromText((flyer.value.price || product.price).toString());
+        let productName = (flyer.value.name || product?.name || '').replaceAll(/<\/?[^>]+(>|$)/gi, "");
+        console.log('productName ->', productName);
         const body = JSON.stringify({
             ...product,
             ...flyer.value,
+            name: productName,
             price,
             company,
             image,
@@ -473,7 +479,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                 <Button color="info" className="w-100 mb-2"
                                         disabled={loadingCategories || !categoryTitle}
                                         onClick={handleCategory(!!product.category)}>
-                                    { !product.category ? 'Crear Nueva' : 'Actualizar' }
+                                    {!product.category ? 'Crear Nueva' : 'Actualizar'}
                                 </Button>
                             </div>
                         </FormGroup>
