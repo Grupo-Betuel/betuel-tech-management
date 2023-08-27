@@ -1,8 +1,7 @@
-import { CompanyTypes } from "../model/common";
 
-export const getSales = async (company: string, date: string) => {
+export const getCompanies = async () => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}sales/${company}/${date}`);
+        const response = await fetch(`${process.env.REACT_APP_API}companies`);
         return await response.json() as any;
     } catch (e) {
         throw e;
@@ -19,7 +18,7 @@ export const getRecordedDates = async () => {
     }
 }
 
-export const updateSales = async (body: string) => {
+export const updateCompanies = async (body: string) => {
     try {
         return await fetch(`${process.env.REACT_APP_API}sales`, {
                 method: 'PUT',
@@ -53,7 +52,7 @@ export const deleteSale = async (body: string) => {
     }
 }
 
-export const addSales = async (body: string) => {
+export const addCompanies = async (body: string) => {
     try {
         return await fetch(`${process.env.REACT_APP_API}sales`, {
                 method: 'POST',

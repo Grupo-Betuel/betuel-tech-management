@@ -24,7 +24,7 @@ export interface ICreateSaleModal {
     selectedSale: ISale;
     salesData: ISale[];
     getSalesData: () => any;
-    company: CompanyTypes;
+    company: string;
     loadProducts: () => any;
 }
 
@@ -193,6 +193,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
 
         if (editSale) {
             response = await updateSales(body);
+
 
         } else {
             response = await addSales(body);

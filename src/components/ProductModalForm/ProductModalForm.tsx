@@ -40,10 +40,10 @@ export interface IProductFormProps {
     portfolioMode?: boolean;
     promotionLoading: { [N in ECommerceTypes]?: boolean };
     editProduct?: Partial<IProductData>;
-    company: CompanyTypes;
+    company: string;
 }
 
-const companyTemplatesIds: { [N in CompanyTypes]?: string } = {
+const companyTemplatesIds: { [N in CompanyTypes | string]?: string } = {
     betueldance: "644c1304ab4fab0008b0f99f",
     betueltech: "644c1027f1b1860008ad0cca",
     betueltravel: "644c1304ab4fab0008b0f99f",
@@ -83,7 +83,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         get();
     }, [company]);
     React.useEffect(() => {
-        setCompanyDefaultTemplateId(companyTemplatesIds[company]);
+        setCompanyDefaultTemplateId(companyTemplatesIds[company ]);
     }, [company]);
 
     useEffect(() => {

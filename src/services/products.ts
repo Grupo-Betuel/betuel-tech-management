@@ -1,7 +1,7 @@
 import {deletePhoto} from "./gcloud";
 import {CompanyTypes} from "../model/common";
 
-export const getProducts = async (company: CompanyTypes) => {
+export const getProducts = async (company: string) => {
     try {
         const response = await fetch(`${process.env.REACT_APP_API}products/${company}`);
         return await response.json() as any;

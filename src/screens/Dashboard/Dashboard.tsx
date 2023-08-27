@@ -1,4 +1,4 @@
-import React, {useEffect} from "react";
+import React, {useEffect, useState} from "react";
 import {
     Col,
     Row,
@@ -16,6 +16,7 @@ import {MoneyStatisticLabel, Product} from "../../components";
 import BetuelTechLogo from "../../assets/images/betueltech.png";
 import BetuelDanceLogo from "../../assets/images/betueldance/logo.png";
 import BetuelTravelLogo from "../../assets/images/betueltravel.png";
+import DixyBabyLogo from "../../assets/images/dixybaby.jpeg";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
 import "./Dashboard.scss";
@@ -51,6 +52,8 @@ import {ScheduleResponse} from "../../model/schedule";
 import {whatsappSessionNames, WhatsappSessionTypes} from "../../model/interfaces/WhatsappModels";
 import BetuelTravelDashboard from "../BetuelTravelDashboard/BetuelTravelDashboard";
 import useWhatsapp from "../../components/hooks/UseWhatsapp";
+import {getCompanies} from "../../services/companies";
+import {CompanyModel} from "../../model/companyModel";
 
 const Marvin = require("marvinj");
 // export const accountLogos: { [N in ]} ;
@@ -123,10 +126,11 @@ const months = [
     "Diciembre",
 ];
 
-const companyLogos: { [N in CompanyTypes]: any } = {
+const companyLogos: { [N in CompanyTypes | string]: any } = {
     betueldance: BetuelDanceLogo,
     betueltech: BetuelTechLogo,
     betueltravel: BetuelTravelLogo,
+    dixybaby: DixyBabyLogo,
 };
 
 const companyStorageKey = "betuelGroup:company";
@@ -143,7 +147,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                                                      company,
                                                                  }) => {
     const [activeAddSaleModal, setActiveAddSaleModal] = React.useState(false);
-    const [selectedCompany, setSelectedCompany] = React.useState<CompanyTypes>(
+    const [selectedCompany, setSelectedCompany] = React.useState<string>(
         (localStorage.getItem(company || companyStorageKey) as CompanyTypes) ||
         "betueltech"
     );
@@ -515,7 +519,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         getSales();
     }, [selectedCompany]);
 
-    const selectCompany = (company: CompanyTypes) => async () => {
+    const selectCompany = (company: string) => async () => {
         setSelectedCompany(company);
         localStorage.setItem(companyStorageKey, company);
         toggleCompanies();
@@ -524,6 +528,10 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     };
 
 
+    const [companies, setCompanies] = useState<CompanyModel[]>([]);
+    const handleGetCompanies = async () => {
+        setCompanies(await getCompanies());
+    }
     useEffect(() => {
         const callPromotion = async () => {
             // await runPromotion('betueldance')();
@@ -531,7 +539,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             // runPromotion('betueltravel')();
         }
         callPromotion();
-
+        handleGetCompanies();
     }, []);
 
 
@@ -788,13 +796,13 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     />
                     {showAccounts && (
                         <AccountsWrapper>
-                            {Object.keys(companyLogos).map((company: CompanyTypes | any) => (
-                                company !== selectedCompany && <img
-                                    src={(companyLogos as any)[company]}
-                                    onClick={selectCompany(company)}
+                            {companies.map((company: CompanyModel) => (
+                                company.companyId !== selectedCompany && <img
+                                    src={company.logo}
+                                    onClick={selectCompany(company.companyId)}
                                     className="w-100"
                                 />
-                            ))}
+                            ) as any)}
                         </AccountsWrapper>
                     )}
                 </Col>

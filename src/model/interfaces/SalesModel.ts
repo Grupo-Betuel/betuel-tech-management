@@ -18,7 +18,7 @@ export interface ISale {
     shipping?: number;
     date: string;
     quantity?: number;
-    company: CompanyTypes;
+    company: string;
     params?: IProductSaleParam[];
     productParamId?: string;
 };
