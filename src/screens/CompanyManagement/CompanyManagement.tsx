@@ -1,7 +1,19 @@
 import React, {useEffect, useState} from "react";
-import {Button, Card, CardBody, CardFooter, Form, FormGroup, Input, Label, Spinner} from "reactstrap";
+import {
+    Button,
+    Card,
+    CardBody,
+    CardFooter,
+    Form,
+    FormGroup,
+    Input,
+    Label,
+    Modal, ModalBody, ModalFooter,
+    ModalHeader,
+    Spinner
+} from "reactstrap";
 import {CompanyModel} from "../../model/companyModel";
-import {addCompany, getCompanies, updateCompanies} from "../../services/companies";
+import {addCompany, deleteCompany, getCompanies, updateCompanies} from "../../services/companies";
 import "./CompanyManagement.scss"
 import {toast} from "react-toastify";
 
@@ -10,7 +22,7 @@ export const CompanyManagement = () => {
     const [loading, setLoading] = useState<boolean>(false);
     const [isEditing, setIsEditing] = useState<{ [N in string]: Partial<CompanyModel> | null }>({});
     const [createCompany, setCreateCompany] = useState<CompanyModel>({} as CompanyModel);
-
+    const [companyToDelete, setCompanyToDelete] = useState<CompanyModel | null>(null);
     useEffect(() => {
         handleGetCompanies();
     }, [])
@@ -57,7 +69,7 @@ export const CompanyManagement = () => {
             await addCompany(JSON.stringify(createCompany));
             await handleGetCompanies();
             toast("Compañia creada con exito")
-            setLoading(true);
+            setLoading(false);
         }
     }
 
@@ -86,6 +98,18 @@ export const CompanyManagement = () => {
 
     }
 
+    const resetCompanyToDelete = () => {
+        setCompanyToDelete(null);
+    }
+
+    const handleDeleteCompany = async () => {
+        setLoading(true);
+        await deleteCompany(JSON.stringify(companyToDelete));
+        await handleGetCompanies();
+        toast("Compañia eliminada con exito")
+        setLoading(false);
+        resetCompanyToDelete();
+    }
     return (
         <div className="company-management">
             {!loading ? null : (
@@ -126,13 +150,31 @@ export const CompanyManagement = () => {
                                                 : <Input value={company.phone} name="phone"
                                                          onChange={onChangeCompany(company._id)}/>}
                                         </FormGroup>
+
+                                        <div>
+                                            <h4>Instagram</h4>
+                                            <FormGroup>
+                                                <Label><b>Company Id</b></Label> <br/>
+                                                {!isEditingCompany ? <span>{company.companyId}</span>
+                                                    : <Input value={company.companyId} name="companyId"
+                                                             onChange={onChangeCompany(company._id)}/>}
+                                            </FormGroup>
+                                            <FormGroup>
+                                                <Label><b>Telefono</b></Label> <br/>
+                                                {!isEditingCompany ? <span>{company.phone}</span>
+                                                    : <Input value={company.phone} name="phone"
+                                                             onChange={onChangeCompany(company._id)}/>}
+                                            </FormGroup>
+                                        </div>
                                     </Form>
                                 </CardBody>
                                 <CardFooter className="d-flex align-items-center justify-content-between">
                                     {isEditingCompany && <Button
                                         onClick={updateCompany(company.companyId)} color="success" outline>Guardar</Button>}
+                                    <Button onClick={()=> setCompanyToDelete(company)} color="danger" outline>Eliminar</Button>
                                     <Button color={isEditingCompany ? "danger" : "info"}
                                             onClick={toggleEditing(company)}>{isEditingCompany ? 'Cancelar' : 'Editar'}</Button>
+
                                 </CardFooter>
                             </Card>
                         )
@@ -168,6 +210,16 @@ export const CompanyManagement = () => {
                     </CardFooter>
                 </Card>
             </div>
+            <Modal isOpen={!!companyToDelete} toggle={resetCompanyToDelete}>
+                <ModalHeader toggle={resetCompanyToDelete}>Confirmación</ModalHeader>
+                <ModalBody>
+                    ¿Estas Seguro que deseas eliminar esta Company?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={handleDeleteCompany}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={resetCompanyToDelete}>Cancel</Button>
+                </ModalFooter>
+            </Modal>
         </div>
     )
 }

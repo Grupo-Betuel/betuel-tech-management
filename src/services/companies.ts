@@ -26,7 +26,7 @@ export const updateCompanies = async (body: string) => {
     }
 }
 
-export const deleteSale = async (body: string) => {
+    export const deleteCompany = async (body: string) => {
     try {
         return await fetch(`${process.env.REACT_APP_API}companies`, {
                 method: 'DELETE',
