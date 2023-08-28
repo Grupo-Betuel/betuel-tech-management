@@ -35,7 +35,6 @@ export const CompanyManagement = () => {
 
     const toggleEditing = (company: CompanyModel) => () => {
         const isEditingCompany = !!isEditing[company._id]
-        console.log('edit company', company)
         setIsEditing({
             ...isEditing,
             [company._id]: isEditingCompany ? null : company
@@ -44,7 +43,6 @@ export const CompanyManagement = () => {
 
     const updateCompany = (companyId: string) => async () => {
         const company = isEditing[companyId];
-        console.log("company to update", company)
         if (company && validCompany(company as CompanyModel)) {
             setLoading(true)
             await updateCompanies(JSON.stringify(company));
@@ -90,7 +88,6 @@ export const CompanyManagement = () => {
         let newCompany = {
             ...isEditing[companyId],
         }
-        console.log('jkljk', newCompany, companyId, isEditing)
         if (key) {
             newCompany = {
                 ...newCompany,
@@ -107,7 +104,6 @@ export const CompanyManagement = () => {
             }
         }
 
-        console.log('new company', newCompany)
         setIsEditing({
             ...isEditing,
             [companyId]: newCompany
