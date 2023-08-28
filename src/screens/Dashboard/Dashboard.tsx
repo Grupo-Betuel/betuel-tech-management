@@ -818,9 +818,10 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                     onChange={onChangeDateRegistered}
                                 >
                                     {registeredDates ? (
-                                        registeredDates.map((item, i) => {
+                                        registeredDates?.map((item, i) => {
                                             const split = item?.split("-");
                                             const selected = item === recordedDate;
+                                            if(!split) return;
                                             return (
                                                 <option selected={selected} key={i} value={item}>
                                                     {split[0]} {split[1]}

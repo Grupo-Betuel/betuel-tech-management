@@ -477,7 +477,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                     displayValue="title"
                                 />
                                 <Button color="info" className="w-100 mb-2"
-                                        disabled={loadingCategories || !categoryTitle}
+                                        disabled={!categoryTitle}
                                         onClick={handleCategory(!!product.category)}>
                                     {!product.category ? 'Crear Nueva' : 'Actualizar'}
                                 </Button>

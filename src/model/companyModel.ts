@@ -1,5 +1,5 @@
 export class CompanyModel  {
-    _id: string = '';
+    _id: any = '';
 
     name: string = '';
 

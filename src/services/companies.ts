@@ -9,18 +9,9 @@ export const getCompanies = async () => {
 
 };
 
-export const getRecordedDates = async () => {
-    try {
-        const response = await fetch(`${process.env.REACT_APP_API}sales/months`);
-        return await response.json() as any || [];
-    } catch (e) {
-        throw e;
-    }
-}
-
 export const updateCompanies = async (body: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}companies`, {
                 method: 'PUT',
                 headers: {
                     'Accept': 'application/json',
@@ -37,7 +28,7 @@ export const updateCompanies = async (body: string) => {
 
 export const deleteSale = async (body: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}companies`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',
@@ -52,9 +43,9 @@ export const deleteSale = async (body: string) => {
     }
 }
 
-export const addCompanies = async (body: string) => {
+export const addCompany = async (body: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}sales`, {
+        return await fetch(`${process.env.REACT_APP_API}companies`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',

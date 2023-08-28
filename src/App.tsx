@@ -7,6 +7,7 @@ import FlyerDesigner from "./components/FlyerDesigner/FlyerDesigner";
 import {TemplatesDesign} from "./screens/TemplateDesign/TemplatesDesign";
 import {OrdersManagement} from "./screens/OrdersManagement/OrdersManagement";
 import {OrderDetail} from "./screens/OrdersManagement/components/OrderDetail";
+import {CompanyManagement} from "./screens/CompanyManagement/CompanyManagement";
 
 function App() {
     const [token, setToken] = React.useState(localStorage.getItem('authToken'));
@@ -21,6 +22,7 @@ function App() {
                         <Route path="/templates" component={() => <TemplatesDesign/>}/>
                         <Route path="/orders" component={() => <OrdersManagement/>}/>
                         <Route path="/order-detail/:orderId" component={() => <OrderDetail/>}/>
+                        <Route path="/companies" component={() => <CompanyManagement/>}/>
                     </> :
                     <Route path="/login" component={() => <Login setToken={setToken}/>}/>
                 }
