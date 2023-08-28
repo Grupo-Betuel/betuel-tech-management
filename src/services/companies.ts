@@ -1,7 +1,14 @@
 
 export const getCompanies = async () => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}companies`);
+        const response = await fetch(`${process.env.REACT_APP_API}companies`,{
+            method: 'GET',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json',
+                'Access-Control-Request-Headers': "*"
+            }
+        });
         return await response.json() as any;
     } catch (e) {
         throw e;
@@ -32,7 +39,8 @@ export const updateCompanies = async (body: string) => {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Access-Control-Allow-Origin': "*"
                 },
                 body,
             }

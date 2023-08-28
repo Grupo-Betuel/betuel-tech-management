@@ -1,4 +1,6 @@
-export class CompanyModel  {
+import {SocialNetworkModel} from "./socialNetworkModel";
+
+export class CompanyModel {
     _id: any = '';
 
     name: string = '';
@@ -11,4 +13,7 @@ export class CompanyModel  {
 
     logo: string = '';
 
+    facebook: SocialNetworkModel = {} as SocialNetworkModel;
+
+    instagram: SocialNetworkModel = {} as SocialNetworkModel;
 }

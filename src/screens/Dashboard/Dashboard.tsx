@@ -29,7 +29,7 @@ import ProductModalForm from "../../components/ProductModalForm/ProductModalForm
 import {deleteProduct, getProducts} from "../../services/products";
 import {
     ecommerceNames,
-    ECommerceTypes, handleSchedulePromotion,
+    ECommerceTypes, getScheduleStatus, handleSchedulePromotion,
     promoteProduct, PublicationTypes,
     startWhatsappServices,
 } from "../../services/promotions";
@@ -146,11 +146,13 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                                                      portfolioMode,
                                                                      company,
                                                                  }) => {
+    const [companies, setCompanies] = useState<CompanyModel[]>([]);
     const [activeAddSaleModal, setActiveAddSaleModal] = React.useState(false);
-    const [selectedCompany, setSelectedCompany] = React.useState<string>(
+    const [selectedCompanyId, setSelectedCompanyId] = React.useState<string>(
         (localStorage.getItem(company || companyStorageKey) as CompanyTypes) ||
         "betueltech"
     );
+    const [selectedCompany, setSelectedCompany] = React.useState<CompanyModel>({} as CompanyModel);
     const [showAccounts, setShowAccounts] = React.useState(false);
     const [activeConfirmationModal, setActiveConfirmationModal] =
         React.useState(false);
@@ -158,7 +160,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const [clientModalIsOpen, setClientModalIsOpen] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
     const [promotionLoading, setPromotionLoading] = React.useState<{
-        [N in ECommerceTypes]?: boolean;
+        [N in ECommerceTypes | string]?: boolean;
     }>({});
     const [promotionDisabled, setPromotionDisabled] = React.useState<{
         [N in ECommerceTypes]?: boolean;
@@ -193,6 +195,18 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const {
         login,
     } = useWhatsapp('betuelgroup');
+
+    React.useEffect(() => {
+        if(companies && companies.length > 0) {
+            const company = companies.find((company) => company.companyId === selectedCompanyId);
+            if(company) {
+                setSelectedCompany(company);
+                handleScheduledPromotionStatus(company);
+            }
+        }
+
+    }, [companies]);
+
 
     // initializing socket
     React.useEffect(() => {
@@ -250,14 +264,14 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const getSalesData = async (date?: string) => {
         setLoadingApp(true);
-        const salesData = await getSales(selectedCompany, date || recordedDate);
+        const salesData = await getSales(selectedCompanyId, date || recordedDate);
         setSalesData(salesData);
         setLoadingApp(false);
     };
 
     const getAllProducts = async () => {
         setLoadingApp(true);
-        const products = await getProducts(company || selectedCompany);
+        const products = await getProducts(company || selectedCompanyId);
         setProducts(products);
         setFilteredProducts(products);
         setLoadingApp(false);
@@ -469,7 +483,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 return;
             }
 
-            await promoteProduct(data as IProduct[], ecommerceType, selectedCompany, publicationType);
+            await promoteProduct(data as IProduct[], ecommerceType, selectedCompanyId, publicationType);
         } catch (err) {
             console.error("promotion error: ", err);
             setPromotionLoading((data) => ({
@@ -497,7 +511,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         if (portfolioMode) {
             history.push("/dashboard");
         } else {
-            history.push(`/portfolio/${selectedCompany}`);
+            history.push(`/portfolio/${selectedCompanyId}`);
         }
     };
 
@@ -517,33 +531,41 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             await getSalesData();
         };
         getSales();
-    }, [selectedCompany]);
+    }, [selectedCompanyId]);
 
-    const selectCompany = (company: string) => async () => {
-        setSelectedCompany(company);
-        localStorage.setItem(companyStorageKey, company);
+    const selectCompany = (companyId: string) => async () => {
+        const company = companies.find((company) => company.companyId === companyId);
+        setSelectedCompanyId(companyId);
+        setSelectedCompany(company || {} as CompanyModel);
+        handleScheduledPromotionStatus(company)
+        localStorage.setItem(companyStorageKey, companyId);
         toggleCompanies();
         setSelections([]);
-        setLogo(companyLogos[company]);
+        setLogo(company?.logo || '');
     };
 
 
-    const [companies, setCompanies] = useState<CompanyModel[]>([]);
     const handleGetCompanies = async () => {
         setCompanies(await getCompanies());
     }
+
+    const handleScheduledPromotionStatus = async (company: CompanyModel = selectedCompany) => {
+        const response = await getScheduleStatus(selectedCompanyId);
+        const status: 'running' | 'stopped' | 'error' = response.status;
+        toast(`${company.name} Automation is ${status}`);
+        setPromotionLoading((data) => ({
+            ...promotionLoading,
+            ...data,
+            [selectedCompanyId]: status === "running"
+        }));
+    }
+
     useEffect(() => {
-        const callPromotion = async () => {
-            // await runPromotion('betueldance')();
-            // await runPromotion('betueltech')();
-            // runPromotion('betueltravel')();
-        }
-        callPromotion();
         handleGetCompanies();
     }, []);
 
 
-    const runPromotion = (sessionId: ECommerceTypes) => async () => {
+    const runPromotion = (sessionId: string) => async () => {
         const action = promotionLoading[sessionId] ? "stop" : "run";
 
         const response: any = await (
@@ -759,7 +781,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 selectedSale={editSale}
                 salesData={salesData}
                 getSalesData={getSalesData}
-                company={selectedCompany}
+                company={selectedCompanyId}
                 loadProducts={getAllProducts}
             />
             {<div className="d-flex align-items-center flex-column">
@@ -797,7 +819,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     {showAccounts && (
                         <AccountsWrapper>
                             {companies.map((company: CompanyModel) => (
-                                company.companyId !== selectedCompany && <img
+                                company.companyId !== selectedCompanyId && <img
                                     src={company.logo}
                                     onClick={selectCompany(company.companyId)}
                                     className="w-100"
@@ -821,7 +843,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                         registeredDates?.map((item, i) => {
                                             const split = item?.split("-");
                                             const selected = item === recordedDate;
-                                            if(!split) return;
+                                            if (!split) return;
                                             return (
                                                 <option selected={selected} key={i} value={item}>
                                                     {split[0]} {split[1]}
@@ -868,13 +890,18 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                     !enableSelection ? "disable-promotions" : ""
                                 }`}
                             >
-                                {/*<PromotionOption>*/}
-                                {/*  <Spinner className="loading-spinner" animation="grow" variant="secondary" size="sm"/>*/}
-                                {/*  <i data-toggle="tooltip"*/}
-                                {/*     title="Enviar Seleccionados por Whatsapp"*/}
-                                {/*     className="bi bi-instagram instagram-icon cursor-pointer promotion-icon"*/}
-                                {/*  />*/}
-                                {/*</PromotionOption>*/}
+                                <PromotionOption
+                                    loading={promotionLoading[selectedCompanyId]}
+                                >
+                                    <Spinner
+                                        className="loading-spinner"
+                                        animation="grow"
+                                        variant="secondary"
+                                        size="sm"
+                                    />
+                                    <i className="bi bi-activity cursor-pointer promotion-icon text-primary"
+                                       onClick={runPromotion(selectedCompanyId)} />
+                                </PromotionOption>
                                 <PromotionOption loading={false}>
                                     <Spinner
                                         className="loading-spinner"
@@ -889,55 +916,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                         onClick={handleWhatsappPromotion}
                                     />
                                 </PromotionOption>
-                                <PromotionOption
-                                    loading={promotionLoading.betueltravel}
-                                >
-                                    <Spinner
-                                        className="loading-spinner"
-                                        animation="grow"
-                                        variant="secondary"
-                                        size="sm"
-                                    />
-                                    <img
-                                        src={BetuelTravelLogo}
-                                        data-toggle="tooltip"
-                                        className="bi-whatsapp cursor-pointer promotion-icon img-promotion-icon"
-                                        // onClick={runPromotion("betueltravel")}
-                                    />
-                                </PromotionOption>
-                                <PromotionOption
-                                    loading={promotionLoading.betueltech}
-                                >
-                                    <Spinner
-                                        className="loading-spinner"
-                                        animation="grow"
-                                        variant="secondary"
-                                        size="sm"
-                                    />
-                                    <img
-                                        src={BetuelTechLogo}
-                                        data-toggle="tooltip"
-                                        className="bi-whatsapp cursor-pointer promotion-icon img-promotion-icon"
-                                        onClick={runPromotion("betueltech")}
-                                    />
-                                </PromotionOption>
-                                <PromotionOption
-                                    loading={promotionLoading.betueldance}
-                                >
-                                    <Spinner
-                                        className="loading-spinner"
-                                        animation="grow"
-                                        variant="secondary"
-                                        size="sm"
-                                    />
-                                    <img
-                                        src={BetuelDanceLogo}
-                                        data-toggle="tooltip"
-                                        className="bi-whatsapp cursor-pointer promotion-icon img-promotion-icon"
-                                        onClick={runPromotion("betueldance")}
-                                    />
-                                </PromotionOption>
-
                                 <PromotionOption loading={promotionLoading.facebook}>
                                     <Spinner
                                         className="loading-spinner"
@@ -1055,7 +1033,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                         </Col>
                     </>
                 )}
-                {selectedCompany === 'betueltravel' ?
+                {selectedCompanyId === 'betueltravel' ?
                     <BetuelTravelDashboard/> : <>
                         <Col
                             lg={8}
@@ -1105,7 +1083,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 loadProducts={getAllProducts}
                 isOpen={productFormIsOpen}
                 toggle={toggleProductForm}
-                company={selectedCompany}
+                company={selectedCompanyId}
                 editProduct={editProduct}
             />
 

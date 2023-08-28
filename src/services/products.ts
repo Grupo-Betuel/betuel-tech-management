@@ -1,5 +1,4 @@
 import {deletePhoto} from "./gcloud";
-import {CompanyTypes} from "../model/common";
 
 export const getProducts = async (company: string) => {
     try {

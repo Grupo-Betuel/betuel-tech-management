@@ -2,7 +2,7 @@ import {CompanyTypes} from "../model/common";
 
 export const getCategories = async (companyId: string) => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}categories/by-companyId/${companyId}`);
+        const response = await fetch(`${process.env.REACT_APP_API}categories/by-company/${companyId}`);
         return await response.json() as any;
     } catch (e) {
         throw e;

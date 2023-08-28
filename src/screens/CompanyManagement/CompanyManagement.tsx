@@ -34,22 +34,27 @@ export const CompanyManagement = () => {
     }
 
     const toggleEditing = (company: CompanyModel) => () => {
-        const isEditingCompany = !!isEditing[company.companyId];
-
+        const isEditingCompany = !!isEditing[company._id]
+        console.log('edit company', company)
         setIsEditing({
             ...isEditing,
-            [company.companyId]: isEditingCompany ? null : company
+            [company._id]: isEditingCompany ? null : company
         })
     }
 
     const updateCompany = (companyId: string) => async () => {
         const company = isEditing[companyId];
+        console.log("company to update", company)
         if (company && validCompany(company as CompanyModel)) {
             setLoading(true)
-            await updateCompanies(JSON.stringify(isEditing[companyId]));
+            await updateCompanies(JSON.stringify(company));
             await handleGetCompanies();
             toast("Compañia actualizada con exito")
             setLoading(false)
+            setIsEditing({
+                ...isEditing,
+                [companyId]: null
+            });
         }
     }
 
@@ -73,21 +78,40 @@ export const CompanyManagement = () => {
         }
     }
 
-    const onChangeCompany = (companyId: string) => ({
-                                                        target: {
-                                                            name,
-                                                            type,
-                                                            value
-                                                        }
-                                                    }: React.ChangeEvent<HTMLInputElement>) => {
-        const newCompany = {
+    const onChangeCompany = (companyId: string, key?: keyof CompanyModel) => ({
+                                                                                  target: {
+                                                                                      name,
+                                                                                      type,
+                                                                                      value
+                                                                                  }
+                                                                              }: React.ChangeEvent<HTMLInputElement>) => {
+
+
+        let newCompany = {
             ...isEditing[companyId],
-            [name]: type === 'number' ? Number(value) : value
         }
+        console.log('jkljk', newCompany, companyId, isEditing)
+        if (key) {
+            newCompany = {
+                ...newCompany,
+                [key]: {
+                    ...newCompany[key],
+                    [name]: type === 'number' ? Number(value) : value
+                }
+            }
+        } else {
+            newCompany = {
+                ...newCompany,
+                [name]: type === 'number' ? Number(value) : value
+
+            }
+        }
+
+        console.log('new company', newCompany)
         setIsEditing({
             ...isEditing,
             [companyId]: newCompany
-        })
+        });
     }
 
     const onChangeCreateCompany = ({target: {name, value}}: React.ChangeEvent<HTMLInputElement>) => {
@@ -120,10 +144,14 @@ export const CompanyManagement = () => {
                 </>
             )}
             <div className="companies-grid">
-                {companies.map(company => {
-                        const isEditingCompany = !!isEditing[company.companyId];
+                {companies.map(companyData => {
+                        const company = {
+                            ...companyData,
+                            ...(isEditing[companyData._id] || {} as any)
+                        }
+                        const isEditingCompany = !!isEditing[company._id];
                         return (
-                            <Card>
+                            <Card key={company._id}>
                                 <CardBody>
                                     <Form>
                                         <FormGroup>
@@ -151,27 +179,32 @@ export const CompanyManagement = () => {
                                                          onChange={onChangeCompany(company._id)}/>}
                                         </FormGroup>
 
-                                        <div>
+                                        <div className="d-flex flex-column gap-2">
                                             <h4>Instagram</h4>
-                                            <FormGroup>
-                                                <Label><b>Company Id</b></Label> <br/>
-                                                {!isEditingCompany ? <span>{company.companyId}</span>
-                                                    : <Input value={company.companyId} name="companyId"
-                                                             onChange={onChangeCompany(company._id)}/>}
-                                            </FormGroup>
-                                            <FormGroup>
-                                                <Label><b>Telefono</b></Label> <br/>
-                                                {!isEditingCompany ? <span>{company.phone}</span>
-                                                    : <Input value={company.phone} name="phone"
-                                                             onChange={onChangeCompany(company._id)}/>}
-                                            </FormGroup>
+                                            <div className="ms-3">
+                                                <FormGroup>
+
+                                                    <Label><b>Username</b></Label> <br/>
+                                                    {!isEditingCompany ? <span>{company.instagram?.username}</span>
+                                                        : <Input value={company.instagram?.username} name="username"
+                                                                 onChange={onChangeCompany(company._id, 'instagram')}/>}
+                                                </FormGroup>
+                                                <FormGroup>
+                                                    <Label><b>Password</b></Label> <br/>
+                                                    {!isEditingCompany ? <span>{company.instagram?.password}</span>
+                                                        : <Input value={company.instagram?.password} name="password"
+                                                                 onChange={onChangeCompany(company._id, 'instagram')}/>}
+                                                </FormGroup>
+                                            </div>
                                         </div>
+
                                     </Form>
                                 </CardBody>
                                 <CardFooter className="d-flex align-items-center justify-content-between">
                                     {isEditingCompany && <Button
-                                        onClick={updateCompany(company.companyId)} color="success" outline>Guardar</Button>}
-                                    <Button onClick={()=> setCompanyToDelete(company)} color="danger" outline>Eliminar</Button>
+                                        onClick={updateCompany(company._id)} color="success" outline>Guardar</Button>}
+                                    <Button onClick={() => setCompanyToDelete(company)} color="danger"
+                                            outline>Eliminar</Button>
                                     <Button color={isEditingCompany ? "danger" : "info"}
                                             onClick={toggleEditing(company)}>{isEditingCompany ? 'Cancelar' : 'Editar'}</Button>
 
