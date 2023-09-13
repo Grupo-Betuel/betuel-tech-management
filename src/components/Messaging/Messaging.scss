@@ -21,3 +21,11 @@
     width: 100%;
   }
 }
+
+.messaging-actions {
+  display: flex;
+  gap: 1rem;
+  padding: 1rem;
+  flex-wrap: wrap;
+  justify-content: space-between;
+}

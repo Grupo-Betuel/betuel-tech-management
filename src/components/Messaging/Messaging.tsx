@@ -1,7 +1,18 @@
 import {IClient} from "../../model/interfaces/ClientModel";
 import React, {ChangeEvent, useState} from "react";
 import styled from "styled-components";
-import {Button, FormGroup, Input, Label, Spinner, Tooltip} from "reactstrap";
+import {
+    Button,
+    FormGroup,
+    Input,
+    Label,
+    Modal,
+    ModalBody,
+    ModalFooter,
+    ModalHeader,
+    Spinner,
+    Tooltip
+} from "reactstrap";
 import InputMask from "react-input-mask";
 import {toast} from "react-toastify";
 import useWhatsapp, {whatsappSeedStorePrefix} from "../hooks/UseWhatsapp";
@@ -71,6 +82,8 @@ const Messaging: React.FC<IMessaging> = (
     const [excludedWhatsappUsers, setExcludedWhatsappUsers] = React.useState<IWsUser[]>([]);
     const [selectedWhatsappUsers, setSelectedWhatsappUsers] = React.useState<IWsUser[]>([]);
     const lastSession = React.useRef<WhatsappSessionTypes>();
+    const [actionToConfirm, setActionToConfirm] = React.useState<'restart' | 'close' | undefined>(undefined);
+
     React.useEffect(() => {
         lastSession.current = selectedSession
     }, [selectedSession]);
@@ -84,7 +97,9 @@ const Messaging: React.FC<IMessaging> = (
         qrElement,
         login,
         seedData,
-        updateSeedDataWithLocalStorage
+        updateSeedDataWithLocalStorage,
+        fetchWsSeedData,
+        restartWhatsapp
     } = useWhatsapp(selectedSession);
 
 
@@ -244,6 +259,27 @@ const Messaging: React.FC<IMessaging> = (
     const onChangeCustomContact = ({ target: { value } }: React.ChangeEvent<HTMLInputElement>) => {
 
     }
+
+    const handleFetchContacts = async () => {
+        fetchWsSeedData(selectedSession);
+    }
+    const handleRestartWhatsapp = async () => {
+    }
+
+    const handleSessionAction = async () => {
+        setActionToConfirm(undefined);
+        restartWhatsapp(selectedSession);
+        if(actionToConfirm === 'restart') {
+            await restartWhatsapp(selectedSession);
+        } else if(actionToConfirm === 'close') {
+            await logOut(selectedSession)
+        }
+    }
+
+    const handleActionToConfirm = (value?: 'restart' | 'close') => () => {
+        setActionToConfirm(value);
+    }
+
     return (
         <MessagingContainer className="position-relative">
             <TagContainer className="d-flex w-100">
@@ -259,7 +295,7 @@ const Messaging: React.FC<IMessaging> = (
             {logged && <LogOutButton
                 title="Cerrar Sesión"
                 className="bi bi-power text-danger log-out-icon cursor-pointer"
-                onClick={() => logOut(selectedSession)}/>}
+                onClick={handleActionToConfirm('close')}/>}
             {
                 loading ?
                     (
@@ -269,7 +305,10 @@ const Messaging: React.FC<IMessaging> = (
                     ) : null
             }
 
-
+            <div className="messaging-actions">
+                <Button onClick={handleFetchContacts} color="info" outline>Recargar Contactos</Button>
+                <Button onClick={handleActionToConfirm('restart')} color="warning" outline>Reiniciar Sesion</Button>
+            </div>
             {!!logged && <>
                 <InputMask className="form-control mb-3" placeholder="Numeros de whatsapp" onChange={onChangeCustomContact} mask="+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999," />
                 <Multiselect
@@ -377,6 +416,16 @@ const Messaging: React.FC<IMessaging> = (
                         Message</Button>
                 </div>
             }
+            <Modal isOpen={!!actionToConfirm} toggle={handleActionToConfirm()}>
+                <ModalHeader toggle={handleActionToConfirm()}>Confirmación</ModalHeader>
+                <ModalBody>
+                    ¿Estas Seguro que deseas realizar esta acción?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={handleSessionAction}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={handleActionToConfirm()}>Cancel</Button>
+                </ModalFooter>
+            </Modal>
         </MessagingContainer>
     )
 }

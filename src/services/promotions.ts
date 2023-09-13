@@ -61,13 +61,48 @@ export const startWhatsappServices = async (
     removeSession?: boolean
 ) => {
     try {
-        return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp`, {
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/start`, {
             method: "POST",
             headers: {
                 Accept: "application/json",
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({start, sessionId, removeSession}),
+        });
+    } catch (e) {
+        throw e;
+    }
+};
+
+export const restartWhatsappServices = async (
+    sessionId: WhatsappSessionTypes,
+) => {
+    try {
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/restart`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({sessionId}),
+        });
+    } catch (e) {
+        throw e;
+    }
+};
+
+
+export const closeWhatsappServices = async (
+    sessionId: WhatsappSessionTypes,
+) => {
+    try {
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/close`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({sessionId}),
         });
     } catch (e) {
         throw e;

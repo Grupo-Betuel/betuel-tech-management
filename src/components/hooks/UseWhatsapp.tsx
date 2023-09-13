@@ -1,7 +1,12 @@
 import { IClient } from "../../model/interfaces/ClientModel";
 import React from "react";
 import QRCode from 'qrcode';
-import { startWhatsappServices, sendWhatsappMessage, getWhatsappSeedData } from "../../services/promotions";
+import {
+    startWhatsappServices,
+    sendWhatsappMessage,
+    getWhatsappSeedData,
+    restartWhatsappServices, closeWhatsappServices
+} from "../../services/promotions";
 import { toast } from "react-toastify";
 import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce, PROD_SOCKET_URL } from "../../utils/socket.io";
 import styled from "styled-components";
@@ -34,11 +39,20 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         }
     }, [])
 
-    const handleWhatsapp = async (start: boolean, sessionId:WhatsappSessionTypes, removeSession?: boolean) => {
+    const startWhatsapp = async (start: boolean, sessionId:WhatsappSessionTypes, removeSession?: boolean) => {
         const response: any = await (await startWhatsappServices(start, sessionId, removeSession)).json();
         return response;
     }
 
+    const restartWhatsapp = async (sessionId:WhatsappSessionTypes) => {
+        const response: any = await (await restartWhatsappServices(sessionId)).json();
+        return response;
+    }
+
+    const closeWhatsapp = async (sessionId:WhatsappSessionTypes) => {
+        const response: any = await (await closeWhatsappServices(sessionId)).json();
+        return response;
+    }
 
     const updateSeedDataWithLocalStorage = (sessionKey: WhatsappSessionTypes) => {
         const newSeed = JSON.parse(localStorage.getItem(`${whatsappSeedStorePrefix}${sessionKey}`) || '[]');
@@ -47,7 +61,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
 
     const login = async (sessionId: WhatsappSessionTypes) => {
         updateSeedDataWithLocalStorage(sessionId);
-        return handleWhatsapp(true, sessionId).then(res => {
+        return startWhatsapp(true, sessionId).then(res => {
             const { status } = res;
             toast(`Whatsapp is ${status}`);
             setLogged(status === 'logged')
@@ -56,12 +70,12 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     }
 
     const logOut = async (sessionId: WhatsappSessionTypes) => {
-        return handleWhatsapp(false, sessionId, true);
+        return closeWhatsapp(sessionId);
     };
 
     const destroyWsClient = async (sessionId: WhatsappSessionTypes) => {
         setLoading(true);
-        await handleWhatsapp(false, sessionId);
+        await startWhatsapp(false, sessionId);
         setLoading(false);
     };
 
@@ -102,7 +116,6 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
                 onSocketOnce(socket,WhatsappEvents.ON_AUTH_SUCCESS, ({ sessionId }) => {
                     setLogged(true)
                     setLoading(false)
-                    fetchWsSeedData(sessionId)
                 });
 
                 onSocketOnce(socket,WhatsappEvents.ON_AUTH_FAILED, async () => {
@@ -113,7 +126,6 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
                 onSocketOnce(socket,WhatsappEvents.ON_READY, () => {
                     toast('¡Whatsapp listo para usar!');
                     setLoading(false);
-                    fetchWsSeedData();
                 });
 
                 onSocketOnce(socket,WhatsappEvents.ON_LOGOUT, () => {
@@ -152,6 +164,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         destroyWsClient,
         fetchWsSeedData,
         updateSeedDataWithLocalStorage,
+        restartWhatsapp
     };
 
 }
