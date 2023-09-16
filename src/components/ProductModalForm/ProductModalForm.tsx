@@ -394,6 +394,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                saveFlyerButtonProps={{
                                    disabled: !product.category,
                                }}
+                               mediaName={`${product.name}-${company}`}
                 />
                 <ModalBody>
 

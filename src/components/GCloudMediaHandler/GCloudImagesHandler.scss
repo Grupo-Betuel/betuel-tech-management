@@ -1,0 +1,123 @@
+.images-handler-wrapper {
+  $grid-width: 600px;
+  padding: 1rem;
+  position: fixed;
+  right: -$grid-width;
+  top: 0;
+  height: 100vh;
+  width: 100%;
+  max-width: $grid-width;
+  background: #e8e8e8;
+  align-items: stretch;
+  justify-items: stretch;
+  transition: all 0.3s ease-in-out;
+  overflow: auto;
+  opacity: 0;
+  z-index: 999;
+  box-shadow: 0 0 10px #7a7a7a;
+
+  &.open {
+    right: 0;
+    opacity: 1;
+  }
+
+  .images-handler-grid {
+    $gridSize: 100px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax($gridSize, $gridSize));
+    grid-template-rows: repeat(auto-fit, minmax($gridSize, $gridSize));
+    gap: 1rem;
+  }
+
+
+  .image-handler-close {
+    $size: 30px;
+    position: fixed;
+    top: 2px;
+    left: calc(100vw - $grid-width - $size - 10px);
+    z-index: 9;
+    font-size: $size;
+    cursor: pointer;
+    color: black;
+    text-shadow: 0px 0px 10px black;
+  }
+
+  .images-handler-loading-container {
+    position: absolute;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+    background: rgba(0, 0, 0, .3);
+    top: 0px;
+    left: 0px;
+  }
+
+  .image-handler-wrapper {
+    position: relative;
+
+    .image-item {
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      cursor: pointer;
+
+      * {
+        cursor: pointer;
+      }
+    }
+
+    .image-handler-delete {
+      $size: 1.5rem;
+      visibility: hidden;
+      opacity: 0;
+      transition: all 0.2s ease-in-out;
+      position: absolute;
+      right: 0;
+      top: 0;
+      font-size: $size;
+      color: white;
+      cursor: pointer;
+      z-index: 9;
+    }
+
+    &:hover {
+      .image-handler-delete {
+        visibility: visible;
+        opacity: 1;
+        color: #cc0b0b;
+        filter: brightness(100%);
+      }
+    }
+  }
+
+  .image-handler-wrapper:hover, .image-handler-uploader:hover {
+    filter: brightness(80%);
+  }
+
+  .image-handler-uploader {
+    position: relative;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 2rem;
+    border: 3px dashed white;
+    color: white;
+    cursor: pointer;
+
+    .image-handler-input-file {
+      width: 100%;
+      height: 100%;
+      top: 0;
+      left: 0;
+      position: absolute;
+      z-index: 1;
+    }
+
+    * {
+      cursor: pointer;
+    }
+  }
+}

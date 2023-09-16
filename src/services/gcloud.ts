@@ -1,8 +1,8 @@
-import {ImageTagTypes} from "../components/GCloudImagesHandler/GCloudImagesHandler";
+import {IMediaTagTypes} from "../components/GCloudMediaHandler/GCloudMediaHandler";
 
-export const uploadGCloudImage = async (file: File, selectedTag: ImageTagTypes) => {
+export const uploadGCloudImage = async (file: File, selectedTag: IMediaTagTypes, type: string = 'image/png') => {
     const filename = encodeURIComponent(file.name);
-    const res = await fetch(`${process.env.REACT_APP_API}gcloud/upload-url/${filename}/${selectedTag}`);
+    const res = await fetch(`${process.env.REACT_APP_API}gcloud/upload-url/${filename}/${selectedTag}/${type.replace('/', '^')}`);
     const {url, fields} = await res.json();
     const formData = new FormData();
 

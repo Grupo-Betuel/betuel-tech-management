@@ -22,7 +22,7 @@ import {
     PopoverHeader
 } from "reactstrap";
 import _ from "lodash";
-import {GCloudImagesHandler, IImage} from "../GCloudImagesHandler/GCloudImagesHandler";
+import {GCloudMediaHandler, IMedia} from "../GCloudMediaHandler/GCloudMediaHandler";
 import {
     addFlyerTemplate,
     deleteFlyerTemplate,
@@ -33,6 +33,7 @@ import {toast} from "react-toastify";
 import {FlyerTemplateModel} from "../../model/flyerTemplateModel";
 import {Loading} from "../Loading/Loading";
 import {passFlyerContentToFlyerValue, passFlyerValueToFlyerContent} from "../../utils/flyer.utils";
+import {removeHTMLChars} from "../../utils/text.utils";
 
 const fonts = ['Reey Regular',
     'Rockwell Extra Bold', 'Anisha',
@@ -47,6 +48,7 @@ export interface IFlyerDesignerProps {
     templateId?: string;
     flyerOptions?: IFlyer;
     saveFlyerButtonProps?: React.ButtonHTMLAttributes<HTMLButtonElement>;
+    mediaName?: string;
 }
 
 const blankFlyer: IFlyer = {
@@ -66,7 +68,7 @@ const blankFlyer: IFlyer = {
 const saveIntervalTime = 1000 * 60;
 
 const flyerTemplateStoreKey = 'flyerTemplates';
-const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer, saveFlyerButtonProps }: IFlyerDesignerProps) => {
+const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer, saveFlyerButtonProps, mediaName }: IFlyerDesignerProps) => {
     const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [lastFlyer, setLastFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
@@ -174,7 +176,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer, sa
 
     const saveFlyer = (downloadImage?: boolean) => async () => {
         setLoading(true)
-        const flyerName = (flyer.value?.name || 'photo').replace(/[ ]/gi, '-');
+        const flyerName = removeHTMLChars(flyer.value?.name || 'photo').replace(/[ ]/gi, '-');
         const productURLName = `${flyerName}-flyer`;
         const photoName = `${productURLName}-${Date.now()}.png`;
         setSelectedElement({} as FlyerElement);
@@ -208,7 +210,7 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer, sa
         onSaveFlyer && onSaveFlyer(flyerWithValue, gcloudPublicURL + photoName);
     };
 
-    const onChangeImage = (img: IImage) => {
+    const onChangeImage = (img: IMedia) => {
         if (imageToChangeType) {
             if (imageToChangeType === 'templateImage') {
                 setFlyer({
@@ -925,8 +927,8 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer, sa
                             </label>
                         </FormGroup>
                     </div>
-                    <GCloudImagesHandler open={!!imageToChangeType} toggle={toggleImageGrid}
-                                         onClickImage={onChangeImage}/>
+                    <GCloudMediaHandler open={!!imageToChangeType} toggle={toggleImageGrid}
+                                        onClickMedia={onChangeImage} mediaName={mediaName}/>
                 </div>
                 <div className="flyer-designer-element-handler">
                     <Button onClick={addFlyerElement('text')}>Agregar Texto</Button>

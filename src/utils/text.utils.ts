@@ -19,3 +19,7 @@ export const copyText = (text: string) => {
     document.body.removeChild(dummy);
     navigator.clipboard.writeText(text);
 }
+
+export const removeHTMLChars = (text: string) => {
+    return text.replace( /(<([^>]+)>)/ig, '');
+}

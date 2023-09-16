@@ -11,6 +11,12 @@ export class CompanyModel {
 
     phone: string = '';
 
+    title: string = '';
+
+    wallpapper: string = '';
+
+    video: string = '';
+
     logo: string = '';
 
     facebook: SocialNetworkModel = {} as SocialNetworkModel;

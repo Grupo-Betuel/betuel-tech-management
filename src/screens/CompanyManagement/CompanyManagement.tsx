@@ -16,6 +16,9 @@ import {CompanyModel} from "../../model/companyModel";
 import {addCompany, deleteCompany, getCompanies, updateCompanies} from "../../services/companies";
 import "./CompanyManagement.scss"
 import {toast} from "react-toastify";
+import {onChangeMediaToUpload} from "../../utils/gcloud.utils";
+import {IMedia, IMediaTagTypes} from "../../components/GCloudMediaHandler/GCloudMediaHandler";
+import {deletePhoto} from "../../services/gcloud";
 
 export const CompanyManagement = () => {
     const [companies, setCompanies] = useState<CompanyModel[]>([]);
@@ -130,6 +133,46 @@ export const CompanyManagement = () => {
         setLoading(false);
         resetCompanyToDelete();
     }
+
+    const onChangeCompanyFile = (companyId: string, tag: IMediaTagTypes) =>
+        async (event: React.ChangeEvent<HTMLInputElement>) => {
+            const companyIdString = companies.find(company => company.companyId === companyId)?._id;
+            console.log('companyIdString', companyIdString);
+            const uploadCallBack = async (media: IMedia) => {
+
+                const companyToUpdate = isEditing[companyIdString];
+                if(companyToUpdate) {
+                    setLoading(true);
+                    const mediaToDelete = companyToUpdate[tag as keyof CompanyModel]?.split('/')?.pop() as string;
+                    console.log('media to delete', mediaToDelete);
+                    mediaToDelete && await deletePhoto(mediaToDelete);
+                    await updateCompanies(JSON.stringify({
+                        ...companyToUpdate,
+                        [tag]: media.content
+                    }));
+
+                    setLoading(false);
+                    toast(`${tag} actualizado con exito para la compañia ${companyToUpdate.name}`)
+                    setIsEditing({
+                        ...isEditing,
+                        [companyIdString]: null
+                    });
+                }
+
+                onChangeCompany(companyIdString)({
+                    target: {
+                        name: tag,
+                        type: 'string',
+                        value: media.content
+                    }
+                } as any)
+
+            };
+            setLoading(true);
+            await onChangeMediaToUpload(tag, uploadCallBack, `${companyId}-${tag}`)(event)
+            setLoading(false);
+        }
+
     return (
         <div className="company-management">
             {!loading ? null : (
@@ -148,6 +191,10 @@ export const CompanyManagement = () => {
                         const isEditingCompany = !!isEditing[company._id];
                         return (
                             <Card key={company._id}>
+                                <img
+                                    alt="Sample"
+                                    src={company.wallpaper}
+                                />
                                 <CardBody>
                                     <Form>
                                         <FormGroup>
@@ -156,11 +203,15 @@ export const CompanyManagement = () => {
                                                 : <Input value={company.name} name="name"
                                                          onChange={onChangeCompany(company._id)}/>}
                                         </FormGroup>
+
                                         <FormGroup>
                                             <Label><b>Logo</b></Label> <br/>
                                             {!isEditingCompany ? <img width={100} height={100} src={company.logo}/>
-                                                : <Input value={company.logo} name="logo"
-                                                         onChange={onChangeCompany(company._id)}/>}
+                                                :  <Input className=""
+                                                          type="file"
+                                                          name="logo"
+                                                          accept="image/png,image/jpg,image/gif,image/jpeg"
+                                                          onChange={onChangeCompanyFile(company.companyId, 'logo')}/>}
                                         </FormGroup>
                                         <FormGroup>
                                             <Label><b>Company Id</b></Label> <br/>
@@ -174,7 +225,42 @@ export const CompanyManagement = () => {
                                                 : <Input value={company.phone} name="phone"
                                                          onChange={onChangeCompany(company._id)}/>}
                                         </FormGroup>
+                                        <FormGroup>
+                                            <Label><b>Promotion Title</b></Label> <br/>
+                                            {!isEditingCompany ? <span>{company.title}</span>
+                                                : <Input value={company.title} name="title"
+                                                         onChange={onChangeCompany(company._id)}/>}
+                                        </FormGroup>
 
+                                        <FormGroup>
+                                            <Label><b>Descripcion</b></Label> <br/>
+                                            {!isEditingCompany ? <span>{company.description}</span>
+                                                : <Input type="textarea" value={company.description} name="description"
+                                                         onChange={onChangeCompany(company._id)}/>}
+                                        </FormGroup>
+                                        <FormGroup>
+                                            <Label><b>Wallpaper</b> <br/>
+                                                {!isEditingCompany ? <span>{company.wallpaper}</span>
+                                                    : <Input className=""
+                                                             type="file"
+                                                             name="wallpaper"
+                                                             accept="image/png,image/jpg,image/gif,image/jpeg"
+                                                             onChange={onChangeCompanyFile(company.companyId, 'wallpaper')}/>}
+                                            </Label>
+                                        </FormGroup>
+                                        <FormGroup>
+                                            <Label><b>Video</b> <br/>
+                                                <video width="300px" height="auto" controls>
+                                                    <source src={company.video} type="video/mp4"/>
+                                                </video>
+                                                {!isEditingCompany ? <span>{company.video}</span>
+                                                    : <Input className=""
+                                                             type="file"
+                                                             name="video"
+                                                             accept="video/mp4,video/x-m4v,video/*"
+                                                             onChange={onChangeCompanyFile(company.companyId, 'video')}/>}
+                                            </Label>
+                                        </FormGroup>
                                         <div className="d-flex flex-column gap-2">
                                             <h4>Instagram</h4>
                                             <div className="ms-3">
