@@ -66,6 +66,8 @@ export const DoubleSelectableWrapper = styled.div`
 export const MessagingContainer = styled.div`
 `
 
+export type SessionActionsTypes = 'restart' | 'close' | 'fetchSeedData';
+
 const Messaging: React.FC<IMessaging> = (
     {
         contacts,
@@ -82,7 +84,7 @@ const Messaging: React.FC<IMessaging> = (
     const [excludedWhatsappUsers, setExcludedWhatsappUsers] = React.useState<IWsUser[]>([]);
     const [selectedWhatsappUsers, setSelectedWhatsappUsers] = React.useState<IWsUser[]>([]);
     const lastSession = React.useRef<WhatsappSessionTypes>();
-    const [actionToConfirm, setActionToConfirm] = React.useState<'restart' | 'close' | undefined>(undefined);
+    const [actionToConfirm, setActionToConfirm] = React.useState<SessionActionsTypes | undefined>(undefined);
 
     React.useEffect(() => {
         lastSession.current = selectedSession
@@ -260,12 +262,6 @@ const Messaging: React.FC<IMessaging> = (
 
     }
 
-    const handleFetchContacts = async () => {
-        fetchWsSeedData(selectedSession);
-    }
-    const handleRestartWhatsapp = async () => {
-    }
-
     const handleSessionAction = async () => {
         setActionToConfirm(undefined);
         restartWhatsapp(selectedSession);
@@ -273,10 +269,12 @@ const Messaging: React.FC<IMessaging> = (
             await restartWhatsapp(selectedSession);
         } else if(actionToConfirm === 'close') {
             await logOut(selectedSession)
+        } else if(actionToConfirm === 'fetchSeedData') {
+            await fetchWsSeedData(selectedSession);
         }
     }
 
-    const handleActionToConfirm = (value?: 'restart' | 'close') => () => {
+    const handleActionToConfirm = (value?: SessionActionsTypes) => () => {
         setActionToConfirm(value);
     }
 
@@ -306,7 +304,7 @@ const Messaging: React.FC<IMessaging> = (
             }
 
             <div className="messaging-actions">
-                <Button onClick={handleFetchContacts} color="info" outline>Recargar Contactos</Button>
+                <Button onClick={handleActionToConfirm('fetchSeedData')} color="info" outline>Recargar Contactos</Button>
                 <Button onClick={handleActionToConfirm('restart')} color="warning" outline>Reiniciar Sesion</Button>
             </div>
             {!!logged && <>

@@ -47,7 +47,7 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
         loadClients()
     }, [clientPage])
 
-    const handleObserver = useCallback((entries) => {
+    const handleObserver = useCallback((entries: any) => {
         const target = entries[0];
         if (target.isIntersecting) {
             setClientPage((prev) => prev + 1);

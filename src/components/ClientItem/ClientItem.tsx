@@ -1,4 +1,4 @@
-import { FormGroup, Input, Label } from "reactstrap";
+import {FormGroup, Input, Label} from "reactstrap";
 import React, { useEffect } from "react";
 import styled from "styled-components";
 import { IClient } from "../../model/interfaces/ClientModel";
@@ -66,6 +66,7 @@ const ClientItem: React.FC<IClientItem> = (
     //     setClient(client || {});
     // }, [client]);
 
+    // @ts-ignore
     return (
         <ClientWrapper editable={editable}>
             <FormGroup className="client-item">

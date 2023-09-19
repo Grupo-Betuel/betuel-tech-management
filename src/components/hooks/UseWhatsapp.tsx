@@ -13,6 +13,7 @@ import styled from "styled-components";
 import * as io from "socket.io-client";
 import { ISeed, IWhatsappMessage, IWsUser, WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
 import { WhatsappEvents } from "../../model/socket-events";
+import {localStorageImpl} from "../../utils/localStorage.utils";
 
 export const QrCanvas = styled.canvas`
   width: 100% !important;
@@ -28,8 +29,9 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     const [seedData, setSeedData] = React.useState<ISeed>({ groups: [], users: [], labels: [] });
 
     React.useEffect(() => {
-        const storedSeedData = JSON.parse(localStorage.getItem(`${whatsappSeedStorePrefix}${whatsappSessionId}`) || '[]') ;
-        setSeedData(storedSeedData);
+        const localData = localStorageImpl.getItem(`${whatsappSeedStorePrefix}${whatsappSessionId}`)
+        const storedSeedData = localData && JSON.parse(localData);
+        storedSeedData && setSeedData(storedSeedData);
     }, []);
 
 
@@ -55,8 +57,10 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     }
 
     const updateSeedDataWithLocalStorage = (sessionKey: WhatsappSessionTypes) => {
-        const newSeed = JSON.parse(localStorage.getItem(`${whatsappSeedStorePrefix}${sessionKey}`) || '[]');
-        setSeedData(newSeed);
+        const localData = localStorageImpl.getItem(`${whatsappSeedStorePrefix}${sessionKey}`)
+        const storedSeedData = localData && JSON.parse(localData);
+        // const newSeed = JSON.parse(localStorageImpl.getItem(`${whatsappSeedStorePrefix}${sessionKey}`) || '[]');
+        storedSeedData && setSeedData(storedSeedData);
     }
 
     const login = async (sessionId: WhatsappSessionTypes) => {
@@ -93,7 +97,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         setLoading(emptySeed)
         const data = await (await getWhatsappSeedData(sessionId)).json()
         if(!data.error) {
-            localStorage.setItem(`${whatsappSeedStorePrefix}${sessionId}`, JSON.stringify(data));
+            localStorageImpl.setItem(`${whatsappSeedStorePrefix}${sessionId}`, JSON.stringify(data));
             setSeedData(data);
         }
         setLoading(false);
