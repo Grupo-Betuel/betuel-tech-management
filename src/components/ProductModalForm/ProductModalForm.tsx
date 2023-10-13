@@ -1,4 +1,5 @@
 import {
+    Accordion, AccordionBody, AccordionHeader, AccordionItem,
     Button,
     Form,
     FormGroup,
@@ -83,7 +84,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         get();
     }, [company]);
     React.useEffect(() => {
-        setCompanyDefaultTemplateId(companyTemplatesIds[company ]);
+        setCompanyDefaultTemplateId(companyTemplatesIds[company]);
     }, [company]);
 
     useEffect(() => {
@@ -302,14 +303,18 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
 
     const addProductParam = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
-        setProductParams([...productParams, {type: value as any}]);
+        setProductParams([...productParams, {type: value as any, label: value.toUpperCase()}]);
     };
     const addRelatedProductParam = (index: number) => ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
         const newProductParams = [...productParams].map((param, i) => {
             if (i === index) {
                 return {
                     ...param,
-                    relatedParams: [...(param.relatedParams || []), {type: value as any, isChildren: true}]
+                    relatedParams: [...(param.relatedParams || []), {
+                        type: value as any,
+                        label: value.toUpperCase(),
+                        isChildren: true
+                    }]
                 }
             }
             return param;
@@ -373,6 +378,19 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         setProduct({...product, ...flyer.value});
         // structuredClone()
     }
+
+
+    const [paramsOpen, setParamsOpen] = React.useState<string[]>([]);
+
+    const toggleParamsOpen = (id: any) => {
+        if (paramsOpen.includes(id)) {
+            setParamsOpen(paramsOpen.filter((paramId) => paramId !== id));
+        } else {
+            setParamsOpen([...paramsOpen, id]);
+        }
+    }
+
+    const AppAccordion = Accordion as any;
     return (
 
         <Modal backdrop="static" isOpen={isOpen} toggle={toggleModal}>
@@ -511,80 +529,132 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                 }
                             </Input>
                         </FormGroup>
-                        {!!productParams && productParams.map((param: IProductParam, index: number) => <>
-                                <Label><b>{param.type.toUpperCase()}</b></Label>
+                        {!!productParams && productParams.map((param: IProductParam, index: number) => {
+                                const paramId = (param._id || index).toString();
+                                const relatedParam = `related-${paramId}`;
+                                return <>
+                                    <AppAccordion
+                                        flush
+                                        open={paramsOpen}
+                                        toggle={toggleParamsOpen}>
+                                        <AccordionItem>
+                                            <AccordionHeader targetId={paramId}>
+                                                <Label><b>{param.type.toUpperCase()}</b></Label>
+                                            </AccordionHeader>
+                                            <AccordionBody accordionId={paramId}>
+                                                <div className="product-param-wrapper" key={`product-param-${index}`}>
+                                                    <FormGroup>
+                                                        <Label>
+                                                            Nombre:
+                                                        </Label>
+                                                        <Input value={param.label} name="label" placeholder="Opcional"
+                                                               onChange={onChangeProductParamValue(index)}/>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label>
+                                                            Valor:
+                                                        </Label>
+                                                        <Input value={param.value} name="value"
+                                                               type={param.type === 'color' ? 'color' : 'text'}
+                                                               onChange={onChangeProductParamValue(index)}/>
+                                                    </FormGroup>
+                                                    <FormGroup>
+                                                        <Label>
+                                                            Cantidad:
+                                                        </Label>
+                                                        <Input disabled={!!param.relatedParams?.length}
+                                                               value={param.quantity}
+                                                               type="number"
+                                                               name="quantity"
+                                                               onChange={onChangeProductParamValue(index)}/>
+                                                    </FormGroup>
+                                                    <FormGroup className="related-param-select">
+                                                        <div>
+                                                            <Label>Parametro Relacionado:</Label>
+                                                            <Input placeholder="Tipo"
+                                                                   onChange={addRelatedProductParam(index)}
+                                                                   value={''}
+                                                                   type="select">
+                                                                <option value="">Select</option>
+                                                                {productParamsTypes.map((type: string) =>
+                                                                    <option value={type}>{type.toUpperCase()}</option>)
+                                                                }
+                                                            </Input>
+                                                        </div>
+                                                        <i className="bi bi-trash delete-product-icon text-danger cursor-pointer"
+                                                           onClick={() => (setProductParamToDelete(param._id || index))}></i>
+                                                    </FormGroup>
 
-                                <div className="product-param-wrapper" key={`product-param-${index}`}>
-                                    <FormGroup>
-                                        <Label>
-                                            Nombre:
-                                        </Label>
-                                        <Input value={param.label} name="label" placeholder="Opcional"
-                                               onChange={onChangeProductParamValue(index)}/>
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <Label>
-                                            Valor:
-                                        </Label>
-                                        <Input value={param.value} name="value"
-                                               type={param.type === 'color' ? 'color' : 'text'}
-                                               onChange={onChangeProductParamValue(index)}/>
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <Label>
-                                            Cantidad:
-                                        </Label>
-                                        <Input disabled={!!param.relatedParams?.length} value={param.quantity} type="number"
-                                               name="quantity"
-                                               onChange={onChangeProductParamValue(index)}/>
-                                    </FormGroup>
-                                    <FormGroup className="related-param-select">
-                                        <div>
-                                            <Label>Parametro Relacionado:</Label>
-                                            <Input placeholder="Tipo" onChange={addRelatedProductParam(index)} value={''}
-                                                   type="select">
-                                                <option value="">Select</option>
-                                                {productParamsTypes.map((type: string) =>
-                                                    <option value={type}>{type.toUpperCase()}</option>)
-                                                }
-                                            </Input>
-                                        </div>
-                                        <i className="bi bi-trash delete-product-icon text-danger cursor-pointer"
-                                           onClick={() => (setProductParamToDelete(param._id || index))}></i>
-                                    </FormGroup>
 
-                                    {!!param.relatedParams?.length &&
-                                        param.relatedParams.map((relatedParam: IProductParam, relatedIndex: number) =>
-                                            <div className="related-product-params" key={`related-${relatedIndex}`}>
-                                                <FormGroup className="expanded-action">
-                                                    <Label>
-                                                        Nombre:
-                                                    </Label>
-                                                    <Input value={relatedParam.label} name="label" placeholder="Opcional"
-                                                           onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
-                                                </FormGroup>
-                                                <FormGroup className="expanded-action" key={index}>
-                                                    <Label>
-                                                        Valor:
-                                                    </Label>
-                                                    <Input value={relatedParam.value} name="value"
-                                                           type={relatedParam.type === 'color' ? 'color' : 'text'}
-                                                           onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
-                                                </FormGroup>
-                                                <FormGroup className="expanded-action" key={index}>
-                                                    <Label>
-                                                        Quantity:
-                                                    </Label>
-                                                    <Input value={relatedParam.quantity} name="quantity"
-                                                           type={'number'}
-                                                           onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
-                                                </FormGroup>
-                                                <i className="bi bi-trash delete-product-icon text-danger cursor-pointer"
-                                                   onClick={deleteRelatedParam(relatedParam._id || relatedIndex, index)}></i>
-                                            </div>
-                                        )}
-                                </div>
-                            </>
+                                                    {!!param.relatedParams?.length &&
+                                                        <AppAccordion
+                                                            flush
+                                                            open={paramsOpen}
+                                                            toggle={toggleParamsOpen}
+                                                            className="related-product-params"
+                                                        >
+                                                            <AccordionItem>
+                                                                <AccordionHeader targetId={relatedParam}>
+                                                                    <Label><b>Variedades del {param.type?.toUpperCase()}: {param.label?.toUpperCase()}</b></Label>
+                                                                </AccordionHeader>
+                                                                <AccordionBody accordionId={relatedParam}>
+                                                                    {
+                                                                        param.relatedParams.map((relatedParam: IProductParam, relatedIndex: number) => {
+                                                                            const relatedParamId = (relatedParam._id || `variant-${relatedIndex}`).toString();
+                                                                            return <div
+                                                                                className="related-product-params"
+                                                                                key={relatedParamId}>
+
+                                                                                <FormGroup
+                                                                                    className="expanded-action">
+                                                                                    <Label>
+                                                                                        Nombre:
+                                                                                    </Label>
+                                                                                    <Input
+                                                                                        value={relatedParam.label}
+                                                                                        name="label"
+                                                                                        placeholder="Opcional"
+                                                                                        onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
+                                                                                </FormGroup>
+                                                                                <FormGroup
+                                                                                    className="expanded-action"
+                                                                                    key={index}>
+                                                                                    <Label>
+                                                                                        Valor:
+                                                                                    </Label>
+                                                                                    <Input
+                                                                                        value={relatedParam.value}
+                                                                                        name="value"
+                                                                                        type={relatedParam.type === 'color' ? 'color' : 'text'}
+                                                                                        onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
+                                                                                </FormGroup>
+                                                                                <FormGroup
+                                                                                    className="expanded-action"
+                                                                                    key={index}>
+                                                                                    <Label>
+                                                                                        Quantity:
+                                                                                    </Label>
+                                                                                    <Input
+                                                                                        value={relatedParam.quantity}
+                                                                                        name="quantity"
+                                                                                        type={'number'}
+                                                                                        onChange={onChangeRelatedProductParamValue(index, relatedIndex)}/>
+                                                                                </FormGroup>
+                                                                                <i className="bi bi-trash delete-product-icon text-danger cursor-pointer"
+                                                                                   onClick={deleteRelatedParam(relatedParam._id || relatedIndex, index)}></i>
+                                                                            </div>
+                                                                        })}
+
+                                                                </AccordionBody>
+                                                            </AccordionItem>
+                                                        </AppAccordion>
+                                                    }
+                                                </div>
+                                            </AccordionBody>
+                                        </AccordionItem>
+                                    </AppAccordion>
+                                </>
+                            }
                         )}
                     </>}
                 </ModalBody>

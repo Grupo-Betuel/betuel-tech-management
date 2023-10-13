@@ -1,4 +1,5 @@
 import {
+    Accordion, AccordionBody, AccordionHeader, AccordionItem,
     Button,
     FormGroup,
     Input,
@@ -167,7 +168,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
     const getAllSalesById = (enableProductSales?: boolean) => {
         if (salesData) {
             const newProductSales = salesData
-                .filter((item, i) => (item?.product?._id || item?.productId) === (sale?.product?._id || sale?.productId) )
+                .filter((item, i) => (item?.product?._id || item?.productId) === (sale?.product?._id || sale?.productId))
 
             console.log("salesss", newProductSales, salesData, sale)
             setProductSales([...newProductSales]);
@@ -254,6 +255,18 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
         }
     }
 
+    const [paramsOpen, setParamsOpen] = React.useState<string[]>([]);
+
+    const toggleParamsOpen = (id: any) => {
+        if (paramsOpen.includes(id)) {
+            setParamsOpen(paramsOpen.filter((paramId) => paramId !== id));
+        } else {
+            setParamsOpen([...paramsOpen, id]);
+        }
+    }
+
+    const AppAccordion = Accordion as any;
+
     return (
         <>
             <Modal isOpen={activeConfirmationModal} toggle={toggleConfirmation}>
@@ -291,7 +304,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                         Eliminar Seleccionadas
                                     </Button>
                                 </div>}
-                            <TableComponent onSelectItem={(items: any) =>  setSelectedSales(items)}
+                            <TableComponent onSelectItem={(items: any) => setSelectedSales(items)}
                                             data={productSales} headers={salesHeader} actions={salesAction}/>
                         </>
                         :
@@ -314,43 +327,58 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                             {/*    className="customized-switch"*/}
                             {/*    onChange={useCommissionChange}/>*/}
 
-                            {sale.params?.map((param: IProductParam, index: number) =>
-                                <>
-                                    <Label><b>{param.type.toUpperCase()}</b></Label>
-                                    <div className="product-param-wrapper">
-                                        <span>
-                                            {param.label}
-                                        </span>
-                                        {param.type === 'color' ?
-                                            <div className="color-value-param"
-                                                 style={{backgroundColor: param.value}}></div>
-                                            :
-                                            <span>{param.value}</span>
-                                        }
-                                        {!param.relatedParams?.length &&
-                                            <Input type="number" name="quantity" value={param.quantity} placeholder={'Cantidad'}
-                                                   onChange={onChangeProductParamQuantity(index)}/>
-                                        }
-                                        {param.relatedParams?.length &&
-                                            param.relatedParams.map((relatedParam: IProductParam, relatedIndex: number) =>
-                                                <div className="related-product-params" key={`related-${relatedIndex}`}>
+                            {sale.params?.map((param: IProductParam, index: number) => {
+                                const paramId = `param-${param._id || index}`;
+                                const relatedId = `related-${paramId}`;
+                                return <>
+                                    <AppAccordion
+                                        flush
+                                        open={paramsOpen}
+                                        toggle={toggleParamsOpen}
+                                        className="product-param-wrapper"
+                                    >
+                                        <AccordionItem>
+                                            <AccordionHeader targetId={paramId}>
+                                                <Label className="d-flex gap-3 align-items-center">
+                                                    <b>{param.type.toUpperCase()}: {param.label?.toUpperCase()}</b>
+                                                    {
+                                                        param.type === 'color' &&
+                                                        <div className="color-value-param"
+                                                             style={{backgroundColor: param.value}}></div>
+                                                    }
+                                                </Label>
+                                            </AccordionHeader>
+                                            <AccordionBody accordionId={paramId}>
+                                                <div className="product-param-wrapper">
+                                                    {!param.relatedParams?.length &&
+                                                        <Input type="number" name="quantity" value={param.quantity}
+                                                               placeholder={'Cantidad'}
+                                                               onChange={onChangeProductParamQuantity(index)}/>
+                                                    }
+                                                    {param.relatedParams?.length &&
+                                                        param.relatedParams.map((relatedParam: IProductParam, relatedIndex: number) =>
+                                                                <div className="related-product-params"
+                                                                     key={`related-${relatedIndex}`}>
                                                         <span>
                                                             {relatedParam.label}
                                                         </span>
-                                                    {relatedParam.type === 'color' ?
-                                                        <div className="color-value-param"
-                                                             style={{backgroundColor: relatedParam.value}}></div>
-                                                        :
-                                                        <span>{relatedParam.value}</span>
-                                                    }
-                                                    <Input value={relatedParam.quantity} name="quantity"
-                                                           type={'number'}
-                                                           onChange={onChangeRelatedProductParamValue(relatedIndex, index)}/>
+                                                                    {relatedParam.type === 'color' ?
+                                                                        <div className="color-value-param"
+                                                                             style={{backgroundColor: relatedParam.value}}></div>
+                                                                        :
+                                                                        <span>{relatedParam.value}</span>
+                                                                    }
+                                                                    <Input value={relatedParam.quantity} name="quantity"
+                                                                           type={'number'}
+                                                                           onChange={onChangeRelatedProductParamValue(relatedIndex, index)}/>
+                                                                </div>
+                                                        )}
                                                 </div>
-                                            )}
-                                    </div>
+                                            </AccordionBody>
+                                        </AccordionItem>
+                                    </AppAccordion>
                                 </>
-                            )}
+                            })}
                         </>
                     }
                     {
