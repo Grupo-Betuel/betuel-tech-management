@@ -342,9 +342,10 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                                 <Label className="d-flex gap-3 align-items-center">
                                                     <b>{param.type.toUpperCase()}: {param.label?.toUpperCase()}</b>
                                                     {
-                                                        param.type === 'color' &&
+                                                        param.type === 'color' ?
                                                         <div className="color-value-param"
                                                              style={{backgroundColor: param.value}}></div>
+                                                            : <span>{param.value}</span>
                                                     }
                                                 </Label>
                                             </AccordionHeader>
