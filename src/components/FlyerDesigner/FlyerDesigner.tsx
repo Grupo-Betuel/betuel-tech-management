@@ -594,7 +594,10 @@ const FlyerDesigner = ({onChangeFlyer, flyerOptions, templateId, onSaveFlyer, sa
                            title="Tooltip on top" id="editTextItemBorderToggle"
                            onClick={toggleEditBorderItemPanel}/>
                         <Popover isOpen={editBorderItemPanelIsOpen}
-                                 target="editTextItemBorderToggle" toggle={toggleEditBorderItemPanel}>
+                                 target="editTextItemBorderToggle"
+                                 toggle={toggleEditBorderItemPanel}
+                                 trigger="focus"
+                        >
                             <PopoverHeader>Border Options</PopoverHeader>
                             <PopoverBody>
                                 <FormGroup>

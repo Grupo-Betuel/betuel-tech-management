@@ -103,7 +103,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
     React.useEffect(() => {
         const stock = productParams.reduce((a, b) => a + Number(b.quantity || 0), 0);
-        setProduct({...product, stock});
+        setProduct({...product, stock: stock || product.stock });
     }, [productParams]);
 
     const onChangeNewCategory = (value: string) => {
@@ -523,7 +523,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                         </FormGroup>
 
                         <FormGroup>
-                            <Label htmlFor="stockId">Cantidad:</Label>
+                            <Label htmlFor="stockId">Cantidad: </Label>
                             <Input disabled={!!productParams.length} onChange={onChangeProduct} type="number"
                                    name="stock"
                                    id="stockId"
