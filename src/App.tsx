@@ -15,7 +15,6 @@ function App() {
     return (
         <div className="App">
             <Switch>
-
                 {token ?
                     <>
                         <Route path="/dashboard" component={() => <Dashboard setToken={setToken}/>}/>
