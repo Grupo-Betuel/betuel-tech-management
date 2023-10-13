@@ -21,8 +21,12 @@ $width: 2;
 
 
 .flyer-designer {
+  display: flex;
+  gap: 2rem;
+  align-items: center;
   position: relative;
-  max-width: 32rem;
+  width: 100%;
+  margin: 0 auto;
 
   .flyer-designer-background-image {
     width: 100%;
@@ -145,10 +149,15 @@ $width: 2;
 
   .flyer-designer-actions {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(100px, 1fr));
+    grid-template-rows: repeat(auto-fit, minmax(100px, 1fr));
     gap: 1rem;
     align-items: center;
     justify-items: center;
+    background: #0d6efd;
+    color: white;
+    max-height: 100dvh;
+    overflow-y: auto;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
 
     .expanded-action {
       grid-column: 1 / -1;

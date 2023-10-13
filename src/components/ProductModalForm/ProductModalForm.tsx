@@ -177,14 +177,16 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     const extractNumbersFromText = (text: string): number => {
         return Number(text.replace(/[^0-9]/g, ''));
     }
-    const onSubmit = async (flyer: IFlyer, image: string) => {
+    const onSubmit = async (flyer: IFlyer = JSON.parse(product.flyerOptions || '{}'), image: string = product.image || '') => {
+        // const flyer: IFlyer = (flyerData || JSON.parse(product.flyerOptions || '{}')) as IFlyer;
+
         setIsSubmiting(true);
-        const price = extractNumbersFromText((flyer.value.price || product.price).toString());
-        let productName = (flyer.value.name || product?.name || '').replaceAll(/<\/?[^>]+(>|$)/gi, "");
-        console.log('productName ->', productName);
+        const price = extractNumbersFromText((flyer?.value?.price || product.price).toString());
+        let productName = (flyer?.value?.name || product?.name || '').replaceAll(/<\/?[^>]+(>|$)/gi, "");
+        console.log('productName ->', flyer);
         const body = JSON.stringify({
             ...product,
-            ...flyer.value,
+            ...(flyer.value || {}),
             name: productName,
             price,
             company,
@@ -389,11 +391,20 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             setParamsOpen([...paramsOpen, id]);
         }
     }
+    const [enableFlyer, setEnableFlyer] = React.useState(false);
+
+    const toggleFlyer = () => {
+        setEnableFlyer(!enableFlyer);
+    }
 
     const AppAccordion = Accordion as any;
     return (
 
-        <Modal backdrop="static" isOpen={isOpen} toggle={toggleModal}>
+        <Modal className="modal-class"
+               wrapClassName="wrapp-class"
+               modalClassName={(enableFlyer || !editProduct) ? `expanded-modal` : ''}
+               contentClassName={"content-class"}
+               backdrop="static" isOpen={isOpen} toggle={toggleModal}>
             {
                 !isSubmiting ? null :
                     <>
@@ -402,18 +413,26 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                         </div>
                     </>
             }
-            <ModalHeader
-                toggle={toggleModal}>{editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}</ModalHeader>
+            <ModalHeader toggle={toggleModal}>
+                <div
+                    className="d-flex align-items-center justify-content-between w-100"
+                >
+                    {editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}
+                    { editProduct && <Button color={enableFlyer ? 'danger' : 'info'} outline
+                             onClick={toggleFlyer}>{enableFlyer ? 'Cancelar Edicion de Imagen' : 'Editar Imagen'}</Button>}
+                </div>
+            </ModalHeader>
             <Form>
-                <FlyerDesigner flyerOptions={flyerOptions}
-                               templateId={companyDefaultTemplateId}
-                               onSaveFlyer={onSubmit}
-                               onChangeFlyer={onChangeFlyer}
-                               saveFlyerButtonProps={{
-                                   disabled: !product.category,
-                               }}
-                               mediaName={`${product.name}-${company}`}
-                />
+                {(enableFlyer || !editProduct) ? <FlyerDesigner flyerOptions={flyerOptions}
+                                              templateId={companyDefaultTemplateId}
+                                              onSaveFlyer={onSubmit}
+                                              onChangeFlyer={onChangeFlyer}
+                                              saveFlyerButtonProps={{
+                                                  disabled: !product.category,
+                                              }}
+                                              mediaName={`${product.name}-${company}`}
+                /> : <img src={product.image} alt=""/>
+                }
                 <ModalBody>
 
                     {
@@ -595,7 +614,8 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                                         >
                                                             <AccordionItem>
                                                                 <AccordionHeader targetId={relatedParam}>
-                                                                    <Label><b>Variedades del {param.type?.toUpperCase()}: {param.label?.toUpperCase()}</b></Label>
+                                                                    <Label><b>Variedades
+                                                                        del {param.type?.toUpperCase()}: {param.label?.toUpperCase()}</b></Label>
                                                                 </AccordionHeader>
                                                                 <AccordionBody accordionId={relatedParam}>
                                                                     {
@@ -660,6 +680,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 </ModalBody>
                 <ModalFooter>
                     <Button color="danger" onClick={toggleModal} outline>Salir</Button>{' '}
+                    <Button color="success" onClick={() => onSubmit()} outline>Guardar</Button>{' '}
                 </ModalFooter>
             </Form>
             <Modal isOpen={productParamToDelete !== ''} toggle={resetProductParam}>

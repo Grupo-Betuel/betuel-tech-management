@@ -1,5 +1,18 @@
+
+.expanded-modal {
+  .modal-dialog {
+    margin: unset !important;
+    max-width: unset !important;
+  }
+  .modal-content {
+    width: 100dvw !important;
+  }
+}
 .modal-dialog {
   max-width: 514px !important;
+  .modal-title {
+    width: 100%;
+  }
 }
 .product-detail-text {
   font-family: product-font;
