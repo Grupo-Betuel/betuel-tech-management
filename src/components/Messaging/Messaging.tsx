@@ -263,8 +263,6 @@ const Messaging: React.FC<IMessaging> = (
     }
 
     const handleSessionAction = async () => {
-        setActionToConfirm(undefined);
-        restartWhatsapp(selectedSession);
         if(actionToConfirm === 'restart') {
             await restartWhatsapp(selectedSession);
         } else if(actionToConfirm === 'close') {
@@ -272,6 +270,8 @@ const Messaging: React.FC<IMessaging> = (
         } else if(actionToConfirm === 'fetchSeedData') {
             await fetchWsSeedData(selectedSession);
         }
+        setActionToConfirm(undefined);
+
     }
 
     const handleActionToConfirm = (value?: SessionActionsTypes) => () => {
@@ -290,10 +290,10 @@ const Messaging: React.FC<IMessaging> = (
                     ))
                 }
             </TagContainer>
-            {logged && <LogOutButton
+            <LogOutButton
                 title="Cerrar Sesión"
                 className="bi bi-power text-danger log-out-icon cursor-pointer"
-                onClick={handleActionToConfirm('close')}/>}
+                onClick={handleActionToConfirm('close')}/>
             {
                 loading ?
                     (
@@ -320,7 +320,7 @@ const Messaging: React.FC<IMessaging> = (
                 <DoubleSelectableWrapper className="mb-3">
                     <Multiselect
                         placeholder="Grupos"
-                        options={seedData.groups || []} // Options to display in the dropdown
+                        options={seedData.groups || []} // Options to 2display in the dropdown
                         displayValue="subject" // Property name to display in the dropdown options
                         onSelect={handleGroupSelection}
                         onRemove={handleGroupSelection}

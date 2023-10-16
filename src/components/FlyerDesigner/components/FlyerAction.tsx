@@ -70,7 +70,9 @@ export const FlyerAction = (
 
     React.useEffect(() => {
         setFlyerActionId(counter += 1);
-        return () => counter = 0;
+        return () => {
+            counter = 0
+        };
     }, []);
 
     const onChange = ({target: {value, name, type, checked}}: React.ChangeEvent<HTMLInputElement>) => {
@@ -124,7 +126,7 @@ export const FlyerAction = (
         (
             isEnabled &&
             <div data-toggle="tooltip" data-placement="top"
-                       title={tooltip} className="position-relative">
+                 title={tooltip} className="position-relative">
                 {toggle ?
                     <>
                         <span className="cursor-pointer" id={popoverId}
