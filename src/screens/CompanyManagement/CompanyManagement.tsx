@@ -137,14 +137,12 @@ export const CompanyManagement = () => {
     const onChangeCompanyFile = (companyId: string, tag: IMediaTagTypes) =>
         async (event: React.ChangeEvent<HTMLInputElement>) => {
             const companyIdString = companies.find(company => company.companyId === companyId)?._id;
-            console.log('companyIdString', companyIdString);
             const uploadCallBack = async (media: IMedia) => {
 
                 const companyToUpdate = isEditing[companyIdString];
                 if(companyToUpdate) {
                     setLoading(true);
                     const mediaToDelete = companyToUpdate[tag as keyof CompanyModel]?.split('/')?.pop() as string;
-                    console.log('media to delete', mediaToDelete);
                     mediaToDelete && await deletePhoto(mediaToDelete);
                     await updateCompanies(JSON.stringify({
                         ...companyToUpdate,

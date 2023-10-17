@@ -173,7 +173,6 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
 
                 if (response.status === 201 || response.status === 200) {
                     clients[index] = response.status === 200 ? temp : (await response.json() as any);
-                    console.log(clients[index], 'klk');
                     setClients([...clients]);
                     toast(`¡Cliente ${temp._id ? 'Actualizado' : 'Agregado'} Correctamente!`, {type: 'success'})
                 } else {
@@ -227,7 +226,6 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
             tags: updatedTags,
         }
         const response = await updateClients(JSON.stringify(newClient));
-        console.log(response, 'response');
         setLoading(false);
         loadClients();
     }

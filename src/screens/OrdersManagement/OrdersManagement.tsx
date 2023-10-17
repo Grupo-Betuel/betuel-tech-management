@@ -86,18 +86,14 @@ export const OrdersManagement = () => {
 
     useEffect(() => {
         if (connected && socket) {
-            console.log('orders!', orders);
             onSocketOnce(socket, OrderEvents.CREATED_ORDER, (order: IOrder) => {
-                console.log('order create', order, orders);
                 const newOrders = [{...order, fromSocket: true}, ...orders]
                 setOrders(newOrders)
                 const originalValues = (Object.values(originalOrders) as IOrder[])
                 setOriginalOrders(parseOrdersToObject([{...order, fromSocket: true}, ...originalValues]))
-                console.log('orders', newOrders)
             })
 
             onSocketOnce(socket, OrderEvents.UPDATED_ORDER, (order: IOrder) => {
-                console.log('order updated', order)
                 const newOrders = orders.map((o) => {
                     if (o._id === order._id) {
                         return {...order, fromSocket: true};
@@ -109,12 +105,10 @@ export const OrdersManagement = () => {
                 newOriginalOrders[order._id] = order;
 
                 setOrders(newOrders)
-                console.log('updated orders', newOrders)
                 setOriginalOrders(newOriginalOrders)
             })
 
             onSocketOnce(socket, OrderEvents.UPDATED_MESSENGER, (messenger: IMessenger) => {
-                console.log('messenger updated', messenger)
 
                 const newMessengers = messengers.map((m) => {
                     if (m._id === messenger._id) {
@@ -229,7 +223,6 @@ export const OrdersManagement = () => {
     }
 
     const hostname: string = useMemo(() => window.location.origin, [window.location.origin])
-    console.log('hostname', hostname);
 
     const handleUpdateMessenger = (messenger: IMessenger) => async () => {
         setLoading(true);

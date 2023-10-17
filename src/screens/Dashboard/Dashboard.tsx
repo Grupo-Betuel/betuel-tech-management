@@ -424,7 +424,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     };
 
     React.useEffect(() => {
-        console.log("klk?", socket?.connected, selectedECommerce)
 
         if (socket && !!selectedECommerce) {
             if (socket.connected) {
@@ -453,9 +452,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 );
                 setSelectedECommerce("");
             } else {
-                console.log('connect');
                 socket.on(CONNECTED_EVENT, async () => {
-                    console.log('goood!!')
 
 
                     promoteSelectedProduct(
@@ -588,7 +585,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     };
 
     const runPromotionEvents = () => {
-        console.log('runPromotionEvents');
 
         onSocketOnce(
             socket as io.Socket,
@@ -608,7 +604,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             socket as io.Socket,
             EcommerceEvents.ON_PUBLISHED,
             (response: ECommerceResponse) => {
-                console.log('published', response)
                 toast(
                     ecommerceMessages.PUBLISHED_ITEM(
                         response.ecommerce,
@@ -637,7 +632,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     corotos: false,
                 }));
 
-                console.log("completed", response)
                 toast(
                     ecommerceMessages.COMPLETED_PUBLISHING(response.ecommerce),
                     {
@@ -673,7 +667,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             socket as io.Socket,
             ScheduleEvents.EMIT_RUNNING,
             ({sessionId}: ScheduleResponse) => {
-                console.log("sessionId", sessionId);
                 setPromotionLoading((data) => ({
                     ...promotionLoading,
                     ...data,
@@ -687,7 +680,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             socket as io.Socket,
             ScheduleEvents.EMIT_STOPPED,
             ({sessionId}: ScheduleResponse) => {
-                console.log("sessionId", sessionId);
                 setPromotionLoading((data) => ({
                     ...promotionLoading,
                     ...data,
@@ -701,7 +693,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             socket as io.Socket,
             ScheduleEvents.EMIT_FAILED,
             ({sessionId, error}: ScheduleResponse) => {
-                console.log("sessionId", sessionId);
                 console.error(error);
                 setPromotionLoading((data) => ({
                     ...promotionLoading,
@@ -717,7 +708,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const onDeleteProduct = async () => {
         setLoadingApp(true);
         const res = await deleteProduct(deleteProductId);
-        console.log('deleted item', res);
         setLoadingApp(false);
         getAllProducts();
         setDeleteConfirmationModal(false)

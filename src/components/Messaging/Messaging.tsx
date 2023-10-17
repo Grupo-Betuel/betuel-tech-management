@@ -133,7 +133,6 @@ const Messaging: React.FC<IMessaging> = (
     }
 
     const onMessageSent = (contact: IClient) => {
-        console.log('contact', contact)
         toast(`Mensaje enviado a ${contact.firstName}`);
     }
 
@@ -172,7 +171,6 @@ const Messaging: React.FC<IMessaging> = (
     }
 
     const handleSendMessage = (sessionId: WhatsappSessionTypes) => async () => {
-        console.log("foto", photo)
         const whatsappUsers = getWhatsappUsers();
 
         if (selectedProducts && selectedProducts.length) {
@@ -185,7 +183,6 @@ const Messaging: React.FC<IMessaging> = (
                 }
 
                 parseUrlToBase64(product.image, async (image: Blob) => {
-                    console.log("image", image)
                     await sendMessage(sessionId, whatsappUsers, {text, photo: image})
                 });
             }));
@@ -226,7 +223,6 @@ const Messaging: React.FC<IMessaging> = (
     const handleGroupSelection = (selectedList: IWsGroup[]) => {
         let grouped: IWsUser[] = [];
         selectedList.forEach(group => grouped = [...grouped, ...group.participants]);
-        console.log("grouped", grouped);
         setGroupedUsers(grouped);
     }
 

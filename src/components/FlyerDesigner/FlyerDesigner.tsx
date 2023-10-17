@@ -339,7 +339,6 @@ const FlyerDesigner = (
         setPropertiesToReset(undefined);
     }
     const resetFlyerElementProp = () => {
-        console.log('reseting', propertiesToReset);
         if(!propertiesToReset) return;
         const changedElement = selectedElement;
         propertiesToReset?.forEach(prop => {
@@ -503,7 +502,6 @@ const FlyerDesigner = (
                 const popovers = Array.from(document.querySelectorAll('.popover, .dropdown-menu')).map(item => item.contains(e.target)).reduce((a, b) => a || b, true);
                 const ref: any = designWrapperRef.current;
                 const unsetElement = e.target?.classList.contains('flyer-designer') || e.target?.classList.contains("flyer-designer-result-wrapper");
-               console.log('popover',  popovers, e.target);
                 if (!ref.contains(e.target) && !popovers || unsetElement) {
                     setSelectedElement({} as FlyerElementModel);
                     // put your action here

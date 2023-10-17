@@ -60,7 +60,6 @@ export const FlyerElement = (
     }
 
     const handleOnChangeElementRotation = (e: any, e2: any, curr: any) => {
-        console.log('rotating', curr, e, e2);
     }
     const styledElement = (
         <div

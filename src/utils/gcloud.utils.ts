@@ -11,12 +11,10 @@ export const uploadMedia = async (media: IMedia, selectedTag: IMediaTagTypes, me
         const type = media.type.split('/')[1];
         const mediaNameClean = removeHTMLChars(mediaNameText).replace(/ /g, '-').toLowerCase();
         const mediaName = `${mediaNameClean}-${Date.now()}.${type}`;
-        console.log(mediaName, 'name');
 
         const file = new File([blob], mediaName);
         const responseImage = await uploadGCloudImage(file, selectedTag, media.type);
         const url = `https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/${mediaName}?alt=media`;
-        console.log(url, 'url', responseImage);
         media.content = url;
         return media;
 }
@@ -39,7 +37,6 @@ export const onChangeMediaToUpload = (selectedTag: IMediaTagTypes, callBack?: (c
                         };
                         const media = await uploadMedia(mediaObject, selectedTag, mediaName);
 
-                        console.log(media, 'media');
                         callBack && media && callBack(media);
                         // setLoading(false);
                 }

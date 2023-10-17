@@ -170,7 +170,6 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
             const newProductSales = salesData
                 .filter((item, i) => (item?.product?._id || item?.productId) === (sale?.product?._id || sale?.productId))
 
-            console.log("salesss", newProductSales, salesData, sale)
             setProductSales([...newProductSales]);
             if (enableProductSales) {
                 setProductSalesActive(true);

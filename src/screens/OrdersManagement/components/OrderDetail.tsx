@@ -32,7 +32,6 @@ export const OrderDetail = () => {
         history.push('/orders')
     }
 
-    console.log(location.state)
 
     React.useEffect(() => {
         setLoading(true);
@@ -73,7 +72,6 @@ export const OrderDetail = () => {
             sales: newSales
         }
 
-        console.log('order', newOrder);
         setOrder(newOrder)
     }
 
@@ -127,13 +125,11 @@ export const OrderDetail = () => {
             }
             return sale;
         })
-        console.log('newSales', newSales);
         const newOrder: IOrder = {
             ...order,
             sales: newSales as any
         }
 
-        console.log('order', newOrder);
         setOrder(newOrder)
     }
 
