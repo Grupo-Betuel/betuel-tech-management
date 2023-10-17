@@ -189,7 +189,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         setIsSubmiting(true);
         const price = extractNumbersFromText((flyer?.value?.price || product.price).toString());
         let productName = (flyer?.value?.name || product?.name || '').replaceAll(/<\/?[^>]+(>|$)/gi, "");
-        const body = JSON.stringify({
+        const productData = {
             ...product,
             ...(flyer.value || {}),
             name: productName,
@@ -199,7 +199,8 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             productParams,
             flyerOptions: JSON.stringify(flyer),
             _id: editProduct?._id,
-        });
+        }
+        const body = JSON.stringify(productData);
 
         if (editProduct) {
             const imageToDelete = editProduct.image?.split('/').pop();
@@ -208,6 +209,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             await addProduct(body);
         }
 
+        setProduct(productData)
         loadProducts();
         setIsSubmiting(false);
         // toggleModal();
@@ -425,7 +427,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 >
                     {editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}
                     {editProduct && <Button className="me-3" color={enableFlyer ? 'danger' : 'info'} outline
-                                            onClick={toggleFlyer}>{enableFlyer ? 'Cancelar Edicion de Imagen' : 'Editar Imagen'}</Button>}
+                                            onClick={toggleFlyer}>{enableFlyer ? 'Salir de edición' : 'Editar Imagen'}</Button>}
                 </div>
             </ModalHeader>
             <Form className="w-100 h-100">
