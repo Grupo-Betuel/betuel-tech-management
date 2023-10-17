@@ -38,6 +38,7 @@ import {FlyerAction} from "./components/FlyerAction/FlyerAction";
 import {FlyerActionsElements} from "./constants/flyer-actions-elements";
 import {FlyerDesignerSidebar} from "./components/FlyerDesignerSidebar/FlyerDesignerSidebar";
 import {FlyerElement} from "./components/FlyerElement/FlyerElement";
+import {IProductData} from "../../model/products";
 
 const fonts = ['Reey Regular',
     'Rockwell Extra Bold', 'Anisha',
@@ -70,6 +71,36 @@ const blankFlyer: IFlyer = {
 }
 
 const saveIntervalTime = 1000 * 60;
+export type IReferenceTypes = keyof IProductData;
+
+export interface IReference {
+    type: IReferenceTypes;
+    label: string;
+}
+
+const referenceOptions: IReference[] = [
+    {
+        type: 'GodWord',
+        label: 'Mensaje de Dios'
+    },
+    {
+        type: 'productImage',
+        label: 'Imagen del Producto'
+    },
+    {
+        type: 'name',
+        label: 'Nombre del Producto'
+    },
+    {
+        type: 'price',
+        label: 'Precio del producto'
+    },
+
+    {
+        type: 'description',
+        label: 'Descripcion del producto'
+    },
+]
 
 const flyerTemplateStoreKey = 'flyerTemplates';
 const FlyerDesigner = (
@@ -339,7 +370,7 @@ const FlyerDesigner = (
         setPropertiesToReset(undefined);
     }
     const resetFlyerElementProp = () => {
-        if(!propertiesToReset) return;
+        if (!propertiesToReset) return;
         const changedElement = selectedElement;
         propertiesToReset?.forEach(prop => {
             _.set<FlyerElementModel>(changedElement, prop, undefined);
@@ -604,7 +635,7 @@ const FlyerDesigner = (
                                     </label>
                                     <UncontrolledTooltip placement="top"
                                                          target="background-changer">
-                                      Cambiar Fondo del Elemento
+                                        Cambiar Fondo del Elemento
                                     </UncontrolledTooltip>
                                     {selectedElement.backgroundImage &&
                                         <i className="bi bi-x cursor-pointer flyer-designer-reset-element-prop-icon"
@@ -676,8 +707,17 @@ const FlyerDesigner = (
                     <div className="flyer-designer-bottom-bar">
                         {selectedElement.id &&
                             <div className="border-end pe-3">
-                                <Input type="text" name="ref" placeholder="Referencia" value={selectedElement.ref || ''}
-                                       onChange={onChangeElementRef}/>
+                                <Input type="select" name="ref" placeholder="Referencia"
+                                       value={selectedElement.ref || ''}
+                                       onChange={onChangeElementRef}>
+                                    {referenceOptions.map((ref, i) =>
+                                        <option
+                                            selected={!!referenceOptions.find(r => r.type === ref.type)}
+                                            value={ref.type}
+                                            key={`reference-${i}`}
+                                        >{ref.label}</option>)
+                                    }
+                                </Input>
                             </div>}
 
                         <Input onChange={onChangeTemplateName}
@@ -685,9 +725,9 @@ const FlyerDesigner = (
                         <Button onClick={createTemplate} color="primary">Crear Plantilla</Button>
                         {
                             selectedTemplate?._id && <>
-                            <Button onClick={updateTemplate} color="info">Actualizar Plantilla</Button>
-                            <Button onClick={toggleDeleteTemplateModal} color="danger">Delete Plantilla</Button>
-                        </>}
+                                <Button onClick={updateTemplate} color="info">Actualizar Plantilla</Button>
+                                <Button onClick={toggleDeleteTemplateModal} color="danger">Delete Plantilla</Button>
+                            </>}
                     </div>
                 </div>
             </div>

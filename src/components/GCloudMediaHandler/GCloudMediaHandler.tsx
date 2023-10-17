@@ -143,7 +143,7 @@ export const GCloudMediaHandler = ({onClickMedia, mediaName}: IGCloudImagesHandl
 
     return (
         <div className={`images-handler-wrapper`}>
-            <div>
+            <div className="images-handler-tags">
                 <TagContainer className="d-flex w-100">
                     {
                         tags.map((tag, key) => (
