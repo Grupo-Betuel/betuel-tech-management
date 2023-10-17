@@ -32,3 +32,8 @@
     color: white !important;
     border: gray !important;
 }
+
+
+.dropdown-menu {
+    z-index: 9999 !important;
+}

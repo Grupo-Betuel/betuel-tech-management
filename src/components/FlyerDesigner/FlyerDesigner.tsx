@@ -380,6 +380,7 @@ const FlyerDesigner = (
     }
 
     const handleResetFlyerElementProp = (props: string[]) => () => {
+        console.log('props', props);
         setPropertiesToReset(props);
     }
 
@@ -595,6 +596,7 @@ const FlyerDesigner = (
         })
     }
 
+
     // @ts-ignore
     return (
         <>
@@ -626,7 +628,7 @@ const FlyerDesigner = (
                                 />
                             ))}
                             {selectedElement.id &&
-                                <div className="flyer-designer-top-bar-item">
+                                <div className="flyer-designer-top-bar-item position-relative">
                                     <label>
                                         <i className={`bi bi-image-fill cursor-pointer flyer-element-change-background-image ${imageToChangeType === 'backgroundImage' ? 'active' : ''}`}
                                            onClick={changeImageToChangeType('backgroundImage')}
@@ -710,6 +712,7 @@ const FlyerDesigner = (
                                 <Input type="select" name="ref" placeholder="Referencia"
                                        value={selectedElement.ref || ''}
                                        onChange={onChangeElementRef}>
+                                    <option value="">Select Referencia</option>
                                     {referenceOptions.map((ref, i) =>
                                         <option
                                             selected={!!referenceOptions.find(r => r.type === ref.type)}
@@ -740,6 +743,17 @@ const FlyerDesigner = (
                 <ModalFooter>
                     <Button color="primary" onClick={deleteTemplate}>Confirmar</Button>{' '}
                     <Button color="secondary" onClick={toggleDeleteTemplateModal}>Cancel</Button>
+                </ModalFooter>
+            </Modal>
+
+            <Modal isOpen={!!propertiesToReset} toggle={cleanPropertyToReset}>
+                <ModalHeader toggle={cleanPropertyToReset}>Confirmación</ModalHeader>
+                <ModalBody>
+                    ¿Estas Seguro que deseas eliminar estos estilos?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={resetFlyerElementProp}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={cleanPropertyToReset}>Cancel</Button>
                 </ModalFooter>
             </Modal>
 

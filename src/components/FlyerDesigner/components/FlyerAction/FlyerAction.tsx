@@ -196,7 +196,7 @@ export const FlyerAction = (
                 {(tooltip || popoverHeader) &&
                     <UncontrolledTooltip
                         style={{display: isEnabled ? '' : 'none'}}
-                        placement="top"
+                        placement="bottom"
                         target={wrapperId}>
                         {tooltip || popoverHeader}
                     </UncontrolledTooltip>}
