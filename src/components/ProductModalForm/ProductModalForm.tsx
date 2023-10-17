@@ -101,20 +101,26 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         }
     }, [editProduct])
 
+    useEffect(() => {
+        if (!isOpen) {
+            setEnableFlyer(false);
+            setProduct({});
+            setFlyerOptions(undefined);
+        }
+    }, [isOpen])
+
     React.useEffect(() => {
         const stock = productParams.reduce((a, b) => a + Number(b.quantity || 0), 0);
-        setProduct({...product, stock: stock || product.stock });
+        setProduct({...product, stock: stock || product.stock});
     }, [productParams]);
 
     const onChangeNewCategory = (value: string) => {
-        console.log('value', value)
         setCategoryTitle(value)
     };
     const handleCategory = (isUpdate?: boolean) => async () => {
 
         if (categoryTitle) {
             setLoadingCategories(true);
-            console.log('newCategory', categoryTitle)
             if (isUpdate) {
                 const categoryData = {...product.category, title: categoryTitle, company} as ICategory
                 const updatedCategoryData = await (await updateCategory(JSON.stringify(categoryData))).json();
@@ -183,7 +189,6 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         setIsSubmiting(true);
         const price = extractNumbersFromText((flyer?.value?.price || product.price).toString());
         let productName = (flyer?.value?.name || product?.name || '').replaceAll(/<\/?[^>]+(>|$)/gi, "");
-        console.log('productName ->', flyer);
         const body = JSON.stringify({
             ...product,
             ...(flyer.value || {}),
@@ -376,7 +381,6 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
     }
     const onChangeFlyer = (flyer: IFlyer) => {
-        console.log('flyer', flyer);
         setProduct({...product, ...flyer.value});
         // structuredClone()
     }
@@ -397,14 +401,16 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         setEnableFlyer(!enableFlyer);
     }
 
+
     const AppAccordion = Accordion as any;
     return (
 
-        <Modal className="modal-class"
-               wrapClassName="wrapp-class"
-               modalClassName={(enableFlyer || !editProduct) ? `expanded-modal` : ''}
-               contentClassName={"content-class"}
-               backdrop="static" isOpen={isOpen} toggle={toggleModal}>
+        <Modal
+            wrapClassName="wrapp-class"
+            modalClassName={`${(enableFlyer || !editProduct) ? 'expanded-modal' : ''} ${editProduct ? 'editing' : ''}`}
+            contentClassName={"content-class"}
+            keyboard={false}
+            backdrop="static" isOpen={isOpen} toggle={toggleModal}>
             {
                 !isSubmiting ? null :
                     <>
@@ -418,22 +424,24 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                     className="d-flex align-items-center justify-content-between w-100"
                 >
                     {editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}
-                    { editProduct && <Button color={enableFlyer ? 'danger' : 'info'} outline
-                             onClick={toggleFlyer}>{enableFlyer ? 'Cancelar Edicion de Imagen' : 'Editar Imagen'}</Button>}
+                    {editProduct && <Button className="me-3" color={enableFlyer ? 'danger' : 'info'} outline
+                                            onClick={toggleFlyer}>{enableFlyer ? 'Cancelar Edicion de Imagen' : 'Editar Imagen'}</Button>}
                 </div>
             </ModalHeader>
-            <Form>
-                {(enableFlyer || !editProduct) ? <FlyerDesigner flyerOptions={flyerOptions}
-                                              templateId={companyDefaultTemplateId}
-                                              onSaveFlyer={onSubmit}
-                                              onChangeFlyer={onChangeFlyer}
-                                              saveFlyerButtonProps={{
-                                                  disabled: !product.category,
-                                              }}
-                                              mediaName={`${product.name}-${company}`}
-                /> : <img src={product.image} alt=""/>
+            <Form className="w-100 h-100">
+                {(enableFlyer || !editProduct) ?
+                    <FlyerDesigner
+                        flyerOptions={flyerOptions}
+                        templateId={companyDefaultTemplateId}
+                        onSaveFlyer={onSubmit}
+                        onChangeFlyer={onChangeFlyer}
+                        saveFlyerButtonProps={{
+                            // disabled: !product.category,
+                        }}
+                        mediaName={`${product.name}-${company}`}
+                    /> : <img className="preview-image" src={product.image} alt=""/>
                 }
-                <ModalBody>
+                <ModalBody style={{display: (enableFlyer && editProduct) ? 'none' : ''}}>
 
                     {
                         editProduct && !portfolioMode ?
@@ -680,7 +688,8 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 </ModalBody>
                 <ModalFooter>
                     <Button color="danger" onClick={toggleModal} outline>Salir</Button>{' '}
-                    <Button color="success" onClick={() => onSubmit()} outline>Guardar</Button>{' '}
+                    <Button color="success" disabled={!product.category} onClick={() => onSubmit()}
+                            outline>Guardar</Button>{' '}
                 </ModalFooter>
             </Form>
             <Modal isOpen={productParamToDelete !== ''} toggle={resetProductParam}>

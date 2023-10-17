@@ -1,0 +1,89 @@
+.flyer-designer-sidebar {
+  $darkBackground: #2e2e5e;
+  $background: #3f3f84;
+
+  height: 100%;
+  display: flex;
+  align-items: center;
+
+
+  &-menu {
+    width: 120px;
+    background: $background;
+    height: 100%;
+    box-shadow: 0 0 10px rgba(0,0,0,0.5);
+
+    &-option {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      color: white;
+      font-size: 12px;
+      cursor: pointer;
+      width: 100%;
+      padding: 10px 0;
+
+      &:hover, &.selected {
+        background: $darkBackground;
+      }
+
+      .bi {
+        font-size: 32px;
+      }
+    }
+  }
+
+  &-content {
+    --background-color: $darkBackground;
+    --content-width: 300px;
+
+    height: 100%;
+    display: flex;
+    align-items: center;
+    transition: all 0.3s ease-in-out;
+    background: $darkBackground;
+    position: relative;
+    width: 0;
+
+
+    &-body {
+      $bodyPadding: 1rem;
+      width: 0;
+      height: calc(100% - ($bodyPadding * 2));
+      overflow-x: hidden;
+      overflow-y: auto;
+      transition: all 0.3s ease-in-out;
+      margin: $bodyPadding;
+
+      > div {
+        min-width: calc(var(--content-width) - ($bodyPadding * 2));
+      }
+    }
+
+    &.open {
+      width: var(--content-width);
+      .flyer-designer-sidebar-content-body {
+        width: var(--content-width);
+      }
+    }
+
+
+    &-toggle {
+      --toggle-width: 32px;
+      position: absolute;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      width: var(--toggle-width);
+      height: 100px;
+      right: calc(var(--toggle-width) - (var(--toggle-width) * 2));
+      color: white;
+      background: $darkBackground;
+      font-size: 21px;
+      cursor: pointer;
+      border-bottom-right-radius: 5px;
+      border-top-right-radius: 5px;
+      z-index: 9;
+    }
+  }
+}

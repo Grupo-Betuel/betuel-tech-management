@@ -6,12 +6,31 @@
   }
   .modal-content {
     width: 100dvw !important;
+    height: calc(100dvh - 60px) !important;
+  }
+
+  &.editing {
+    .modal-content {
+      overflow: hidden;
+      height: 100dvh !important;
+    }
+  }
+
+  .modal-footer {
+    display: none;
   }
 }
 .modal-dialog {
   max-width: 514px !important;
   .modal-title {
     width: 100%;
+  }
+  .modal-body {
+    background: white;
+  }
+
+  .modal-footer {
+    background: white;
   }
 }
 .product-detail-text {
@@ -88,6 +107,10 @@
   div {
     width: 90%;
     margin-right: 1rem;
-
   }
+}
+
+.preview-image {
+    width: 100%;
+    height: auto;
 }

@@ -16,15 +16,13 @@ export interface IMedia {
 
 export interface IGCloudImagesHandlerProps {
     onClickMedia: (media: IMedia) => void;
-    toggle: () => void;
-    open?: boolean;
     mediaName?: string;
 }
 
 export type IMediaTagTypes = 'element' | 'product' | 'background' | 'logo' | 'flyer' | 'video' | 'wallpaper';
 export type ITaggedImages = { [N in IMediaTagTypes]: IMedia[] };
 
-export const GCloudMediaHandler = ({onClickMedia, toggle, open, mediaName}: IGCloudImagesHandlerProps) => {
+export const GCloudMediaHandler = ({onClickMedia, mediaName}: IGCloudImagesHandlerProps) => {
     const [medias, setMedias] = React.useState<IMedia[]>([]);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [imageToDelete, setImageToDelete] = React.useState<IMedia>();
@@ -144,7 +142,7 @@ export const GCloudMediaHandler = ({onClickMedia, toggle, open, mediaName}: IGCl
     };
 
     return (
-        <div className={`images-handler-wrapper ${open ? 'open' : ''}`}>
+        <div className={`images-handler-wrapper`}>
             <div>
                 <TagContainer className="d-flex w-100">
                     {
@@ -158,7 +156,6 @@ export const GCloudMediaHandler = ({onClickMedia, toggle, open, mediaName}: IGCl
                 </TagContainer>
             </div>
             <div className="images-handler-grid">
-                <i className={`bi bi-x-lg image-handler-close ${!open ? 'd-none' : ''}`} onClick={toggle}/>
                 {!loading ? null : (
                     <div className="images-handler-loading-container">
                         <Spinner animation="grow" variant="secondary"/>

@@ -52,7 +52,7 @@ export interface IFlyerElementTemporaryFile {
 
 export type ImageTypes = 'content' | 'backgroundImage' | 'templateImage';
 
-export class FlyerElement {
+export class FlyerElementModel {
     id: number = new Date().getTime();
     type: FlyerElementTypes = 'text';
     position: IFlyerElementPosition = {x: 20, y: 30};
@@ -72,11 +72,11 @@ export class FlyerElement {
     temporaryFiles?: IFlyerElementTemporaryFile[];
     ref?: string;
 
-    constructor(private data?: Partial<FlyerElement>) {
+    constructor(private data?: Partial<FlyerElementModel>) {
         if (data) {
             if (data.type === 'image') {
-                data.content = 'https://betuel-group-management.vercel.app/static/media/betueltravel.c2713c66.png'
-                data.size = { width: 100, height: 100 }
+                data.content = data.content || 'https://betuel-group-management.vercel.app/static/media/betueltravel.c2713c66.png'
+                data.size = data.size || { width: 100, height: 100 }
             }
             Object.keys(data).forEach(key => {
                 (this as any)[key] = (data as any)[key] || (this as any)[key]
@@ -92,7 +92,7 @@ export interface IFlyerCanvaSize {
 
 
 export interface IFlyer {
-    elements: FlyerElement[];
+    elements: FlyerElementModel[];
     templateImage: string;
     canvaSize?: IFlyerCanvaSize;
     value?: any;

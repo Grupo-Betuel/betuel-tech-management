@@ -269,7 +269,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
 
     return (
         <>
-            <Modal isOpen={activeConfirmationModal} toggle={toggleConfirmation}>
+            <Modal isOpen={activeConfirmationModal} toggle={toggleConfirmation} backdrop="static" keyboard={false}>
                 <ModalHeader toggle={toggleConfirmation}>Confirmación</ModalHeader>
                 <ModalBody>
                     ¿Estas Seguro que deseas realizar esta acción?

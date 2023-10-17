@@ -1,0 +1,26 @@
+.flyer-designer-template-selector {
+  &-grid {
+    $gridSize: 125px;
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax($gridSize, $gridSize));
+    //grid-template-rows: repeat(auto-fit, minmax($gridSize, $gridSize));
+    gap: 1rem;
+
+    &-item {
+      display: flex;
+      flex-direction: column;
+      gap: 0.3rem;
+      color: white;
+      cursor: pointer;
+      padding: 0.5rem;
+      border-radius: 5px;
+
+      &:hover {
+        background: #3f3f84;
+      }
+    }
+    img {
+      max-width: 100%;
+    }
+  }
+}

@@ -1,0 +1,216 @@
+.flyer-element {
+  position: relative;
+  $actionSize: 24px;
+  $actionExtraSize: calc($actionSize * 2 - 8px);
+
+
+  .flyer-element-action {
+    position: absolute;
+    font-size: $actionSize;
+    color: #bebebe;
+    cursor: pointer;
+    width: $actionExtraSize;
+    height: $actionExtraSize;
+    background: white;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    border-radius: $actionSize;
+    z-index: 99999;
+    border: 1px solid #dedede;
+
+    //opacity: 0;
+    //transition: all 0.2s ease-in-out;
+  }
+
+
+  &-options-toggle {
+    @extend .flyer-element-action;
+    top: -($actionSize * 2.2);
+    right: -($actionSize * 0.5);
+  }
+
+  .flyer-element-change-image-action {
+    @extend .flyer-element-action;
+    left: -$actionExtraSize;
+    top: -$actionExtraSize;
+    &.active {
+      outline: 4px solid #6c6cd3;
+    }
+  }
+
+
+  .flyer-element-shape-arrow {
+    @extend .flyer-element-action;
+    left: 50%;
+    margin-left: - calc($actionExtraSize / 2);
+
+    &.top {
+      top: -$actionExtraSize - 10px;
+    }
+
+    &.bottom {
+      bottom: -$actionExtraSize - 10px;
+    }
+
+  }
+
+  .size-item {
+    $sizeItem: 30px;
+    $weightItem: 10px;
+    position: relative;
+
+
+    &::before {
+      content: "";
+      position: absolute;
+      display: none;
+      width: $sizeItem;
+      height: $weightItem;
+      background: white;
+      border-radius: $weightItem;
+      transition: all 0.2s ease-in-out;
+      border: 1px solid #bebebe;
+      z-index: 1;
+      &:hover {
+        background: cornflowerblue;
+        border: 1px solid #bebebe;
+      }
+    }
+
+
+
+    &.corner {
+      $cornerSize: 12px;
+      &::before {
+        width: $cornerSize;
+        height: $cornerSize;
+        border-radius: $cornerSize;
+      }
+
+      &.bottomLeft::before, &.bottomRight::before {
+       bottom: 0;
+      }
+      &.bottomLeft::before, &.topLeft::before {
+        left: 0;
+      }
+
+      &.bottomRight::before, &.topRight::before {
+        right: 0;
+      }
+    }
+
+
+    &.top::before {
+      top: -($weightItem / 5);
+      left: 50%;
+      margin-left: -($sizeItem / 2);
+    }
+
+    &.bottom::before {
+      bottom: -($weightItem / 5);
+      left: 50%;
+      margin-left: -($sizeItem / 2);
+      cursor: s-resize;
+    }
+
+    &.left::before {
+      height: $sizeItem;
+      width: $weightItem;
+      left: -($weightItem / 4);
+      top: 50%;
+      margin-top: -($sizeItem / 2);
+    }
+
+    &.right::before {
+      height: $sizeItem;
+      width: $weightItem;
+      right: -($weightItem / 4);
+      top: 50%;
+      margin-top: -($sizeItem / 2);
+    }
+  }
+
+
+  &.selected, &:hover {
+    .flyer-element-action {
+      display: flex;
+    }
+
+    .size-item::before {
+      display: block;
+    }
+  }
+
+  .fit-image {
+    transform: skew(-1deg, 9deg) scale(1.1);
+    object-fit: cover;
+    /* display: none; */
+    width: 110%;
+    height: 110%;
+  }
+
+  .flyer-element-content {
+    width: 100%;
+    height: 100%;
+    --text-stroke-width: 1;
+    display: flex !important;
+    align-items: center;
+    background-size: 100% 100%;
+    position: relative;
+
+    &:focus-within, &:hover, &.selected {
+      outline: 4px solid #6c6cd3;
+      outline-radius: 10px;
+      -moz-outline-radius: 10px;
+
+      &.size-item::before {
+        display: block;
+      }
+    }
+
+
+    .flyer-element-content-editable {
+      width: 100%;
+      padding: 0 5px;
+    }
+
+    .flyer-element-image-wrapper {
+    }
+
+
+  }
+
+
+  *:focus-visible {
+    outline: none;
+  }
+
+  img, a {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    user-drag: none;
+  }
+}
+
+.flyer-element-focus-input {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  opacity: 0;
+  cursor: pointer;
+}
+
+.change-background-image-action {
+  font-size: 32px;
+  background: white;
+  border-radius: 10px;
+  padding: 0.3rem;
+  color: #3a4ba7;
+  margin-right: 1rem;
+  cursor: pointer;
+}

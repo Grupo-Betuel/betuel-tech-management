@@ -1,0 +1,29 @@
+.flyer-designer-text-styles {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  position: relative;
+  width: 100%;
+
+  &-item {
+    background: #3f3f84;
+    border: 1px solid #153e99;
+    border-radius: 5px;
+
+    padding: 0.3rem;
+    cursor: pointer;
+    width: 100%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: white;
+    *, *:hover, *:focus-within {
+      outline: none !important;
+    }
+    &:hover {
+      background: #8f8fea;
+
+    }
+  }
+}

@@ -37,6 +37,7 @@
     "react-export-table-to-excel": "^1.0.0",
     "react-input-mask": "^2.0.4",
     "react-rnd": "^10.3.5",
+    "react-rotatable": "^1.0.2",
     "react-router": "^5.2.0",
     "react-router-dom": "^5.2.0",
     "react-scripts": "3.4.3",

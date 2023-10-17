@@ -59,9 +59,15 @@ const Marvin = require("marvinj");
 // export const accountLogos: { [N in ]} ;
 
 export const CreateNewFloatButton = styled.button`
-  position: fixed;
-  bottom: 30px;
-  right: 30px;
+  //position: fixed;
+  //bottom: 30px;
+  //right: 30px;
+ 
+`;
+export const FloatButton = styled(CreateNewFloatButton)`
+  //position: relative;
+  //top: 15px;
+  //bottom: unset;
   border-radius: 50%;
   height: 70px;
   width: 70px;
@@ -72,11 +78,6 @@ export const CreateNewFloatButton = styled.button`
   i {
     font-size: 30px;
   }
-`;
-export const LogOutButton = styled(CreateNewFloatButton)`
-  position: absolute;
-  top: 15px;
-  bottom: unset;
 `;
 
 export const PromotionOption: any = styled.div`
@@ -515,6 +516,10 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         }
     };
 
+    const goTo = (path: 'templates' | 'companies' | 'orders') => () => {
+        history.push(`/${path}`);
+    }
+
     const toggleClientFormModal = () => setClientModalIsOpen(!clientModalIsOpen);
 
     const handleWhatsappPromotion = () => {
@@ -786,28 +791,42 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             />
             {<div className="d-flex align-items-center flex-column">
                 {localStorage.getItem("authToken") && (
-                    <Col sm={8} className="position-relative">
-                        <LogOutButton
+                    <div className="float-options">
+                        <FloatButton
                             className="btn btn-outline-danger"
                             title="Salir"
                             onClick={logOut}
                         >
                             <i className="bi bi-box-arrow-right"/>
-                        </LogOutButton>
-                        <LogOutButton
+                        </FloatButton>
+                        <FloatButton
                             className="btn btn-outline-danger go-to-portfolio"
-                            title={`Ir al ${portfolioMode ? "Dashboard" : "al Portafolio"}`}
-                            onClick={togglePortfolioDashboard}
+                            title={`Ordenes`}
+                            onClick={goTo('orders')}
                         >
                             <i
-                                className={`bi ${
-                                    portfolioMode
-                                        ? "bi-skip-backward-fill"
-                                        : "bi-skip-forward-fill"
-                                } `}
+                                className="bi bi-truck"
                             />
-                        </LogOutButton>
-                    </Col>
+                        </FloatButton>
+                        <FloatButton
+                            className="btn btn-outline-danger go-to-portfolio"
+                            title={`Disenio de Plantillas`}
+                            onClick={goTo('templates')}
+                        >
+                            <i
+                                className="bi bi-easel2"
+                            />
+                        </FloatButton>
+                        <FloatButton
+                            className="btn btn-outline-danger go-to-portfolio"
+                            title={`Companies`}
+                            onClick={goTo('companies')}
+                        >
+                            <i
+                                className="bi bi-building"
+                            />
+                        </FloatButton>
+                    </div>
                 )}
                 <Col lg={2} md={4} sm={4} className="p-4  logo-container">
                     <img
@@ -1068,12 +1087,12 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             </div>}
 
             {!portfolioMode && (
-                <CreateNewFloatButton
-                    className="btn btn-outline-danger"
+                <FloatButton
+                    className="btn btn-outline-danger create-product-button"
                     onClick={toggleProductForm}
                 >
                     <i className="bi-plus"/>
-                </CreateNewFloatButton>
+                </FloatButton>
             )}
 
             <ProductModalForm

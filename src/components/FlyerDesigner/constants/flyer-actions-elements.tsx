@@ -1,4 +1,4 @@
-import {IActionContentOption, IFlyerActionProps} from "../components/FlyerAction";
+import {IActionContentOption, IFlyerActionProps} from "../components/FlyerAction/FlyerAction";
 import React from "react";
 
 export const fontFamilyOptions: IActionContentOption[] = [
@@ -47,44 +47,24 @@ export const fontFamilyOptions: IActionContentOption[] = [
 export type FlyerActionElement = Omit<IFlyerActionProps, 'onChangeElement' | 'onReset'>;
 export const FlyerActionsElements: FlyerActionElement[] = [
     {
+        tooltip: 'Tipo de Fuente',
+        content: [{
+            type: 'select',
+            property: 'fontFamily',
+            options: fontFamilyOptions,
+            props: {
+                placeholder: 'Tipo de letra',
+            }
+        }],
+        elementTypes: ['text', "image"],
+    },
+    {
         tooltip: 'Font Size',
         content: [{
             type: 'number',
             property: 'size.fontSize',
         }],
         elementTypes: ['text'],
-    },
-    {
-        content: [{
-            type: 'number',
-            property: 'padding',
-        }],
-        elementTypes: ['text', 'image'],
-        toggle: <i className="bi bi-paint-bucket"/>,
-        popoverHeader: 'Espaciado Interior',
-    },
-    {
-        content: [{
-            type: 'number',
-            property: 'text.letterSpacing',
-        }],
-        elementTypes: ['text'],
-        toggle: <i className="bi bi-paint-bucket"/>,
-        popoverHeader: 'Espaciado Entre letras',
-    },
-    {
-        content: [{
-            type: 'number',
-            property: 'opacity',
-            props: {
-                min: 0,
-                max: 1,
-                step: 0.1,
-            }
-        }],
-        elementTypes: ['text', "image"],
-        toggle: <i className="bi bi-paint-bucket"/>,
-        popoverHeader: 'Opacidad',
     },
     {
         content: [{
@@ -106,20 +86,8 @@ export const FlyerActionsElements: FlyerActionElement[] = [
             ]
         }],
         elementTypes: ['text', "image"],
-        toggle: <i className="bi bi-paint-bucket"/>,
-        popoverHeader: 'Alineación de Texto',
-    },
-
-    {
-        content: [{
-            type: 'select',
-            property: 'fontFamily',
-            options: fontFamilyOptions,
-            props: {
-                placeholder: 'Tipo de letra',
-            }
-        }],
-        elementTypes: ['text', "image"],
+        toggle: <i className="bi bi-justify"/>,
+        popoverHeader: 'Alineación del Texto',
     },
     {
         content: [{
@@ -140,8 +108,48 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text', "image"],
     },
     {
+        content: [{
+            type: 'number',
+            property: 'opacity',
+            props: {
+                min: 0,
+                max: 1,
+                step: 0.1,
+            }
+        }],
+        elementTypes: ['text', "image"],
+        toggle: <svg xmlns="http://www.w3.org/2000/svg" width="16" height="16" fill="currentColor"
+                     className="bi bi-transparency" viewBox="0 0 16 16">
+            <path
+                d="M0 6.5a6.5 6.5 0 0 1 12.346-2.846 6.5 6.5 0 1 1-8.691 8.691A6.5 6.5 0 0 1 0 6.5Zm5.144 6.358a5.5 5.5 0 1 0 7.714-7.714 6.5 6.5 0 0 1-7.714 7.714Zm-.733-1.269c.363.15.746.261 1.144.33l-1.474-1.474c.069.398.18.78.33 1.144Zm2.614.386a5.47 5.47 0 0 0 1.173-.242L4.374 7.91a5.958 5.958 0 0 0-.296 1.118l2.947 2.947Zm2.157-.672c.297-.166.577-.36.838-.576L5.418 6.126a6.016 6.016 0 0 0-.587.826l4.35 4.351Zm1.545-1.284c.216-.26.41-.54.576-.837L6.953 4.83a5.97 5.97 0 0 0-.827.587l4.6 4.602Zm1.006-1.822c.121-.374.204-.766.242-1.172L9.028 4.078c-.386.063-.76.163-1.118.296l3.823 3.824Zm.186-2.642a5.463 5.463 0 0 0-.33-1.144 5.46 5.46 0 0 0-1.144-.33l1.474 1.474Z"/>
+        </svg>,
+        popoverHeader: 'Opacidad',
+    },
+    {
+        tooltip: 'Espaciado interior',
+        content: [{
+            type: 'number',
+            property: 'padding',
+        }],
+        elementTypes: ['text', 'image'],
+        toggle: <i className="bi bi-dpad"/>,
+        popoverHeader: 'Espaciado Interior',
+    },
+    {
+        tooltip: 'Espaciado entre letras',
+        content: [{
+            type: 'number',
+            property: 'text.letterSpacing',
+        }],
+        elementTypes: ['text'],
+        toggle: <i className="bi bi-distribute-horizontal"/>,
+        popoverHeader: 'Espaciado entre letras',
+    },
+
+    {
         content: [
             {
+                label: 'Estilo del borde',
                 type: 'select',
                 property: 'border.style',
                 options: [
@@ -160,14 +168,17 @@ export const FlyerActionsElements: FlyerActionElement[] = [
                 ]
             },
             {
+                label: 'Tamaño',
                 type: 'number',
                 property: 'border.width',
             },
             {
+                label: 'Redondez',
                 type: 'number',
                 property: 'border.radius',
             },
             {
+                label: 'Color',
                 type: 'color',
                 property: 'border.color',
             }
@@ -179,14 +190,17 @@ export const FlyerActionsElements: FlyerActionElement[] = [
     {
         content: [
             {
+                label: 'Tamaño',
                 type: 'number',
                 property: 'stroke.width',
             },
             {
+                label: 'Color',
                 type: 'color',
                 property: 'stroke.color',
             },
             {
+                label: 'Colocar Trazado por dentro',
                 type: 'switch',
                 property: 'stroke.inside',
             },
@@ -198,6 +212,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
     {
         content: [
             {
+                label: 'Espaciado Horizontal',
                 type: 'number',
                 property: 'shadow.vertical',
                 props: {
@@ -205,6 +220,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
                 },
             },
             {
+                label: 'Espaciado Vertical',
                 type: 'number',
                 property: 'shadow.horizontal',
                 props: {
@@ -212,6 +228,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
                 },
             },
             {
+                label: 'Difuminacion',
                 type: 'number',
                 property: 'shadow.blur',
                 props: {
@@ -219,6 +236,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
                 },
             },
             {
+                label: 'Color',
                 type: 'color',
                 property: 'shadow.color',
             },
@@ -230,20 +248,17 @@ export const FlyerActionsElements: FlyerActionElement[] = [
     {
         content: [
             {
+                label: 'Espaciado Horizontal',
                 type: 'number',
                 property: 'textShadow.vertical',
-                props: {
-                    min: 0
-                },
             },
             {
+                label: 'Espaciado Vertical',
                 type: 'number',
                 property: 'textShadow.horizontal',
-                props: {
-                    min: 0
-                },
             },
             {
+                label: 'Difuminacion',
                 type: 'number',
                 property: 'textShadow.blur',
                 props: {
@@ -251,6 +266,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
                 },
             },
             {
+                label: 'Color',
                 type: 'color',
                 property: 'textShadow.color',
             },
@@ -262,15 +278,18 @@ export const FlyerActionsElements: FlyerActionElement[] = [
     {
         content: [
             {
+                label: 'Grados de rotacion',
                 type: 'number',
                 property: 'transform.rotation',
 
             },
             {
+                label: 'Deformacion de horizontal',
                 type: 'number',
                 property: 'transform.skew.x',
             },
             {
+                label: 'Deformacion de vertical',
                 type: 'number',
                 property: 'transform.skew.y',
             },
