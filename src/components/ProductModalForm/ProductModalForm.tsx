@@ -105,7 +105,6 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
     useEffect(() => {
         if (!isOpen) {
-            console.log(isOpen, 'open')
             setEnableFlyer(false);
             setProduct({});
             setFlyerOptions(undefined);
@@ -404,7 +403,6 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
     }
     const onChangeFlyer = (flyer: IFlyer) => {
-        console.log(flyer.value);
         setProduct({
             ...product, ...flyer.value,
             price: extractNumbersFromText(flyer?.value?.price || product.price),
