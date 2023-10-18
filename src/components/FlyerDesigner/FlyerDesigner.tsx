@@ -12,17 +12,14 @@ import {
 } from "../../model/interfaces/FlyerDesigner.interfaces";
 import "./FlyerDesigner.scss";
 import {ResizeDirection} from "re-resizable";
-import ContentEditable from "react-contenteditable";
 import {
-    Button, FormGroup,
+    Button,
     Input,
-    Label, Modal, ModalBody, ModalFooter, ModalHeader,
-    PopoverBody,
-    PopoverHeader,
-    UncontrolledPopover, UncontrolledTooltip,
+    Modal, ModalBody, ModalFooter, ModalHeader,
+    UncontrolledTooltip,
 } from "reactstrap";
 import _ from "lodash";
-import {GCloudMediaHandler, IMedia} from "../GCloudMediaHandler/GCloudMediaHandler";
+import {IMedia} from "../GCloudMediaHandler/GCloudMediaHandler";
 import {
     addFlyerTemplate,
     deleteFlyerTemplate,
@@ -49,6 +46,7 @@ const fonts = ['Reey Regular',
 
 export interface IFlyerDesignerProps {
     onChangeFlyer?: (flyer: IFlyer) => void;
+    validToSave?: (flyer: IFlyer) => boolean;
     onSaveFlyer?: (flyer: IFlyer, image: string) => void;
     templateId?: string;
     flyerOptions?: IFlyer;
@@ -110,7 +108,8 @@ const FlyerDesigner = (
         templateId,
         onSaveFlyer,
         saveFlyerButtonProps,
-        mediaName
+        mediaName,
+        validToSave,
     }: IFlyerDesignerProps) => {
     const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [lastFlyer, setLastFlyer] = React.useState<IFlyer>({} as IFlyer);
@@ -138,7 +137,7 @@ const FlyerDesigner = (
     }, 100);
 
     React.useEffect(() => {
-        onChangeTemplate({target: {value: templateId}} as any);
+        if(templateId) onChangeTemplate({target: {value: templateId}} as any);
         if (flyerOptions?.elements) {
             updateFlyerWithOptions();
         }
@@ -248,6 +247,10 @@ const FlyerDesigner = (
         return {photoName, photoUrl: gcloudPublicURL + photoName};
     }
     const saveFlyer = (downloadImage?: boolean) => async () => {
+        const flyerWithValue = passFlyerContentToFlyerValue(flyer);
+        // check external validation beforeSaving
+        if(validToSave && !validToSave(flyerWithValue)) return;
+
         if (productImageWrapper.current === null) {
             return
         }
@@ -256,7 +259,6 @@ const FlyerDesigner = (
         setLoading(false)
         if (downloadImage) return;
 
-        const flyerWithValue = passFlyerContentToFlyerValue(flyer);
         setLastFlyer(flyerWithValue);
         onSaveFlyer && onSaveFlyer(flyerWithValue, photoUrl);
     };
@@ -366,7 +368,6 @@ const FlyerDesigner = (
         setTransformItemPanelIsOpen(!editTransformItemPanelIsOpen);
     }
 
-
     const [selectedElement, setSelectedElement] = React.useState<FlyerElementModel>({} as FlyerElementModel);
     const [propertiesToReset, setPropertiesToReset] = React.useState<string[]>();
     const cleanPropertyToReset = () => {
@@ -378,13 +379,11 @@ const FlyerDesigner = (
         propertiesToReset?.forEach(prop => {
             _.set<FlyerElementModel>(changedElement, prop, undefined);
         })
-        console.log(changedElement, propertiesToReset, 'props');
         changeFlyerElementProps(changedElement.id, changedElement);
         setPropertiesToReset(undefined);
     }
 
     const handleResetFlyerElementProp = (props: string[]) => () => {
-        console.log('props', props);
         setPropertiesToReset(props);
     }
 

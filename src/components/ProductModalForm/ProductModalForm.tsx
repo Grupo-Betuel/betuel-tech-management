@@ -105,6 +105,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
     useEffect(() => {
         if (!isOpen) {
+            console.log(isOpen, 'open')
             setEnableFlyer(false);
             setProduct({});
             setFlyerOptions(undefined);
@@ -210,11 +211,11 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
         } else {
             await addProduct(body);
-            setProduct({})
-            setProductParams([]);
-            setFlyerOptions(undefined);
+            toggleModal();
+            toggleModal();
             toast('Producto Agregado Exitosamente!', {type: 'success', position: "top-right"});
         }
+
 
         loadProducts();
         setIsSubmiting(false);
@@ -461,6 +462,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                         templateId={companyDefaultTemplateId}
                         onSaveFlyer={onSubmit}
                         onChangeFlyer={onChangeFlyer}
+                        validToSave={validForm}
                         saveFlyerButtonProps={{
                             // disabled: !product.category,
                         }}

@@ -61,10 +61,7 @@ export const FlyerElement = (
 
     const handleOnChangeElementRotation = (e: any, e2: any, curr: any) => {
     }
-    const alertify= () => {
-        console.log('element shadow', element.shadow);
-        return 'no'
-    }
+
     const styledElement = (
         <div
             tabIndex={0} onKeyDown={onKeyDownFlyerElement}
@@ -88,7 +85,7 @@ export const FlyerElement = (
                 boxShadow: element.shadow && element.type === 'text' ? `${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color}` : '',
                 filter: element.shadow && element.type === 'image' ? `drop-shadow(${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color})` : '',
                 textShadow: element.textShadow ? element.textShadow.custom || `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}` : undefined,
-                backgroundImage: `url(${element.backgroundImage})`,
+                backgroundImage: element.backgroundImage ? `url(${element.backgroundImage})` : '',
                 transform: element.transform ? `rotate(${element.transform?.rotation || 0}deg) skew(${element.transform?.skew?.x || 0}deg, ${element.transform?.skew?.y || 0}deg)` : '',
             }}
         >
@@ -116,9 +113,6 @@ export const FlyerElement = (
                     </>
 
             }
-
-            <span> {alertify()}</span>
-
         </div>
     )
 

@@ -26,5 +26,5 @@ export const removeHTMLChars = (text: string) => {
 
 export const extractNumbersFromText = (text: string): number => {
     if (!text) return 0;
-    return Number(text.replace(/[^0-9]/g, ''));
+    return Number(text.toString().replace(/[^0-9]/g, ''));
 }

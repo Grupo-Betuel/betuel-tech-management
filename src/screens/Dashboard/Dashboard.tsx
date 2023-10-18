@@ -1085,7 +1085,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 </FloatButton>
             )}
 
-            <ProductModalForm
+            {productFormIsOpen && <ProductModalForm
                 portfolioMode={portfolioMode}
                 handlePromoteProduct={handlePromoteProduct}
                 promotionLoading={promotionLoading}
@@ -1095,7 +1095,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 company={selectedCompanyId}
                 editProduct={editProduct}
             />
-
+            }
             <ClientModalForm
                 promotionLoading={promotionLoading}
                 selectedProducts={selections}
