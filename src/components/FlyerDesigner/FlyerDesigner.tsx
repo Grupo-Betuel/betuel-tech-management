@@ -200,11 +200,14 @@ const FlyerDesigner = (
 
 
     const changeFlyerElementProps = (id: number, value: Partial<FlyerElementModel>) => {
-        const flyerValue = flyer.value;
+        const flyerValue = flyer.value || {};
         const newFlyerElements: FlyerElementModel[] = flyer.elements.map((element) => {
             if (element.id === id) {
                 const newElement = {...element, ...value};
                 setSelectedElement(newElement);
+                if(element.ref) {
+                    flyerValue[element.ref] = removeHTMLChars(newElement.content || '');
+                }
                 return newElement;
             }
             return element;
@@ -375,6 +378,7 @@ const FlyerDesigner = (
         propertiesToReset?.forEach(prop => {
             _.set<FlyerElementModel>(changedElement, prop, undefined);
         })
+        console.log(changedElement, propertiesToReset, 'props');
         changeFlyerElementProps(changedElement.id, changedElement);
         setPropertiesToReset(undefined);
     }
@@ -519,7 +523,7 @@ const FlyerDesigner = (
             await saveFlyer(false)();
             toast('Flyer Saved automatically saved')
         } else {
-            await updateTemplate();
+            // await updateTemplate();
         }
     };
 
@@ -624,7 +628,7 @@ const FlyerDesigner = (
                                     {...action}
                                     selectedElement={selectedElement}
                                     onChangeElement={changeFlyerElementProps}
-                                    onReset={handleResetFlyerElementProp(action.content.map(item => item.property))}
+                                    onReset={handleResetFlyerElementProp([action.parentProperty])}
                                 />
                             ))}
                             {selectedElement.id &&
@@ -648,8 +652,10 @@ const FlyerDesigner = (
                         </div>
                         <div className="flyer-designer-top-bar-fixed-actions-wrapper">
                             <Button onClick={saveFlyer(true)} color="primary">Descargar</Button>
-                            <Button className="flyer-designer-top-bar-item" onClick={saveFlyer()}
-                                    color="primary" {...saveFlyerButtonProps}>Guardar</Button>
+                            {onSaveFlyer &&
+                                <Button className="flyer-designer-top-bar-item" onClick={saveFlyer()}
+                                        color="primary" {...saveFlyerButtonProps}>Guardar</Button>
+                            }
                         </div>
 
                     </div>

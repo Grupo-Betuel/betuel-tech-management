@@ -44,9 +44,10 @@ export const fontFamilyOptions: IActionContentOption[] = [
     },
 ]
 
-export type FlyerActionElement = Omit<IFlyerActionProps, 'onChangeElement' | 'onReset'>;
+export type FlyerActionElement = Omit<IFlyerActionProps, 'onChangeElement' | 'onReset'> & { parentProperty: string };
 export const FlyerActionsElements: FlyerActionElement[] = [
     {
+        parentProperty: 'fontFamily',
         tooltip: 'Tipo de Fuente',
         content: [{
             type: 'select',
@@ -59,6 +60,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text', "image"],
     },
     {
+        parentProperty: 'size.fontSize',
         tooltip: 'Font Size',
         content: [{
             type: 'number',
@@ -67,6 +69,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text'],
     },
     {
+        parentProperty: 'text.align',
         content: [{
             type: 'select',
             property: 'text.align',
@@ -90,6 +93,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         popoverHeader: 'Alineación del Texto',
     },
     {
+        parentProperty: 'color.background',
         content: [{
             type: 'color',
             property: 'color.background',
@@ -99,6 +103,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text', "image"],
     },
     {
+        parentProperty: 'color.text',
         content: [{
             type: 'color',
             property: 'color.text',
@@ -108,6 +113,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text', "image"],
     },
     {
+        parentProperty: 'opacity',
         content: [{
             type: 'number',
             property: 'opacity',
@@ -126,6 +132,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         popoverHeader: 'Opacidad',
     },
     {
+        parentProperty: 'padding',
         tooltip: 'Espaciado interior',
         content: [{
             type: 'number',
@@ -136,6 +143,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         popoverHeader: 'Espaciado Interior',
     },
     {
+        parentProperty: 'text.letterSpacing',
         tooltip: 'Espaciado entre letras',
         content: [{
             type: 'number',
@@ -147,6 +155,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
     },
 
     {
+        parentProperty: 'border',
         content: [
             {
                 label: 'Estilo del borde',
@@ -188,6 +197,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text', "image"],
     },
     {
+        parentProperty: 'stroke',
         content: [
             {
                 label: 'Tamaño',
@@ -210,6 +220,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text'],
     },
     {
+        parentProperty: 'shadow',
         content: [
             {
                 label: 'Espaciado Horizontal',
@@ -246,6 +257,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text', 'image'],
     },
     {
+        parentProperty: 'textShadow',
         content: [
             {
                 label: 'Espaciado Horizontal',
@@ -276,6 +288,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         elementTypes: ['text'],
     },
     {
+        parentProperty: 'transform',
         content: [
             {
                 label: 'Grados de rotacion',

@@ -21,5 +21,10 @@ export const copyText = (text: string) => {
 }
 
 export const removeHTMLChars = (text: string) => {
-    return text.replace( /(<([^>]+)>)/ig, '');
+    return text.replace( /(<([^>]+)>)/gi, '').replaceAll(/<\/?[^>]+(>|$)/gi, "");
+}
+
+export const extractNumbersFromText = (text: string): number => {
+    if (!text) return 0;
+    return Number(text.replace(/[^0-9]/g, ''));
 }

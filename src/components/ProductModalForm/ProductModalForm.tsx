@@ -25,6 +25,8 @@ import {toast} from "react-toastify";
 import {Multiselect} from "multiselect-react-dropdown";
 import {ICategory} from "../../model/CategoryModel";
 import {addCategory, getCategories, updateCategory} from "../../services/categoryService";
+import Product from "../Product/Product";
+import {extractNumbersFromText, removeHTMLChars} from "../../utils/text.utils";
 
 export const productParamsTypes: ProductParamTypes[] = ['color', 'size']
 
@@ -177,18 +179,16 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             [name]: finalValue
         };
         await setProduct(newProduct);
-        validForm()
     };
 
-    const extractNumbersFromText = (text: string): number => {
-        return Number(text.replace(/[^0-9]/g, ''));
-    }
+
     const onSubmit = async (flyer: IFlyer = JSON.parse(product.flyerOptions || '{}'), image: string = product.image || '') => {
         // const flyer: IFlyer = (flyerData || JSON.parse(product.flyerOptions || '{}')) as IFlyer;
+        if(!validForm()) return;
 
         setIsSubmiting(true);
         const price = extractNumbersFromText((flyer?.value?.price || product.price).toString());
-        let productName = (flyer?.value?.name || product?.name || '').replaceAll(/<\/?[^>]+(>|$)/gi, "");
+        let productName = removeHTMLChars(flyer?.value?.name || product?.name || '');
         const productData = {
             ...product,
             ...(flyer.value || {}),
@@ -205,11 +205,17 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         if (editProduct) {
             const imageToDelete = editProduct.image?.split('/').pop();
             await updateProducts(body, imageToDelete);
+            setProduct(productData)
+            toast('Producto Actualizado Exitosamente!', {position: "top-right"});
+
         } else {
             await addProduct(body);
+            setProduct({})
+            setProductParams([]);
+            setFlyerOptions(undefined);
+            toast('Producto Agregado Exitosamente!', {type: 'success', position: "top-right"});
         }
 
-        setProduct(productData)
         loadProducts();
         setIsSubmiting(false);
         // toggleModal();
@@ -295,11 +301,25 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         return Number(dividedPrice.join(''));
     }
 
+    React.useEffect(() => {
+        // validForm();
+    }, [product]);
 
     const validForm = () => {
-        setIsValidForm(['cost'].map((key: any) => {
+        const productKeys: (keyof IProductData)[] = ['cost', 'name', 'price', 'category', 'productImage'];
+        const failedKeys: typeof productKeys = [];
+        const isValid = productKeys.map((key: any) => {
+            const res = !!(product as any)[key];
+            if (!res) {
+                failedKeys.push(key);
+            }
             return !!(product as any)[key]
-        }).reduce((a, b) => a && b, true));
+        }).reduce((a, b) => a && b, true)
+        if(!isValid) {
+            toast(`Los campos ${failedKeys.join(', ')} son requeridos`, {type: 'error', position: "top-right", autoClose: false });
+        }
+        setIsValidForm(isValid);
+        return isValid;
     };
 
     const toggleModal = () => {
@@ -383,7 +403,11 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
     }
     const onChangeFlyer = (flyer: IFlyer) => {
-        setProduct({...product, ...flyer.value});
+        console.log(flyer.value);
+        setProduct({
+            ...product, ...flyer.value,
+            price: extractNumbersFromText(flyer?.value?.price || product.price),
+        });
         // structuredClone()
     }
 
@@ -425,7 +449,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 <div
                     className="d-flex align-items-center justify-content-between w-100"
                 >
-                    {editProduct ? `${!portfolioMode ? 'Editar ' : ''}${editProduct.name}` : 'Crear Producto'}
+                    {editProduct ? `${!portfolioMode ? 'Editar ' : ''}${product.name}` : 'Crear Producto'}
                     {editProduct && <Button className="me-3" color={enableFlyer ? 'danger' : 'info'} outline
                                             onClick={toggleFlyer}>{enableFlyer ? 'Salir de edición' : 'Editar Imagen'}</Button>}
                 </div>

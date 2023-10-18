@@ -61,6 +61,10 @@ export const FlyerElement = (
 
     const handleOnChangeElementRotation = (e: any, e2: any, curr: any) => {
     }
+    const alertify= () => {
+        console.log('element shadow', element.shadow);
+        return 'no'
+    }
     const styledElement = (
         <div
             tabIndex={0} onKeyDown={onKeyDownFlyerElement}
@@ -81,13 +85,13 @@ export const FlyerElement = (
                 borderColor: element.border?.color ? element.border?.color : undefined,
                 borderStyle: element.border?.style ? element.border?.style : undefined,
                 borderWidth: element.border?.width ? element.border?.width : undefined,
-                boxShadow: `${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color}`,
+                boxShadow: element.shadow && element.type === 'text' ? `${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color}` : '',
+                filter: element.shadow && element.type === 'image' ? `drop-shadow(${element.shadow?.vertical || 0}px ${element.shadow?.horizontal || 0}px ${element.shadow?.blur || 0}px ${element.shadow?.color})` : '',
                 textShadow: element.textShadow ? element.textShadow.custom || `${element.textShadow?.vertical || 0}px ${element.textShadow?.horizontal || 0}px ${element.textShadow?.blur || 0}px ${element.textShadow?.color}` : undefined,
                 backgroundImage: `url(${element.backgroundImage})`,
-                transform: `rotate(${element.transform?.rotation || 0}deg) skew(${element.transform?.skew?.x || 0}deg, ${element.transform?.skew?.y || 0}deg)`,
+                transform: element.transform ? `rotate(${element.transform?.rotation || 0}deg) skew(${element.transform?.skew?.x || 0}deg, ${element.transform?.skew?.y || 0}deg)` : '',
             }}
         >
-
 
             {
                 element.type === 'text' ?
@@ -113,6 +117,7 @@ export const FlyerElement = (
 
             }
 
+            <span> {alertify()}</span>
 
         </div>
     )
@@ -157,28 +162,28 @@ export const FlyerElement = (
                         className="flyer-element-options-toggle"
                         data-toggle="dropdown"
                     >
-                        <span className="bi bi-three-dots" />
+                        <span className="bi bi-three-dots"/>
                     </DropdownToggle>
                     <DropdownMenu container="body">
                         <DropdownItem onClick={handleDuplicate}
                                       className="d-flex align-items-center gap-3 ">
-                            <i className="bi bi-back" />
+                            <i className="bi bi-back"/>
                             <span>Duplicar</span>
                         </DropdownItem>
 
                         <DropdownItem onClick={handleMoveFlyerElement('up')}
                                       className="d-flex align-items-center gap-3 ">
-                            <i className="bi bi-layer-forward" />
+                            <i className="bi bi-layer-forward"/>
                             <span>Mover Arriba</span>
                         </DropdownItem>
                         <DropdownItem onClick={handleMoveFlyerElement('down')}
                                       className="d-flex align-items-center gap-3 ">
-                            <i className="bi bi-layer-backward" />
+                            <i className="bi bi-layer-backward"/>
                             <span>Mover Abajo</span>
                         </DropdownItem>
                         <DropdownItem onClick={handleRemove}
                                       className="d-flex align-items-center gap-3 text-danger">
-                            <i className="bi bi-trash" />
+                            <i className="bi bi-trash"/>
                             <span>Eliminar</span>
                         </DropdownItem>
 
