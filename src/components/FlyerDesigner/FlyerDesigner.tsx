@@ -164,8 +164,8 @@ const FlyerDesigner = (
 
     useEffect(() => {
         updateUndoFlyer();
-        if (saveInterval) clearInterval(saveInterval);
-        setSaveInterval(setInterval(handleAutomaticSave, saveIntervalTime));
+        // if (saveInterval) clearInterval(saveInterval);
+        // setSaveInterval(setInterval(handleAutomaticSave, saveIntervalTime));
     }, [flyer, lastFlyer]);
 
 
