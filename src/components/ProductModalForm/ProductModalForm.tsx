@@ -453,7 +453,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                             onClick={toggleFlyer}>{enableFlyer ? 'Salir de edición' : 'Editar Imagen'}</Button>}
                 </div>
             </ModalHeader>
-            <Form className="w-100 h-100">
+            <Form className="product-form">
                 {(enableFlyer || !editProduct) ?
                     <FlyerDesigner
                         flyerOptions={flyerOptions}
