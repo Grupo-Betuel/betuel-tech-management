@@ -89,7 +89,7 @@ export const FlyerDesignerSidebar = React.forwardRef((
 
     const sidebarContent: SidebarContentType = {
         'text': <FlyerDesignerTextStyles addFlyerElement={handleAddElement}/>,
-        'image': <FlyerDesignerImageSelector onClickMedia={handleMediaClick} mediaName={mediaName}/>,
+        'image': <FlyerDesignerImageSelector onClickMedia={handleMediaClick} mediaName={mediaName} imageToChangeType={imageToChangeType}/>,
         'template': <FlyerDesignerTemplateSelector onSelectTemplate={onSelectTemplate} templates={templates}/>,
     }
 

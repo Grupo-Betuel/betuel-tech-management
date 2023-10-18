@@ -17,17 +17,18 @@ export interface IMedia {
 export interface IGCloudImagesHandlerProps {
     onClickMedia: (media: IMedia) => void;
     mediaName?: string;
+    preselectTag?: IMediaTagTypes;
 }
 
 export type IMediaTagTypes = 'element' | 'product' | 'background' | 'logo' | 'flyer' | 'video' | 'wallpaper';
 export type ITaggedImages = { [N in IMediaTagTypes]: IMedia[] };
 
-export const GCloudMediaHandler = ({onClickMedia, mediaName}: IGCloudImagesHandlerProps) => {
+export const GCloudMediaHandler = ({onClickMedia, mediaName, preselectTag}: IGCloudImagesHandlerProps) => {
     const [medias, setMedias] = React.useState<IMedia[]>([]);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [imageToDelete, setImageToDelete] = React.useState<IMedia>();
     const [taggedImages, setTaggedImages] = React.useState<ITaggedImages>({} as ITaggedImages);
-    const [selectedTag, setSelectedTag] = React.useState<IMediaTagTypes>('element');
+    const [selectedTag, setSelectedTag] = React.useState<IMediaTagTypes>(preselectTag || 'product');
     const [tags, setTags] = React.useState<IMediaTagTypes[]>([]);
 
     const getMedias = async () => {
@@ -44,6 +45,12 @@ export const GCloudMediaHandler = ({onClickMedia, mediaName}: IGCloudImagesHandl
 
         setLoading(false);
     }
+
+    React.useEffect(() => {
+        if (preselectTag !== selectedTag) {
+            setSelectedTag(preselectTag || selectedTag);
+        }
+    }, [preselectTag])
 
     React.useEffect(() => {
         setMedias(taggedImages[selectedTag] || []);
