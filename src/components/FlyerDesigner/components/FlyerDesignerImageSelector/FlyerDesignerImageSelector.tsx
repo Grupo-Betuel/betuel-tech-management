@@ -21,7 +21,7 @@ export const FlyerDesignerImageSelector = (
         if (imageToChangeType) {
             let tag = preselectMediaTag;
             switch (imageToChangeType) {
-                case 'backgroundImage':
+                case 'templateImage':
                     tag = 'background';
                     break;
                 case 'content':
