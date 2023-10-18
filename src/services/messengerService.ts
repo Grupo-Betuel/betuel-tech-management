@@ -29,3 +29,41 @@ export const updateMessenger = async (body: string) => {
         throw e;
     }
 }
+
+
+export const addMessenger = async (body: string) => {
+
+    try {
+
+        return await fetch(`${process.env.REACT_APP_API}messengers`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            }
+        );
+
+
+    } catch (e) {
+        throw e;
+    }
+}
+
+export const deleteMessenger = async (body: string) => {
+    try {
+        return await fetch(`${process.env.REACT_APP_API}messengers`, {
+                method: 'DELETE',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            }
+        );
+
+    } catch (e) {
+        throw e;
+    }
+}

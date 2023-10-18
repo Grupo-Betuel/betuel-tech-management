@@ -1,9 +1,12 @@
 import {SocialNetworkModel} from "./socialNetworkModel";
 
+export type CompanyTypes = 'store' | 'agency' | 'other';
 export class CompanyModel {
     _id: any = '';
 
     name: string = '';
+
+    type: CompanyTypes = 'store';
 
     companyId: string = '';
 

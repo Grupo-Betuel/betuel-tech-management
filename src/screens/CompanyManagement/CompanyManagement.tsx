@@ -140,7 +140,7 @@ export const CompanyManagement = () => {
             const uploadCallBack = async (media: IMedia) => {
 
                 const companyToUpdate = isEditing[companyIdString];
-                if(companyToUpdate) {
+                if (companyToUpdate) {
                     setLoading(true);
                     const mediaToDelete = companyToUpdate[tag as keyof CompanyModel]?.split('/')?.pop() as string;
                     mediaToDelete && await deletePhoto(mediaToDelete);
@@ -201,15 +201,28 @@ export const CompanyManagement = () => {
                                                 : <Input value={company.name} name="name"
                                                          onChange={onChangeCompany(company._id)}/>}
                                         </FormGroup>
+                                        <FormGroup>
+                                            <Label><b>Tipo</b></Label> <br/>
+                                            {!isEditingCompany ? <span>{company.type}</span>
+                                                : <Input value={company.type}
+                                                         name="type"
+                                                         onChange={onChangeCompany(company._id)}
+                                                >
+                                                    <option value="">Seleccionar</option>
+                                                    <option value="store">Seleccionar</option>
+                                                    <option value="agency">Seleccionar</option>
+                                                </Input>
+                                            }
+                                        </FormGroup>
 
                                         <FormGroup>
                                             <Label><b>Logo</b></Label> <br/>
                                             {!isEditingCompany ? <img width={100} height={100} src={company.logo}/>
-                                                :  <Input className=""
-                                                          type="file"
-                                                          name="logo"
-                                                          accept="image/png,image/jpg,image/gif,image/jpeg"
-                                                          onChange={onChangeCompanyFile(company.companyId, 'logo')}/>}
+                                                : <Input className=""
+                                                         type="file"
+                                                         name="logo"
+                                                         accept="image/png,image/jpg,image/gif,image/jpeg"
+                                                         onChange={onChangeCompanyFile(company.companyId, 'logo')}/>}
                                         </FormGroup>
                                         <FormGroup>
                                             <Label><b>Company Id</b></Label> <br/>

@@ -9,8 +9,21 @@ import {
     AccordionItem,
     Button,
     Card,
-    CardBody, CardLink, CardText,
-    CardTitle, Input, ListGroup, ListGroupItem, Modal, ModalBody, ModalFooter, ModalHeader, Spinner,
+    CardBody, CardFooter,
+    CardLink,
+    CardText,
+    CardTitle,
+    Form,
+    FormGroup,
+    Input,
+    Label,
+    ListGroup,
+    ListGroupItem,
+    Modal,
+    ModalBody,
+    ModalFooter,
+    ModalHeader,
+    Spinner,
     Table,
     UncontrolledAccordion
 } from "reactstrap";
@@ -21,8 +34,11 @@ import {useHistory, useParams} from "react-router";
 import {toast} from "react-toastify";
 import {productParamsTypes} from "../../components/ProductModalForm/ProductModalForm";
 import {IMessenger, messengerStatusList, MessengerStatusTypes} from "../../model/messengerModels";
-import {getMessengers, updateMessenger} from "../../services/messengerService";
+import {addMessenger, deleteMessenger, getMessengers, updateMessenger} from "../../services/messengerService";
 import {CreateNewFloatButton} from "../Dashboard/Dashboard";
+import {CompanyModel} from "../../model/companyModel";
+import {ITrip} from "../../model/tripModels";
+import {addCompany} from "../../services/companies";
 
 export const orderStatusCardColor: { [N in OrderStatusTypes]: string } = {
     'pending': 'secondary',
@@ -50,7 +66,7 @@ export const OrdersManagement = () => {
     const [messengers, setMessengers] = useState<IMessenger[]>([]);
     const [originalMessengers, setOriginalMessengers] = useState<IMessenger[]>([]);
     const [originalOrders, setOriginalOrders] = useState<{ [N in string]: IOrder }>({});
-    const [orderToDelete, setOrderToDelete] = useState<IOrder>();
+    const [elementToDelete, setElementToDelete] = useState<IOrder | IMessenger>();
     const [loading, setLoading] = useState<boolean>();
     const [activeTab, setActiveTab] = useState<'order' | 'messenger'>('order');
     const {connected, socket} = useSocket()
@@ -130,17 +146,17 @@ export const OrdersManagement = () => {
         }
     }, [connected, orders, originalOrders, messengers, originalMessengers])
 
-    const selectOrderToDelete = (order: IOrder) => () => {
-        setOrderToDelete(order);
+    const selectElementToDelete = (order: IOrder | IMessenger) => () => {
+        setElementToDelete(order);
     }
 
-    const resetOrderToDelete = () => setOrderToDelete(undefined);
+    const resetElementToDelete = () => setElementToDelete(undefined);
 
     const handleDeleteOrder = async () => {
-        if (orderToDelete === undefined) return;
+        if (elementToDelete === undefined) return;
         setLoading(true)
-        resetOrderToDelete();
-        await deleteOrder(JSON.stringify(orderToDelete))
+        resetElementToDelete();
+        await deleteOrder(JSON.stringify(elementToDelete))
         setLoading(false)
         handleGetOrders();
         toast('Orden eliminada')
@@ -148,11 +164,35 @@ export const OrdersManagement = () => {
 
     }
 
+    const handleDeleteMessenger = async () => {
+        setLoading(true)
+        await deleteMessenger(JSON.stringify(elementToDelete))
+        setLoading(false)
+        resetElementToDelete();
+        handleGetMessengers();
+        toast('Mensajero eliminado');
+    }
+
+    const handleDeleteElement = () => {
+        if (elementToDelete === undefined) return;
+        if (activeTab === 'order') {
+            handleDeleteOrder();
+        } else if (activeTab === 'messenger') {
+            handleDeleteMessenger();
+        }
+    }
+
     const goToDetail = (order: IOrder) => () => {
         history.push(`/order-detail/${order._id}`, order)
     }
 
-    const onChangeOrder = (order: IOrder) => ({target: {value: data, name, type}}: React.ChangeEvent<HTMLInputElement>) => {
+    const onChangeOrder = (order: IOrder) => ({
+                                                  target: {
+                                                      value: data,
+                                                      name,
+                                                      type
+                                                  }
+                                              }: React.ChangeEvent<HTMLInputElement>) => {
         let value: string | number = data;
         if (type === 'number') value = Number(value);
         const newOrders = orders.map((o) => {
@@ -245,6 +285,34 @@ export const OrdersManagement = () => {
         toast('Ordenes del bot actualizadas');
     }
 
+    const [messengerToCreate, setMessengerToCreate] = useState<IMessenger>({} as IMessenger);
+    const onChangeMessengerCompany = ({target: {name, value}}: React.ChangeEvent<HTMLInputElement>) => {
+        setMessengerToCreate({
+            ...messengerToCreate,
+            [name]: value
+        })
+
+    }
+
+    const validMessenger = (messenger: IMessenger) => {
+        const {firstName, lastName, phone} = messenger
+        const res = (!!firstName && !!lastName && !!phone)
+        if (!res) {
+            toast("Todos los campos son requeridos")
+        }
+        return res
+    }
+
+    const handleAddNewMessenger = async () => {
+
+        if (validMessenger(messengerToCreate)) {
+            setLoading(true);
+            await addMessenger(JSON.stringify(messengerToCreate));
+            handleGetMessengers();
+            toast("Mensajeero creado con exito")
+            setLoading(false);
+        }
+    }
     return (
         <>
             {loading && (
@@ -299,9 +367,9 @@ export const OrdersManagement = () => {
                             </ListGroupItem>
                             <ListGroupItem className="d-flex gap-2 align-items-center">
                                 <b className="text-nowrap">Envio: RD$</b><Input value={order.shippingPrice}
-                                                        onChange={onChangeOrder(order)}
-                                                        type={'number'}
-                                                        name="shippingPrice"/>
+                                                                                onChange={onChangeOrder(order)}
+                                                                                type={'number'}
+                                                                                name="shippingPrice"/>
                             </ListGroupItem>
                             <ListGroupItem>
                                 <b>Total</b>: RD${(order.total + order.shippingPrice)?.toLocaleString()}
@@ -366,10 +434,10 @@ export const OrdersManagement = () => {
                         <CardBody className="d-flex justify-content-between flex-wrap gap-2">
                             {orderHasChanged(order) &&
                                 <>
-                                <Button color="primary" className="text-nowrap w-100 align-self-start"
-                                        onClick={handleUpdateOrder(order)}>
-                                    Guardar Cambios
-                                </Button>
+                                    <Button color="primary" className="text-nowrap w-100 align-self-start"
+                                            onClick={handleUpdateOrder(order)}>
+                                        Guardar Cambios
+                                    </Button>
                                     <Button color="warning" className="text-nowrap w-100 align-self-start"
                                             onClick={resetOrderChanges(order)}>
                                         Revertir Cambios
@@ -377,7 +445,7 @@ export const OrdersManagement = () => {
                                 </>
                             }
                             <Button color="danger" className="text-nowrap align-self-start"
-                                    onClick={selectOrderToDelete(order)}>
+                                    onClick={selectElementToDelete(order)}>
                                 Eliminar
                             </Button>
                             <Button color="primary" className="text-nowrap align-self-start"
@@ -391,65 +459,103 @@ export const OrdersManagement = () => {
                         </CardBody>
                     </Card>))}
 
-                {activeTab === 'messenger' && messengers.map((messenger) => (
-                    <Card
-                        key={messenger._id}
-                        color={messengerStatusCardColor[messenger.status]}
-                        outline={messenger.fromSocket}
-                    >
-                        <CardBody>
-                            <CardText>
-                                <b>{messenger.firstName} {messenger.lastName}</b>
-                            </CardText>
-                        </CardBody>
-                        <ListGroup flush>
-                            <ListGroupItem>
-                                <b>Whatsapp</b>: <a href={`https://wa.me/${messenger.phone}`}
-                                                    target="_blank">{messenger.phone}</a>
-                            </ListGroupItem>
-                            <ListGroupItem className="d-flex gap-2 align-items-center">
-                                <b>Estado:</b> <Input placeholder="Estado"
-                                                      onChange={changeMessengerStatus(messenger)}
-                                                      value={messenger.status}
-                                                      type="select">
-                                {messengerStatusList.map((type: string) =>
-                                    <option value={type} key={type}>{type}</option>)
-                                }
-                            </Input>
 
-                            </ListGroupItem>
+                {activeTab === 'messenger' &&
+                    <>
+                        <Card>
+                            <CardBody>
+                                <Form>
+                                    {/*firstName: string*/}
+                                    {/*lastName: string*/}
+                                    {/*phone: string*/}
+                                    <FormGroup>
+                                        <Label><b>Nombre</b></Label> <br/>
+                                        <Input value={messengerToCreate.firstName} name="firstName"
+                                               onChange={onChangeMessengerCompany}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label><b>Apellido</b></Label> <br/>
+                                        <Input value={messengerToCreate.lastName} name="lastName"
+                                               onChange={onChangeMessengerCompany}/>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label><b>Telefono (Whatsapp)</b></Label> <br/>
+                                        <Input minLength={10} maxLength={11} value={messengerToCreate.phone} name="phone"
+                                               onChange={onChangeMessengerCompany}/>
+                                    </FormGroup>
+                                </Form>
+                            </CardBody>
+                            <CardFooter>
 
-                            <ListGroupItem>
-                                <b>Cotizando orden:</b> <a href={`${hostname}/order-detail/${messenger.quotingOrder}`}
-                                                           target="_blank">{messenger.quotingOrder}</a>
-                            </ListGroupItem>
-                            <ListGroupItem>
-                                <b>Ordenes asignadas:</b>
-                                {
-                                    messenger
-                                        .currentOrders?.map(id =>
-                                        <div key={id}><a href={`${hostname}/order-detail/${id}`}
-                                                         target="_blank">{id}</a> <br/></div>)
-                                }
-                            </ListGroupItem>
-                        </ListGroup>
-                        <CardBody className="d-flex justify-content-between flex-wrap gap-2">
-                            {hasMessengerChanged(messenger) &&
-                                <Button color="primary" className="text-nowrap w-100 align-self-start"
-                                        onClick={handleUpdateMessenger(messenger)}>
-                                    Guardar Cambios
-                                </Button>}
-                        </CardBody>
-                    </Card>))}
+                                <Button color="success" onClick={handleAddNewMessenger}>Crear Mensajero</Button>
+                            </CardFooter>
+                        </Card>
+                        {messengers.map((messenger) => (
+                            <Card
+                                key={messenger._id}
+                                color={messengerStatusCardColor[messenger.status]}
+                                outline={messenger.fromSocket}
+                            >
+                                <CardBody>
+                                    <CardText>
+                                        <b>{messenger.firstName} {messenger.lastName}</b>
+                                    </CardText>
+                                </CardBody>
+                                <ListGroup flush>
+                                    <ListGroupItem>
+                                        <b>Whatsapp</b>: <a href={`https://wa.me/${messenger.phone}`}
+                                                            target="_blank">{messenger.phone}</a>
+                                    </ListGroupItem>
+                                    <ListGroupItem className="d-flex gap-2 align-items-center">
+                                        <b>Estado:</b> <Input placeholder="Estado"
+                                                              onChange={changeMessengerStatus(messenger)}
+                                                              value={messenger.status}
+                                                              type="select">
+                                        {messengerStatusList.map((type: string) =>
+                                            <option value={type} key={type}>{type}</option>)
+                                        }
+                                    </Input>
+
+                                    </ListGroupItem>
+
+                                    <ListGroupItem>
+                                        <b>Cotizando orden:</b> <a
+                                        href={`${hostname}/order-detail/${messenger.quotingOrder}`}
+                                        target="_blank">{messenger.quotingOrder}</a>
+                                    </ListGroupItem>
+                                    <ListGroupItem>
+                                        <b>Ordenes asignadas:</b>
+                                        {
+                                            messenger
+                                                .currentOrders?.map(id =>
+                                                <div key={id}><a href={`${hostname}/order-detail/${id}`}
+                                                                 target="_blank">{id}</a> <br/></div>)
+                                        }
+                                    </ListGroupItem>
+                                </ListGroup>
+                                <CardBody className="d-flex justify-content-between flex-wrap gap-2">
+                                    <Button color="danger" className="text-nowrap align-self-start"
+                                            onClick={selectElementToDelete(messenger)}>
+                                        Eliminar
+                                    </Button>
+                                    {hasMessengerChanged(messenger) &&
+                                        <Button color="primary" className="text-nowrap w-100 align-self-start"
+                                                onClick={handleUpdateMessenger(messenger)}>
+                                            Guardar Cambios
+                                        </Button>}
+                                </CardBody>
+                            </Card>))}
+                    </>
+                }
             </div>
-            <Modal isOpen={!!orderToDelete} toggle={resetOrderToDelete}>
-                <ModalHeader toggle={resetOrderToDelete}>Confirmación</ModalHeader>
+            <Modal isOpen={!!elementToDelete} toggle={resetElementToDelete}>
+                <ModalHeader toggle={resetElementToDelete}>Confirmación</ModalHeader>
                 <ModalBody>
-                    ¿Estas Seguro que deseas eliminar esta orden?
+                    ¿Estas Seguro que deseas proceder a eliminar?
                 </ModalBody>
                 <ModalFooter>
-                    <Button color="primary" onClick={handleDeleteOrder}>Confirmar</Button>{' '}
-                    <Button color="secondary" onClick={resetOrderToDelete}>Cancel</Button>
+                    <Button color="primary" onClick={handleDeleteElement}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={resetElementToDelete}>Cancel</Button>
                 </ModalFooter>
             </Modal>
             {activeTab === 'messenger' && <CreateNewFloatButton
