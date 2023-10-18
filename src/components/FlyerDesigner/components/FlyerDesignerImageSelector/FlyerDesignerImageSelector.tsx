@@ -7,6 +7,7 @@ export interface IFlyerDesignerImageSelectorProps {
     onClickMedia: (media: IMedia) => void;
     mediaName?: string;
     imageToChangeType?: ImageTypes;
+    medias: IMedia[];
 }
 
 export const FlyerDesignerImageSelector = (
@@ -14,6 +15,7 @@ export const FlyerDesignerImageSelector = (
         onClickMedia,
         mediaName,
         imageToChangeType,
+        medias,
     }: IFlyerDesignerImageSelectorProps) => {
     const [preselectMediaTag, setPreselectMediaTag] = React.useState<IMediaTagTypes>();
 
@@ -41,7 +43,7 @@ export const FlyerDesignerImageSelector = (
 
     return (
         <div className="flyer-designer-image-selector">
-            <GCloudMediaHandler onClickMedia={handleClickMedia} mediaName={mediaName} preselectTag={preselectMediaTag}/>
+            <GCloudMediaHandler mediasData={medias} onClickMedia={handleClickMedia} mediaName={mediaName} preselectTag={preselectMediaTag}/>
         </div>
     )
 }

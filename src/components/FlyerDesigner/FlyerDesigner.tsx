@@ -3,7 +3,7 @@ import React, {useCallback, useEffect, useRef} from "react";
 import logo from "../../assets/images/betueltech.png";
 import {toPng} from "html-to-image";
 import {dataURItoBlob} from "../../utils/blob";
-import {gcloudPublicURL, uploadGCloudImage} from "../../services/gcloud";
+import {gcloudPublicURL, getGCloudImages, uploadGCloudImage} from "../../services/gcloud";
 import {
     IFlyer,
     FlyerElementModel,
@@ -111,7 +111,7 @@ const FlyerDesigner = (
         mediaName,
         validToSave,
     }: IFlyerDesignerProps) => {
-    const [flyer, setFlyer] = React.useState<IFlyer>({} as IFlyer);
+    const [flyer, setFlyer] = React.useState<IFlyer>(blankFlyer);
     const [lastFlyer, setLastFlyer] = React.useState<IFlyer>({} as IFlyer);
     const [undoFlyer, setUndoFlyer] = React.useState<IFlyer[]>([]);
     const [redoFlyer, setRedoFlyer] = React.useState<IFlyer[]>([]);
@@ -124,6 +124,7 @@ const FlyerDesigner = (
     const [templateName, setTemplateName] = React.useState<string>('');
     const [selectedTemplate, setSelectedTemplate] = React.useState<FlyerTemplateModel>();
     const [templates, setTemplates] = React.useState<FlyerTemplateModel[]>([]);
+    const [medias, setMedias] = React.useState<IMedia[]>([]);
     const [loading, setLoading] = React.useState<boolean>();
     const toggleImageGrid = () => setImageToChangeType(undefined);
     const [imageToChangeType, setImageToChangeType] = React.useState<ImageTypes>();
@@ -136,8 +137,12 @@ const FlyerDesigner = (
         setUndoFlyer([...undoFlyer, flyer]);
     }, 100);
 
+
     React.useEffect(() => {
-        if(templateId) onChangeTemplate({target: {value: templateId}} as any);
+        if (templateId && templates?.length) {
+            const templateById = templates.find(t => t.id === templateId);
+            templateById && onChangeTemplate(templateById);
+        }
         if (flyerOptions?.elements) {
             updateFlyerWithOptions();
         }
@@ -157,8 +162,14 @@ const FlyerDesigner = (
         }
     }
 
+    const getMedias = async () => {
+        const data = await getGCloudImages();
+        setMedias(data);
+    }
+
     React.useEffect(() => {
         getTemplates();
+        getMedias();
     }, []);
 
     useEffect(() => {
@@ -204,7 +215,7 @@ const FlyerDesigner = (
             if (element.id === id) {
                 const newElement = {...element, ...value};
                 setSelectedElement(newElement);
-                if(element.ref) {
+                if (element.ref) {
                     flyerValue[element.ref] = removeHTMLChars(newElement.content || '');
                 }
                 return newElement;
@@ -249,7 +260,7 @@ const FlyerDesigner = (
     const saveFlyer = (downloadImage?: boolean) => async () => {
         const flyerWithValue = passFlyerContentToFlyerValue(flyer);
         // check external validation beforeSaving
-        if(validToSave && !validToSave(flyerWithValue)) return;
+        if (validToSave && !validToSave(flyerWithValue)) return;
 
         if (productImageWrapper.current === null) {
             return
@@ -485,6 +496,7 @@ const FlyerDesigner = (
     const onChangeTemplate = (template: FlyerTemplateModel) => {
         const {flyer: selectedFlyer} = template || {};
         // const selectedTemplate = templates.find(template => template._id === value);
+        console.log(selectedFlyer, 'selected?')
         const flyerData = selectedFlyer ? JSON.parse(selectedFlyer) : blankFlyer;
         flyerData.value = flyerOptions?.value;
         const newFlyer = passFlyerValueToFlyerContent({...flyerData});
@@ -577,17 +589,6 @@ const FlyerDesigner = (
         });
     }
 
-    const flyerAction = [
-        {
-            tooltip: 'Add Text',
-            content: {
-                type: 'input',
-                property: 'text',
-            },
-            toggle: <span><i className="fa fa-font"/></span>,
-        }
-    ];
-
     const addFlyerElement = (type: FlyerElementTypes, props?: Partial<FlyerElementModel>) => {
         const newElement = new FlyerElementModel({type, ...props})
         setFlyer({
@@ -598,7 +599,6 @@ const FlyerDesigner = (
             ]
         })
     }
-
 
     // @ts-ignore
     return (
@@ -613,6 +613,7 @@ const FlyerDesigner = (
                     templates={templates}
                     onSelectTemplate={onChangeTemplate}
                     ref={designSidebarRef}
+                    medias={medias}
                 />
                 <div className="flyer-designer-wrapper">
                     <div className="flyer-designer-top-bar">

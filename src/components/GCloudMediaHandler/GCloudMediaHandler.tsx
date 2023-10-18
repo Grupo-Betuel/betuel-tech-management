@@ -18,12 +18,13 @@ export interface IGCloudImagesHandlerProps {
     onClickMedia: (media: IMedia) => void;
     mediaName?: string;
     preselectTag?: IMediaTagTypes;
+    mediasData:IMedia[];
 }
 
 export type IMediaTagTypes = 'element' | 'product' | 'background' | 'logo' | 'flyer' | 'video' | 'wallpaper';
 export type ITaggedImages = { [N in IMediaTagTypes]: IMedia[] };
 
-export const GCloudMediaHandler = ({onClickMedia, mediaName, preselectTag}: IGCloudImagesHandlerProps) => {
+export const GCloudMediaHandler = ({onClickMedia, mediaName, preselectTag, mediasData}: IGCloudImagesHandlerProps) => {
     const [medias, setMedias] = React.useState<IMedia[]>([]);
     const [loading, setLoading] = React.useState<boolean>(false);
     const [imageToDelete, setImageToDelete] = React.useState<IMedia>();
@@ -31,20 +32,23 @@ export const GCloudMediaHandler = ({onClickMedia, mediaName, preselectTag}: IGCl
     const [selectedTag, setSelectedTag] = React.useState<IMediaTagTypes>(preselectTag || 'product');
     const [tags, setTags] = React.useState<IMediaTagTypes[]>([]);
 
-    const getMedias = async () => {
-        setLoading(true);
-        const data = await getGCloudImages();
+    const computeMedias = () => {
+        // setLoading(true);
+        // const data = await getGCloudImages();
         const taggedImagesData: ITaggedImages = {} as ITaggedImages;
-        data.forEach((image: IMedia) => {
+        mediasData.forEach((image: IMedia) => {
             const tag = image.tag as IMediaTagTypes || 'element';
             taggedImagesData[tag] = [...(taggedImagesData[tag] || []), image];
         });
         setTaggedImages(taggedImagesData);
         setTags(Object.keys(taggedImagesData) as IMediaTagTypes[]);
         // setImages(taggedImagesData[selectedTag] || []);
-
-        setLoading(false);
+        // setLoading(false);
     }
+
+    React.useEffect(() => {
+        computeMedias();
+    }, [mediasData])
 
     React.useEffect(() => {
         if (preselectTag !== selectedTag) {
@@ -61,7 +65,7 @@ export const GCloudMediaHandler = ({onClickMedia, mediaName, preselectTag}: IGCl
     }
 
     React.useEffect(() => {
-        getMedias();
+        computeMedias();
     }, []);
 
 

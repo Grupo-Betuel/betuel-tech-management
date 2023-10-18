@@ -18,6 +18,7 @@ export interface IFlyerDesignerSidebarProps {
     imageToChangeType?: ImageTypes;
     templates: FlyerTemplateModel[];
     onSelectTemplate: (template: FlyerTemplateModel) => void;
+    medias:IMedia[];
 }
 
 export type KeyOfSidebarOptions = 'text' | 'image' | 'template';
@@ -41,6 +42,7 @@ export const FlyerDesignerSidebar = React.forwardRef((
         imageToChangeType,
         templates,
         onSelectTemplate,
+        medias,
     }: IFlyerDesignerSidebarProps, ref) => {
 
     const [selectedOption, setSelectedOption] = useState<IFlyerSidebarDesignerOption>({} as IFlyerSidebarDesignerOption);
@@ -89,7 +91,7 @@ export const FlyerDesignerSidebar = React.forwardRef((
 
     const sidebarContent: SidebarContentType = {
         'text': <FlyerDesignerTextStyles addFlyerElement={handleAddElement}/>,
-        'image': <FlyerDesignerImageSelector onClickMedia={handleMediaClick} mediaName={mediaName} imageToChangeType={imageToChangeType}/>,
+        'image': <FlyerDesignerImageSelector medias={medias} onClickMedia={handleMediaClick} mediaName={mediaName} imageToChangeType={imageToChangeType}/>,
         'template': <FlyerDesignerTemplateSelector onSelectTemplate={onSelectTemplate} templates={templates}/>,
     }
 
@@ -106,9 +108,9 @@ export const FlyerDesignerSidebar = React.forwardRef((
     return (
         <div className="flyer-designer-sidebar" ref={ref as any}>
             <div className="flyer-designer-sidebar-menu">
-                {sidebarOptions.map((option) => (
+                {sidebarOptions.map((option, i) => (
                     <div
-                        key={option.id}
+                        key={`opt-${option.id}-${i}`}
                         className={`flyer-designer-sidebar-menu-option ${selectedOption?.id === option.id ? 'selected' : ''}`}
                         onClick={handleOptionClick(option)}
                     >

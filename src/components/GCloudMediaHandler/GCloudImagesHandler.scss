@@ -40,17 +40,24 @@
     }
 
     .image-handler-delete {
-      $size: 1.5rem;
+      $size: 2rem;
       visibility: hidden;
       opacity: 0;
       transition: all 0.2s ease-in-out;
       position: absolute;
       right: 0;
       top: 0;
-      font-size: $size;
-      color: white;
+      font-size: 1.5rem;
       cursor: pointer;
       z-index: 9;
+      height: $size;
+      width: $size;
+      border-radius: $size;
+      background: white;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+
     }
 
     &:hover {
