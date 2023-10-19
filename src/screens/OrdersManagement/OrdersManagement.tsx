@@ -91,10 +91,11 @@ export const OrdersManagement = () => {
     useEffect(() => {
         if (connected && socket) {
             onSocketOnce(socket, OrderEvents.CREATED_ORDER, (order: IOrder) => {
-                const newOrders = [{...order, fromSocket: true}, ...orders]
+                const newOrder: IOrder = {...order, fromSocket: true}
+                const newOrders = [newOrder, ...orders]
                 setOrders(newOrders)
                 const originalValues = (Object.values(originalOrders) as IOrder[])
-                setOriginalOrders(parseOrdersToObject([{...order, fromSocket: true}, ...originalValues]))
+                setOriginalOrders(parseOrdersToObject([newOrder, ...originalValues]))
             })
 
             onSocketOnce(socket, OrderEvents.UPDATED_ORDER, (order: IOrder) => {
