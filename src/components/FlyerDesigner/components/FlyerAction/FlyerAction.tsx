@@ -107,7 +107,7 @@ export const FlyerAction = (
     }
 
     const isEnabled = React.useMemo(() => {
-        return selectedElement && elementTypes.indexOf(selectedElement.type) !== -1;
+        return !!(selectedElement && elementTypes.indexOf(selectedElement.type) !== -1);
     }, [elementTypes, selectedElement]);
 
     const ActionElement = content.map(
