@@ -98,15 +98,17 @@ export const OrdersManagement = () => {
             })
 
             onSocketOnce(socket, OrderEvents.UPDATED_ORDER, (order: IOrder) => {
+                let newOrderChanged = order;
                 const newOrders = orders.map((o) => {
                     if (o._id === order._id) {
-                        return {...order, fromSocket: true};
+                        newOrderChanged = {...order, fromSocket: true};
+                        return newOrderChanged
                     }
                     return o;
 
                 })
                 const newOriginalOrders = originalOrders;
-                newOriginalOrders[order._id] = order;
+                newOriginalOrders[order._id] = newOrderChanged;
 
                 setOrders(newOrders)
                 setOriginalOrders(newOriginalOrders)
