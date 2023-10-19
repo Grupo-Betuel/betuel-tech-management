@@ -317,7 +317,7 @@ export const OrdersManagement = () => {
             <div className="d-flex align-items-center justify-content-between gap-3 p-3">
                 <h1>Ultimas Ordenes</h1>
                 <Button onClick={goToDashboard} color="primary">Dashboard</Button>
-                <Button onClick={handleRefreshBotOrders} color="primary">Actualizar las ordenes del bot</Button>
+                <Button onClick={handleRefreshBotOrders} color="primary">Syncronizar las ordenes del BOT</Button>
             </div>
             <ul className="nav nav-tabs">
                 <li className="nav-item">
