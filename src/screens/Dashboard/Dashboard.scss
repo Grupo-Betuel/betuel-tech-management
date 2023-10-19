@@ -168,6 +168,30 @@ th {
   right: 40px;
 }
 
+.view-product-wrapper {
+  position: fixed;
+  top: 0;
+  left: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100dvw;
+  height: 100dvh;
+  overflow: auto;
+}
+
+.change-product-button {
+  $distance: 600px;
+  position: absolute;
+  z-index: 99999 !important;
+
+  &.left {
+    margin-left: -$distance;
+  }
+  &.right {
+    margin-right: -$distance;
+  }
+}
 
 @media screen and (max-width: 768px) {
   .cards {

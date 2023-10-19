@@ -32,7 +32,7 @@ import {
     ECommerceTypes, getScheduleStatus, handleSchedulePromotion,
     promoteProduct, PublicationTypes,
 } from "../../services/promotions";
-import {IProduct} from "../../components/Product/Product";
+import product, {IProduct} from "../../components/Product/Product";
 import {toast} from "react-toastify";
 import {useHistory} from "react-router";
 import ClientModalForm from "../../components/ClientModalForm/ClientModalForm";
@@ -59,17 +59,13 @@ export const CreateNewFloatButton = styled.button`
   //position: fixed;
   //bottom: 30px;
   //right: 30px;
- 
+
 `;
-export const FloatButton = styled(CreateNewFloatButton)`
-  //position: relative;
-  //top: 15px;
-  //bottom: unset;
+export const FloatButton = styled.button`
   border-radius: 50%;
   height: 70px;
   width: 70px;
   background-color: #fff;
-  z-index: 999;
   padding: 0;
 
   i {
@@ -157,6 +153,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const [loadingApp, setLoadingApp] = React.useState(false);
     const [clientModalIsOpen, setClientModalIsOpen] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
+    const [productViewControlsVisibility, setProductViewControlsVisibility] = React.useState(true);
     const [promotionLoading, setPromotionLoading] = React.useState<{
         [N in ECommerceTypes | string]?: boolean;
     }>({});
@@ -195,9 +192,9 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     } = useWhatsapp('betuelgroup');
 
     React.useEffect(() => {
-        if(companies && companies.length > 0) {
+        if (companies && companies.length > 0) {
             const company = companies.find((company) => company.companyId === selectedCompanyId);
-            if(company) {
+            if (company) {
                 setSelectedCompany(company);
                 handleScheduledPromotionStatus(company);
             }
@@ -214,6 +211,24 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         setEditProduct(null as any);
         setProductFormIsOpen(!productFormIsOpen);
     };
+
+    const changeEditProduct = (direction: 'left' | 'right') => () => {
+        if (!editProduct) return;
+        const index = products.findIndex((product) => product._id === editProduct._id);
+        if (direction === 'left') {
+            if (index === 0) {
+                setEditProduct(products[products.length - 1]);
+            } else {
+                setEditProduct(products[index - 1]);
+            }
+        } else {
+            if (index === products.length - 1) {
+                setEditProduct(products[0]);
+            } else {
+                setEditProduct(products[index + 1]);
+            }
+        }
+    }
 
     const loadProductDetails = (product: Partial<IProductData>) => {
         setEditProduct(product);
@@ -906,7 +921,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                         size="sm"
                                     />
                                     <i className="bi bi-activity cursor-pointer promotion-icon text-primary"
-                                       onClick={runPromotion(selectedCompanyId)} />
+                                       onClick={runPromotion(selectedCompanyId)}/>
                                 </PromotionOption>
                                 <PromotionOption loading={false}>
                                     <Spinner
@@ -1082,17 +1097,35 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 </FloatButton>
             )}
 
-            {productFormIsOpen && <ProductModalForm
-                portfolioMode={portfolioMode}
-                handlePromoteProduct={handlePromoteProduct}
-                promotionLoading={promotionLoading}
-                loadProducts={getAllProducts}
-                isOpen={productFormIsOpen}
-                toggle={toggleProductForm}
-                company={selectedCompanyId}
-                editProduct={editProduct}
-            />
+
+            {productFormIsOpen &&
+                <div className="view-product-wrapper" id="product-view-wrapper">
+                    {productViewControlsVisibility && editProduct && <>
+                        <FloatButton onClick={changeEditProduct('left')}
+                                     className="left btn btn-outline-danger change-product-button">
+                            <i className="bi bi-chevron-left"/>
+                        </FloatButton>
+                        <FloatButton onClick={changeEditProduct('right')}
+                                     className="right btn btn-outline-danger change-product-button">
+                            <i className="bi bi-chevron-right"/>
+                        </FloatButton>
+                    </>}
+                    <ProductModalForm
+                        portfolioMode={portfolioMode}
+                        handlePromoteProduct={handlePromoteProduct}
+                        promotionLoading={promotionLoading}
+                        loadProducts={getAllProducts}
+                        isOpen={productFormIsOpen}
+                        toggle={toggleProductForm}
+                        company={selectedCompanyId}
+                        editProduct={editProduct}
+                        setProductViewControlsVisibility={setProductViewControlsVisibility}
+                    />
+
+                </div>
+
             }
+
             <ClientModalForm
                 promotionLoading={promotionLoading}
                 selectedProducts={selections}

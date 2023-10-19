@@ -36,6 +36,7 @@ export interface ICalculatedPrice {
 
 export interface IProductFormProps {
     toggle: () => any;
+    setProductViewControlsVisibility?: (v: boolean) => any;
     loadProducts: () => any;
     handlePromoteProduct: (ecommerceType: ECommerceTypes) => () => any;
     isOpen?: boolean;
@@ -61,6 +62,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         promotionLoading,
         portfolioMode,
         company,
+        setProductViewControlsVisibility,
     }) => {
     const [product, setProduct] = React.useState<Partial<IProductData>>(editProduct || {});
     const [categories, setCategories] = React.useState<ICategory[]>([]);
@@ -181,7 +183,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     };
 
 
-    const onSubmit = async (flyer: IFlyer = JSON.parse(product.flyerOptions || '{}'), image: string = product.image || '') => {
+    const onSubmit = async (flyer: IFlyer = JSON.parse(product.flyerOptions || '{}'), image: string = product.image || '', noDeleteImage?: boolean) => {
         // const flyer: IFlyer = (flyerData || JSON.parse(product.flyerOptions || '{}')) as IFlyer;
         if(!validForm()) return;
 
@@ -202,10 +204,13 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         const body = JSON.stringify(productData);
 
         if (editProduct) {
-            const imageToDelete = editProduct.image?.split('/').pop();
+            let imageToDelete = editProduct.image?.split('/').pop();
+            if(noDeleteImage) {
+                imageToDelete = undefined;
+            }
             await updateProducts(body, imageToDelete);
             setProduct(productData)
-            toast('Producto Actualizado Exitosamente!', {position: "top-right"});
+            toast('Producto Actualizado Exitosamente!', {position: "top-left"});
 
         } else {
             await addProduct(body);
@@ -425,11 +430,16 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         setEnableFlyer(!enableFlyer);
     }
 
+    React.useEffect(() => {
+        setProductViewControlsVisibility && setProductViewControlsVisibility(!enableFlyer)
+    }, [enableFlyer])
+
 
     const AppAccordion = Accordion as any;
     return (
 
         <Modal
+            container="product-view-wrapper"
             wrapClassName="wrapp-class"
             modalClassName={`${(enableFlyer || !editProduct) ? 'expanded-modal' : ''} ${editProduct ? 'editing' : ''}`}
             contentClassName={"content-class"}
@@ -713,7 +723,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 </ModalBody>
                 <ModalFooter>
                     <Button color="danger" onClick={toggleModal} outline>Salir</Button>{' '}
-                    <Button color="success" disabled={!product.category} onClick={() => onSubmit()}
+                    <Button color="success" disabled={!product.category} onClick={() => onSubmit(undefined, undefined, true)}
                             outline>Guardar</Button>{' '}
                 </ModalFooter>
             </Form>
