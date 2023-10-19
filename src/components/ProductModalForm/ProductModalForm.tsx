@@ -25,7 +25,6 @@ import {toast} from "react-toastify";
 import {Multiselect} from "multiselect-react-dropdown";
 import {ICategory} from "../../model/CategoryModel";
 import {addCategory, getCategories, updateCategory} from "../../services/categoryService";
-import Product from "../Product/Product";
 import {extractNumbersFromText, removeHTMLChars} from "../../utils/text.utils";
 
 export const productParamsTypes: ProductParamTypes[] = ['color', 'size']

@@ -31,7 +31,6 @@ import {
     ecommerceNames,
     ECommerceTypes, getScheduleStatus, handleSchedulePromotion,
     promoteProduct, PublicationTypes,
-    startWhatsappServices,
 } from "../../services/promotions";
 import {IProduct} from "../../components/Product/Product";
 import {toast} from "react-toastify";
@@ -45,17 +44,15 @@ import {
     PROD_SOCKET_URL,
 } from "../../utils/socket.io";
 import * as io from "socket.io-client";
-import {EcommerceEvents, ScheduleEvents, WhatsappEvents} from "../../model/socket-events";
+import {EcommerceEvents, ScheduleEvents} from "../../model/socket-events";
 import {CompanyTypes, ECommerceResponse} from "../../model/common";
-import {Socket} from "socket.io-client";
 import {ScheduleResponse} from "../../model/schedule";
-import {whatsappSessionNames, WhatsappSessionTypes} from "../../model/interfaces/WhatsappModels";
+import {whatsappSessionNames} from "../../model/interfaces/WhatsappModels";
 import BetuelTravelDashboard from "../BetuelTravelDashboard/BetuelTravelDashboard";
 import useWhatsapp from "../../components/hooks/UseWhatsapp";
 import {getCompanies} from "../../services/companies";
 import {CompanyModel} from "../../model/companyModel";
 
-const Marvin = require("marvinj");
 // export const accountLogos: { [N in ]} ;
 
 export const CreateNewFloatButton = styled.button`

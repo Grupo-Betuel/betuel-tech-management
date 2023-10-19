@@ -11,11 +11,10 @@ import {
     Spinner
 } from "reactstrap";
 import TableComponent, {IAction, IHeader} from "../Table/Table";
-import React, {useCallback, useEffect} from "react";
+import React, {useEffect} from "react";
 import {ISale} from "../../model/interfaces/SalesModel";
 import {addSales, deleteSale, updateSales} from "../../services/sales";
 import {toast} from "react-toastify";
-import {CompanyTypes} from "../../model/common";
 import {IProductParam} from "../../model/products";
 import "./CreateSaleModal.scss";
 

@@ -1,6 +1,5 @@
 import {Position, ResizableDelta, Rnd} from "react-rnd";
-import React, {useCallback, useEffect, useRef} from "react";
-import logo from "../../assets/images/betueltech.png";
+import React, { useEffect, useRef} from "react";
 import {toPng} from "html-to-image";
 import {dataURItoBlob} from "../../utils/blob";
 import {gcloudPublicURL, getGCloudImages, uploadGCloudImage} from "../../services/gcloud";
@@ -36,13 +35,6 @@ import {FlyerActionsElements} from "./constants/flyer-actions-elements";
 import {FlyerDesignerSidebar} from "./components/FlyerDesignerSidebar/FlyerDesignerSidebar";
 import {FlyerElement} from "./components/FlyerElement/FlyerElement";
 import {IProductData} from "../../model/products";
-
-const fonts = ['Reey Regular',
-    'Rockwell Extra Bold', 'Anisha',
-    'Abadi MT Condensed',
-    'Oswald', 'Beta', 'Montserrat Bold',
-    'Tondu Beta', 'Cubano'
-]
 
 export interface IFlyerDesignerProps {
     onChangeFlyer?: (flyer: IFlyer) => void;

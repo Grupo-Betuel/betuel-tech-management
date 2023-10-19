@@ -1,18 +1,12 @@
 import React, {useEffect, useMemo, useState} from "react";
-import FlyerDesigner from "../../components/FlyerDesigner/FlyerDesigner";
 import {deleteOrder, getOrders, handleOrderWithBot, refreshBotOrders, updateOrder} from "../../services/orderService";
 import {IOrder, orderPaymentTypeList, orderStatusList, OrderStatusTypes, orderTypeList} from "../../model/ordersModels";
 import "./OrdersManagement.scss";
 import {
-    AccordionBody,
-    AccordionHeader,
-    AccordionItem,
     Button,
     Card,
     CardBody, CardFooter,
-    CardLink,
     CardText,
-    CardTitle,
     Form,
     FormGroup,
     Input,
@@ -24,21 +18,15 @@ import {
     ModalFooter,
     ModalHeader,
     Spinner,
-    Table,
-    UncontrolledAccordion
 } from "reactstrap";
 import {useSocket} from "../../components/hooks/useSocket";
 import {onSocketOnce} from "../../utils/socket.io";
 import {OrderEvents} from "../../model/socket-events";
-import {useHistory, useParams} from "react-router";
+import {useHistory} from "react-router";
 import {toast} from "react-toastify";
-import {productParamsTypes} from "../../components/ProductModalForm/ProductModalForm";
 import {IMessenger, messengerStatusList, MessengerStatusTypes} from "../../model/messengerModels";
 import {addMessenger, deleteMessenger, getMessengers, updateMessenger} from "../../services/messengerService";
 import {CreateNewFloatButton} from "../Dashboard/Dashboard";
-import {CompanyModel} from "../../model/companyModel";
-import {ITrip} from "../../model/tripModels";
-import {addCompany} from "../../services/companies";
 
 export const orderStatusCardColor: { [N in OrderStatusTypes]: string } = {
     'pending': 'secondary',
