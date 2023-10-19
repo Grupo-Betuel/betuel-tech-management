@@ -1,8 +1,11 @@
 
 .expanded-modal {
+  z-index: 999;
   .modal-dialog {
     margin: unset !important;
     max-width: unset !important;
+    z-index: 999;
+
   }
 
   .modal-content {

@@ -204,7 +204,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         const body = JSON.stringify(productData);
 
         if (editProduct) {
-            let imageToDelete = editProduct.image?.split('/').pop();
+            let imageToDelete = product.image?.split('/').pop();
             if(noDeleteImage) {
                 imageToDelete = undefined;
             }
