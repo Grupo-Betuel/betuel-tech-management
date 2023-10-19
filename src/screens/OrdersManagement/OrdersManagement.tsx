@@ -444,9 +444,9 @@ export const OrdersManagement = () => {
                                     onClick={goToDetail(order)}>
                                 Detalles
                             </Button>
-                            <Button color="primary" outline className="text-nowrap w-100 align-self-start"
+                            <Button color="primary" className="text-nowrap w-100 align-self-start"
                                     onClick={handleOrderBot(order)}>
-                                Continuar orden con Bot
+                                Procesar con el BOT
                             </Button>
                         </CardBody>
                     </Card>))}
