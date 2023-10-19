@@ -309,8 +309,9 @@ export const OrdersManagement = () => {
             setLoading(true);
             await addMessenger(JSON.stringify(messengerToCreate));
             handleGetMessengers();
-            toast("Mensajeero creado con exito")
+            toast("Mensajero creado con exito")
             setLoading(false);
+            setMessengerToCreate({} as any);
         }
     }
     return (
@@ -480,7 +481,8 @@ export const OrdersManagement = () => {
                                     </FormGroup>
                                     <FormGroup>
                                         <Label><b>Telefono (Whatsapp)</b></Label> <br/>
-                                        <Input minLength={10} maxLength={11} value={messengerToCreate.phone} name="phone"
+                                        <Input minLength={10} maxLength={11} value={messengerToCreate.phone}
+                                               name="phone"
                                                onChange={onChangeMessengerCompany}/>
                                     </FormGroup>
                                 </Form>
@@ -518,10 +520,13 @@ export const OrdersManagement = () => {
 
                                     </ListGroupItem>
 
-                                    <ListGroupItem>
-                                        <b>Cotizando orden:</b> <a
-                                        href={`${hostname}/order-detail/${messenger.quotingOrder}`}
-                                        target="_blank">{messenger.quotingOrder}</a>
+                                    <ListGroupItem className="d-flex align-items-center justify-content-between gap-3">
+                                        <b>Cotizando orden:</b> <a className="text-break"
+                                                                   href={`${hostname}/order-detail/${messenger.quotingOrder}`}
+                                                                   target="_blank">{messenger.quotingOrder}</a>
+                                        {messenger.quotingOrder &&
+                                            <i className="bi bi-trash remove-button"
+                                               onClick={handleUpdateMessenger({...messenger, quotingOrder: null})}/>}
                                     </ListGroupItem>
                                     <ListGroupItem>
                                         <b>Ordenes asignadas:</b>

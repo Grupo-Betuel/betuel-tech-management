@@ -140,7 +140,7 @@ const FlyerDesigner = (
 
     React.useEffect(() => {
         if (templateId && templates?.length) {
-            const templateById = templates.find(t => t.id === templateId);
+            const templateById = templates.find(t => t._id === templateId);
             templateById && onChangeTemplate(templateById);
         }
         if (flyerOptions?.elements) {
