@@ -16,6 +16,7 @@ export interface IProductData {
   stock: number;
   productParams: IProductParam[];
   category: ICategory;
+  facebookId?: string;
 }
 
 export type ProductParamTypes = 'color' | 'size';

@@ -100,12 +100,20 @@ const Product: React.FunctionComponent<IProduct> = ({
     const handleRemoveProduct = () => {
         onRemoveProduct && onRemoveProduct(product);
     }
+
+    const goToFacebook = () => {
+        window.open(`https://www.facebook.com/marketplace/item/${product.facebookId}`, '_blank');
+    }
+
     return (
         <div className={`card ${selected ? 'selected' : ''}`}>
             <div
                 className="card-content"
             >
-                {onRemoveProduct && !portfolioMode && <i className="bi bi-trash delete-product-icon" onClick={handleRemoveProduct}></i>}
+                {onRemoveProduct && !portfolioMode && <>
+                    {product.facebookId && <i className="bi bi-facebook fb-product-icon" onClick={goToFacebook}></i>}
+                    <i className="bi bi-trash delete-product-icon" onClick={handleRemoveProduct}></i>
+                </>}
                 <div className="card-image-container overflow-hidden">
                     <div
                         className="card-image"

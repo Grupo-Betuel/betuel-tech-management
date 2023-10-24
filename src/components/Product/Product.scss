@@ -15,7 +15,7 @@
   position: relative;
   height: 100%;
   &:hover {
-    .delete-product-icon {
+    .product-action {
       opacity: 1;
     }
     .card-title {
@@ -24,14 +24,12 @@
     }
   }
 
-  .delete-product-icon {
+  .product-action {
     position: absolute;
     z-index: 999;
     top: 3px;
-    color: red;
     background: white;
     font-size: 21px;
-    right: 5px;
     cursor: pointer;
     border-radius: 50px;
     width: 40px;
@@ -42,6 +40,19 @@
     transition: all .3s ease;
     opacity: 0;
   }
+
+  .delete-product-icon {
+    @extend .product-action;
+    color: red;
+    right: 5px;
+  }
+
+  .fb-product-icon {
+    @extend .product-action;
+    color: dodgerblue;
+    left: 5px;
+  }
+
 }
 
 .card-image-container:hover .card-image {
