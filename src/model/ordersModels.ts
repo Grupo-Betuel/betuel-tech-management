@@ -6,6 +6,7 @@ export interface ILocation {
     latitude: number
     longitude: number
     description: number
+    link: string
 }
 export interface IClient {
   _id: string

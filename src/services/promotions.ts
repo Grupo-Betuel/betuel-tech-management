@@ -32,6 +32,8 @@ export const ecommerceNames: { [N in ECommerceTypes | string]: string } = {
 export const getWhatsappMessageURL = (message: string) =>
     `https://wa.me/${whatsappPhone}?text=${encodeURI(message)}`;
 
+export const getWhatsappNumberURl = (phone: string, message?: string) =>     `https://wa.me/${phone}?text=${encodeURI(message || '')}`;
+
 export const promoteProduct = async (
     products: IProduct[],
     eCommerce: ECommerceTypes,

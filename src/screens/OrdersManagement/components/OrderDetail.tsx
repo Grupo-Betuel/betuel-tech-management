@@ -7,7 +7,6 @@ import {
     Card,
     CardBody,
     CardText,
-    CardTitle,
     Input,
     ListGroup,
     ListGroupItem,
@@ -18,6 +17,7 @@ import {
 import "./OrderDetail.scss";
 import {ISale} from "../../../model/interfaces/SalesModel";
 import {toast} from "react-toastify";
+import {getWhatsappNumberURl} from "../../../services/promotions";
 
 export const OrderDetail = () => {
     const history = useHistory();
@@ -198,6 +198,18 @@ export const OrderDetail = () => {
                     </div>
                 </>
                 }
+                <div className="d-flex justify-content-center flex-column gap-3 mb-3">
+                    <h1>Datos</h1>
+                    <div className="d-flex align-items-center gap-2">
+                        <b>Ubicacion:</b> <a  target="_blank" href={order?.location?.link}>Ubicacion de {order?.client?.firstName}</a>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                        <b>Mensajero:</b> <a target="_blank"
+                        href={order?.messenger?.phone && getWhatsappNumberURl(order?.messenger?.phone)}>
+                        Contactar a {order?.messenger?.firstName}
+                    </a>
+                    </div>
+                </div>
                 <h1>Productos</h1>
                 <div className="orders-detail-grid">
                     {order.sales?.map((sale) => (
