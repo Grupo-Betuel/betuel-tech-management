@@ -601,7 +601,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                         toggle={toggleParamsOpen}>
                                         <AccordionItem>
                                             <AccordionHeader targetId={paramId}>
-                                                <Label><b>{param.type.toUpperCase()}</b></Label>
+                                                <Label><b>{param.type.toUpperCase()}</b> - <i>{param.value}</i></Label>
                                             </AccordionHeader>
                                             <AccordionBody accordionId={paramId}>
                                                 <div className="product-param-wrapper" key={`product-param-${index}`}>
