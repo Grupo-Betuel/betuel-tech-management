@@ -1,8 +1,6 @@
 import {dataURItoBlob} from "./blob";
 import {uploadGCloudImage} from "../services/gcloud";
-import {toast} from "react-toastify";
 import {IMedia, IMediaTagTypes} from "../components/GCloudMediaHandler/GCloudMediaHandler";
-import {ITag} from "../model/interfaces/TagModel";
 import React from "react";
 import {removeAccentsFromText, removeHTMLChars} from "./text.utils";
 

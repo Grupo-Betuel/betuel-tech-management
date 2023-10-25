@@ -5,6 +5,7 @@ import {
     IWsUser,
     WhatsappSessionTypes,
 } from "../model/interfaces/WhatsappModels";
+import {generateProductDescriptionFromParams} from "../utils/promotion.utils";
 
 export const localPromotionsApi = "http://10.0.0.13:5000/api/";
 export const whatsappPhone = "+18298937075";
@@ -40,6 +41,13 @@ export const promoteProduct = async (
     sessionKey: string,
     type?: 'photo' | 'story',
 ) => {
+
+    // manipulating descripttion
+    // const productsData = products.map((product) => ({
+        // ...product,
+        // description: `${product.description}${product.productParams.length ? '\n\n' + generateProductDescriptionFromParams(product.productParams) : ''}`,
+    // }));
+
     const body = JSON.stringify({data: products, sessionKey, type});
 
     try {

@@ -26,7 +26,7 @@ export interface IProductParam {
   value?: string,
   label?: string,
   type: ProductParamTypes,
-  productId?: string
+  productId: string
   isRelated?: boolean;
   relatedParams?: IProductParam[];
 }

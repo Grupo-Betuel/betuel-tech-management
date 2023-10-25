@@ -1,5 +1,6 @@
-import React, {useEffect, useState} from "react";
+import React, {KeyboardEvent, useEffect, useState} from "react";
 import {
+    Badge,
     Button,
     Card,
     CardBody,
@@ -170,6 +171,47 @@ export const CompanyManagement = () => {
             await onChangeMediaToUpload(tag, uploadCallBack, `${companyId}-${tag}`)(event)
             setLoading(false);
         }
+    const [newTag, setNewTag] = useState<string>('');
+
+    const addTag = (companyId: string) => (event: KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            const company = isEditing[companyId];
+            console.log('key', event.key, company, companyId);
+
+            if (company) {
+                const tags = company.tags as string[];
+                console.log('tags', tags);
+
+                const newTags = [...tags, newTag];
+                onChangeCompany(companyId)({
+                    target: {
+                        name: 'tags',
+                        value: newTags
+                    }
+                } as any)
+                setNewTag('');
+            }
+        }
+
+    }
+
+    const onChangeNewTag = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
+        setNewTag(value)
+    }
+
+    const removeTag = (companyId: string, tag: string) => () => {
+        const company = isEditing[companyId];
+        if (company) {
+            const tags = company.tags as string[];
+            const newTags = tags.filter(t => t !== tag);
+            onChangeCompany(companyId)({
+                target: {
+                    name: 'tags',
+                    value: newTags
+                }
+            } as any)
+        }
+    }
 
     return (
         <div className="company-management">
@@ -194,7 +236,7 @@ export const CompanyManagement = () => {
                                     src={company.wallpaper}
                                 />
                                 <CardBody>
-                                    <Form>
+                                    <Form onSubmit={e => e.preventDefault()}>
                                         <FormGroup>
                                             <Label><b>Nombre</b></Label> <br/>
                                             {!isEditingCompany ? <span>{company.name}</span>
@@ -258,6 +300,30 @@ export const CompanyManagement = () => {
                                                              accept="image/png,image/jpg,image/gif,image/jpeg"
                                                              onChange={onChangeCompanyFile(company.companyId, 'wallpaper')}/>}
                                             </Label>
+                                        </FormGroup>
+                                        <FormGroup>
+                                            <Label><b>Etiquetas</b></Label> <br/>
+                                            <div className="d-flex w-100 flex-column gap-3">
+                                                {isEditingCompany && <Input
+                                                    type="text"
+                                                    className="w-100"
+                                                    value={newTag}
+                                                    onChange={onChangeNewTag}
+                                                    onKeyDown={addTag(company._id)}
+                                                />}
+
+                                                <div className="d-flex flex-wrap gap-2 align-items-center">
+                                                    {company.tags.map((tag: string, i: number) =>
+                                                        <Badge key={`${tag}-${i}`} pill
+                                                               className="d-flex align-items-center gap-2 p-2 cursor-no-pointer"
+                                                               color="primary">
+                                                            {tag}
+                                                            { isEditingCompany && <i className="cursor-pointer bi bi-x-circle-fill tex-white cursor-pointer font-weight-bold"
+                                                                onClick={removeTag(company._id, tag)}/>}
+                                                        </Badge>)}
+                                                </div>
+                                            </div>
+
                                         </FormGroup>
                                         <FormGroup>
                                             <Label><b>Video</b> <br/>

@@ -12,6 +12,8 @@ export class CompanyModel {
 
     description: string = '';
 
+    tags: string[] = [];
+
     phone: string = '';
 
     title: string = '';
