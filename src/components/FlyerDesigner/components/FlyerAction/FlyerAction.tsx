@@ -144,7 +144,7 @@ export const FlyerAction = (
     const popoverId = `flyerActionPopover-${flyerActionId}`;
     const wrapperId = `flyerActionWrapper-${flyerActionId}`;
 
-    const changesApplied = React.useMemo(() => selectedElement && _.get(selectedElement, content[0].property), [selectedElement]);
+    const changesApplied: boolean = React.useMemo(() => !!(selectedElement && _.get(selectedElement, content[0].property)), [selectedElement]);
 
     React.useEffect(() => {
         setPopoverIsOpen(false);
@@ -187,7 +187,7 @@ export const FlyerAction = (
                                 </PopoverBody>
                             </UncontrolledPopover>
                         </> : ActionElement}
-                    {!!changesApplied &&
+                    {changesApplied &&
                         <i className="bi bi-trash cursor-pointer flyer-designer-reset-element-prop-icon"
                            onClick={onReset}
                         />
