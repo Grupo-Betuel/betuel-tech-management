@@ -308,6 +308,7 @@ export const CompanyManagement = () => {
                                                     type="text"
                                                     className="w-100"
                                                     value={newTag}
+                                                    placeholder="Agregar nueva etiqueta"
                                                     onChange={onChangeNewTag}
                                                     onKeyDown={addTag(company._id)}
                                                 />}
