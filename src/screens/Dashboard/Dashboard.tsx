@@ -67,7 +67,7 @@ export const FloatButton = styled.button`
   width: 70px;
   background-color: #fff;
   padding: 0;
-  z-index: 1;
+  z-index: 99;
 
   i {
     font-size: 30px;
