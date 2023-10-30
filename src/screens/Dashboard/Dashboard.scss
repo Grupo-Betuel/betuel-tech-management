@@ -160,6 +160,7 @@ th {
   align-items: center;
   gap: 1rem;
   padding: 1rem;
+  z-index: 99;
 }
 
 .create-product-button {
@@ -195,8 +196,30 @@ th {
   }
 }
 
+.schedule-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 1.4rem;
+
+  &-item {
+    border: 1px solid #ccc;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 0 3px #e1e1e1;
+
+  }
+}
+
+.schedule-content {
+  width: 650px !important;
+}
+
 @media screen and (max-width: 768px) {
   .cards {
+    width: 100% !important;
+  }
+
+  .schedule-content {
     width: 100% !important;
   }
 }

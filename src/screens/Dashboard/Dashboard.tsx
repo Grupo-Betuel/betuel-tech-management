@@ -32,14 +32,13 @@ import {
     ECommerceTypes, getScheduleStatus, handleSchedulePromotion,
     promoteProduct, PublicationTypes,
 } from "../../services/promotions";
-import product, {IProduct} from "../../components/Product/Product";
+import {IProduct} from "../../components/Product/Product";
 import {toast} from "react-toastify";
 import {useHistory} from "react-router";
 import ClientModalForm from "../../components/ClientModalForm/ClientModalForm";
 import {ecommerceMessages, errorMessages} from "../../model/messages";
 import {
     CONNECTED_EVENT,
-    DEV_SOCKET_URL,
     onSocketOnce,
     PROD_SOCKET_URL,
 } from "../../utils/socket.io";
@@ -52,6 +51,8 @@ import BetuelTravelDashboard from "../BetuelTravelDashboard/BetuelTravelDashboar
 import useWhatsapp from "../../components/hooks/UseWhatsapp";
 import {getCompanies} from "../../services/companies";
 import {CompanyModel} from "../../model/companyModel";
+import {ILaborDay, ILaborDayData, LaborDayTypes} from "../../model/interfaces/LaborDayModel";
+import {getLaborDays, updateLaborDays} from "../../services/laborDaysService";
 
 // export const accountLogos: { [N in ]} ;
 
@@ -67,7 +68,6 @@ export const FloatButton = styled.button`
   width: 70px;
   background-color: #fff;
   padding: 0;
-  z-index: 99;
 
   i {
     font-size: 30px;
@@ -192,6 +192,11 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         login,
     } = useWhatsapp('betuelgroup');
 
+    const [laborDays, setLaborDays] = React.useState<ILaborDay[]>([]);
+    const [oldLaborDays, setOldLaborDays] = React.useState<ILaborDay[]>([]);
+    const [scheduleIsOpen, setScheduleIsOpen] = React.useState(true);
+
+
     React.useEffect(() => {
         if (companies && companies.length > 0) {
             const company = companies.find((company) => company.companyId === selectedCompanyId);
@@ -203,10 +208,17 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     }, [companies]);
 
+    const handleGetLaborDays = async () => {
+        const laborDays = await getLaborDays();
+        setLaborDays(laborDays);
+        setOldLaborDays(laborDays);
+    }
+
 
     // initializing socket
     React.useEffect(() => {
         setSocket(io.connect(PROD_SOCKET_URL));
+        handleGetLaborDays();
     }, []);
     const toggleProductForm = () => {
         setEditProduct(null as any);
@@ -764,6 +776,49 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         history.push('/orders');
     }
 
+    const toggleSchedule = () => setScheduleIsOpen(!scheduleIsOpen);
+
+    const onChangeLaborDay = (day: LaborDayTypes) => ({target: {value, name, type, checked}}: any) => {
+        if (type === 'checkbox') {
+            value = checked
+        }
+        setLaborDays(laborDays.map((laborDay) => {
+            if (laborDay.day === day) {
+                return {
+                    ...laborDay,
+                    [name]: value
+                }
+            }
+
+            return laborDay;
+        }));
+    }
+
+    const laborDaysData = React.useMemo(() => {
+        const data: ILaborDayData = {} as ILaborDayData;
+
+        laborDays.forEach((laborDay) => {
+            data[laborDay.day] = laborDay
+        });
+
+        return data;
+    }, [laborDays]);
+
+
+    const onSaveSchedule = () => {
+        Promise.all(Object.keys(laborDaysData).map(async (day: LaborDayTypes | any) => {
+            const laborDay = laborDaysData[day as LaborDayTypes];
+            const oldLaborDay = JSON.stringify(oldLaborDays.find((oldLaborDay) => oldLaborDay.day === Number(day)) || '{}');
+
+            if (oldLaborDay !== JSON.stringify(laborDay)) {
+                await updateLaborDays(JSON.stringify(laborDay));
+            }
+        })).then(() => {
+            toast('Horario guardado con éxito', {type: 'success'});
+        });
+    }
+
+
     return (
         <>
             {!loadingApp ? null : (
@@ -827,6 +882,15 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                         >
                             <i
                                 className="bi bi-building"
+                            />
+                        </FloatButton>
+                        <FloatButton
+                            className="btn btn-outline-danger go-to-portfolio"
+                            title={`Horiario`}
+                            onClick={toggleSchedule}
+                        >
+                            <i
+                                className="bi bi-calendar-week"
                             />
                         </FloatButton>
                     </div>
@@ -1134,6 +1198,50 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 isOpen={clientModalIsOpen}
                 toggle={toggleClientFormModal}
             />
+            <Modal isOpen={scheduleIsOpen}
+                   backdrop="static"
+                   toggle={toggleSchedule}
+                   className="client-form-container"
+                   contentClassName="schedule-content"
+            >
+                <ModalHeader
+                    toggle={toggleSchedule}
+                >
+                    Horario Laboral
+                </ModalHeader>
+                <ModalBody className="schedule-grid">
+                    {laborDays.map(laborDay =>
+                        <div className="d-flex flex-column gap-1 align-items-center schedule-grid-item">
+                            <div className="d-flex align-items-center gap-2">
+                                <h4>{laborDay.name}</h4>
+                                <FormGroup switch={true} className="m-0">
+                                    <Input type="switch" checked={laborDay.available}
+                                           name="available" id="available"
+                                           label="Disponible" onChange={onChangeLaborDay(laborDay.day)}
+                                           role="switch"/>
+                                </FormGroup>
+                            </div>
+                            <div className="d-flex align-items-center gap-2">
+                                <div className="d-flex flex-column gap-2 align-items-center">
+                                    <b>Desde</b>
+                                    <Input name="timeFrom" type="time"
+                                           value={laborDay.timeFrom}
+                                           onChange={onChangeLaborDay(laborDay.day)}/>
+                                </div>
+                                <div className="d-flex flex-column gap-2 align-items-center">
+                                    <b>Hasta</b>
+                                    <Input name="timeTo" type="time" value={laborDay.timeTo}
+                                           onChange={onChangeLaborDay(laborDay.day)}/>
+                                </div>
+                            </div>
+                        </div>
+                    )}
+
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={onSaveSchedule}>Guardar</Button>
+                </ModalFooter>
+            </Modal>
         </>
     );
 };

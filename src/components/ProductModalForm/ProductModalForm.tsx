@@ -26,6 +26,7 @@ import {Multiselect} from "multiselect-react-dropdown";
 import {ICategory} from "../../model/CategoryModel";
 import {addCategory, getCategories, updateCategory} from "../../services/categoryService";
 import {extractNumbersFromText, removeHTMLChars} from "../../utils/text.utils";
+import {ProductParam} from "../../model/ordersModels";
 
 export const productParamsTypes: ProductParamTypes[] = ['color', 'size']
 
@@ -336,7 +337,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
 
     const addProductParam = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
-        setProductParams([...productParams, {type: value as any, label: value.toUpperCase()}]);
+        setProductParams([...productParams, {type: value as any, label: value.toUpperCase()} as IProductParam]);
     };
     const addRelatedProductParam = (index: number) => ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
         const newProductParams = [...productParams].map((param, i) => {
@@ -353,7 +354,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             return param;
         });
 
-        setProductParams(newProductParams);
+        setProductParams(newProductParams as IProductParam[]);
     }
 
 
