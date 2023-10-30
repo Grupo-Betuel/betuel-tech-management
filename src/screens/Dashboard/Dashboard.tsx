@@ -194,7 +194,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const [laborDays, setLaborDays] = React.useState<ILaborDay[]>([]);
     const [oldLaborDays, setOldLaborDays] = React.useState<ILaborDay[]>([]);
-    const [scheduleIsOpen, setScheduleIsOpen] = React.useState(true);
+    const [scheduleIsOpen, setScheduleIsOpen] = React.useState(false);
 
 
     React.useEffect(() => {
