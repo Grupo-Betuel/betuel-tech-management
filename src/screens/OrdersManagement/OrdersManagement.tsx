@@ -184,8 +184,14 @@ export const OrdersManagement = () => {
                                                       type
                                                   }
                                               }: React.ChangeEvent<HTMLInputElement>) => {
-        let value: string | number = data;
+        let value: string | number | any = data;
         if (type === 'number') value = Number(value);
+        if(name === 'messenger') {
+            const messenger = messengers.find((m) => m._id === value);
+            if(messenger) {
+                value = messenger;
+            }
+        }
         const newOrders = orders.map((o) => {
             if (o._id === order._id) {
                 return {...o, [name]: value} as IOrder
