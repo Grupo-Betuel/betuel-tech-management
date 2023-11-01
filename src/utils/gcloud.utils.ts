@@ -2,12 +2,12 @@ import {dataURItoBlob} from "./blob";
 import {uploadGCloudImage} from "../services/gcloud";
 import {IMedia, IMediaTagTypes} from "../components/GCloudMediaHandler/GCloudMediaHandler";
 import React from "react";
-import {removeAccentsFromText, removeHTMLChars} from "./text.utils";
+import {removeExtraCharactersFromText, removeHTMLChars} from "./text.utils";
 
 export const uploadMedia = async (media: IMedia, selectedTag: IMediaTagTypes, mediaNameText: string = 'media') => {
         const blob = dataURItoBlob(media.content)
         const type = media.type.split('/')[1];
-        const mediaNameClean = removeAccentsFromText(removeHTMLChars(mediaNameText)).replace(/ /g, '-').toLowerCase();
+        const mediaNameClean = removeExtraCharactersFromText(removeHTMLChars(mediaNameText)).replace(/ /g, '-').toLowerCase();
         const mediaName = `${mediaNameClean}-${Date.now()}.${type}`;
 
         const file = new File([blob], mediaName);

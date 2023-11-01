@@ -29,7 +29,7 @@ import {toast} from "react-toastify";
 import {FlyerTemplateModel} from "../../model/flyerTemplateModel";
 import {Loading} from "../Loading/Loading";
 import {passFlyerContentToFlyerValue, passFlyerValueToFlyerContent} from "../../utils/flyer.utils";
-import {removeAccentsFromText, removeHTMLChars} from "../../utils/text.utils";
+import {removeExtraCharactersFromText, removeHTMLChars} from "../../utils/text.utils";
 import {FlyerAction} from "./components/FlyerAction/FlyerAction";
 import {FlyerActionsElements} from "./constants/flyer-actions-elements";
 import {FlyerDesignerSidebar} from "./components/FlyerDesignerSidebar/FlyerDesignerSidebar";
@@ -223,7 +223,7 @@ const FlyerDesigner = (
     }
 
     const processFlyerImage = async (downloadImage?: boolean): Promise<{ photoName: string, photoUrl: string }> => {
-        const flyerName = removeAccentsFromText(removeHTMLChars(flyer.value?.name || 'photo')).replace(/[ ]/gi, '-');
+        const flyerName = removeExtraCharactersFromText(removeHTMLChars(flyer.value?.name || 'photo')).replace(/[ ]/gi, '-');
         const productURLName = `${flyerName}-flyer`;
         const photoName = `${productURLName}-${Date.now()}.png`;
         setImageToChangeType(undefined);
