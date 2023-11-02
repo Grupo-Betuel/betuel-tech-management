@@ -8,7 +8,7 @@ export const onSocketOnce = (socket: Socket, eventName: string, callback: (data:
     if (socket) {
         console.log('event:', eventName);
         socket.removeAllListeners(eventName);
-        socket.once(eventName, callback)
-        // socket.on(eventName, callback);
+        // socket.once(eventName, callback)
+        socket.on(eventName, callback);
     }
 };

@@ -2,7 +2,7 @@ import {IProduct} from "../components/Product/Product";
 import {IClient} from "../model/interfaces/ClientModel";
 import {
     IWhatsappMessage,
-    IWsUser,
+    IWsUser, WhatsappSeedTypes,
     WhatsappSessionTypes,
 } from "../model/interfaces/WhatsappModels";
 import {generateProductDescriptionFromParams} from "../utils/promotion.utils";
@@ -162,7 +162,7 @@ export const sendWhatsappMessage = async (
     message: IWhatsappMessage
 ) => {
     try {
-        return await fetch(
+        return await (await fetch(
             `${process.env.REACT_APP_PROMOTION_API}whatsapp/message`,
             {
                 method: "POST",
@@ -177,7 +177,7 @@ export const sendWhatsappMessage = async (
                     delay: 10,
                 }),
             }
-        );
+        )).json();
     } catch (e) {
         throw e;
     }
@@ -185,11 +185,31 @@ export const sendWhatsappMessage = async (
 
 export const getWhatsappSeedData = async (
     sessionId: WhatsappSessionTypes,
-    seedType = "all"
+    seedType:WhatsappSeedTypes  = "all"
 ) => {
     try {
         return await fetch(
             `${process.env.REACT_APP_PROMOTION_API}whatsapp/seed/${sessionId}/${seedType}`,
+            {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+    } catch (e) {
+        throw e;
+    }
+};
+
+
+export const cancelWhatsappMessaging = async (
+ cancelId:string
+) => {
+    try {
+        return await fetch(
+            `${process.env.REACT_APP_PROMOTION_API}whatsapp/stop-messages/${cancelId}`,
             {
                 method: "GET",
                 headers: {

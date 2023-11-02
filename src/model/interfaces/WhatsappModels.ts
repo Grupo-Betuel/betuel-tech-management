@@ -40,3 +40,5 @@ export interface ISeed {
     users: IWsUser[];
     labels: IWsLabel[];
 }
+
+export type WhatsappSeedTypes = 'users' | 'groups' | 'labels' | 'all';

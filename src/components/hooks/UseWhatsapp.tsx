@@ -5,13 +5,19 @@ import {
     startWhatsappServices,
     sendWhatsappMessage,
     getWhatsappSeedData,
-    restartWhatsappServices, closeWhatsappServices
+    restartWhatsappServices, closeWhatsappServices, cancelWhatsappMessaging
 } from "../../services/promotions";
 import { toast } from "react-toastify";
 import { CONNECTED_EVENT, DEV_SOCKET_URL, onSocketOnce, PROD_SOCKET_URL } from "../../utils/socket.io";
 import styled from "styled-components";
 import * as io from "socket.io-client";
-import { ISeed, IWhatsappMessage, IWsUser, WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
+import {
+    ISeed,
+    IWhatsappMessage,
+    IWsUser,
+    WhatsappSeedTypes,
+    WhatsappSessionTypes
+} from "../../model/interfaces/WhatsappModels";
 import { WhatsappEvents } from "../../model/socket-events";
 import {localStorageImpl} from "../../utils/localStorage.utils";
 
@@ -25,6 +31,7 @@ export const whatsappSeedStorePrefix = 'whatsappSeedData::';
 const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
     const [logged, setLogged] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
+    const [stopMessagingId, setStopMessagingId] = React.useState('');
     const [socket, setSocket] = React.useState<io.Socket>();
     const [seedData, setSeedData] = React.useState<ISeed>({ groups: [], users: [], labels: [] });
 
@@ -37,7 +44,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
 
     React.useEffect(() => {
         if(!socket) {
-            setSocket(io.connect(PROD_SOCKET_URL));
+            setSocket(io.connect(DEV_SOCKET_URL));
         }
     }, [])
 
@@ -92,13 +99,14 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         }
     }
 
-    const fetchWsSeedData = async (sessionId = whatsappSessionId) => {
+    const fetchWsSeedData = async (sessionId = whatsappSessionId, seedType: WhatsappSeedTypes ) => {
         const emptySeed = seedData.groups?.length === 0 && seedData.users?.length === 0 && seedData.labels?.length === 0;
         setLoading(emptySeed)
-        const data = await (await getWhatsappSeedData(sessionId)).json()
+        const data = await (await getWhatsappSeedData(sessionId, seedType)).json()
         if(!data.error) {
-            localStorageImpl.setItem(`${whatsappSeedStorePrefix}${sessionId}`, JSON.stringify(data));
-            setSeedData(data);
+            const localData = JSON.parse(localStorageImpl.getItem(`${whatsappSeedStorePrefix}${sessionId}`) || '{}');
+            localStorageImpl.setItem(`${whatsappSeedStorePrefix}${sessionId}`, JSON.stringify({...localData,...data}));
+            setSeedData({...seedData,...data});
         }
         setLoading(false);
     }
@@ -136,6 +144,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
                     toast('Sesión de Whatsapp Cerrada');
                     setLogged(false);
                 });
+
                 login(whatsappSessionId)
             })
         }
@@ -150,8 +159,15 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         }
     }
 
-    const sendMessage = async (sessionId: WhatsappSessionTypes, contacts: (IClient | IWsUser)[], message: IWhatsappMessage) =>
-        await sendWhatsappMessage(sessionId, contacts, message)
+    const sendMessage = async (sessionId: WhatsappSessionTypes, contacts: (IClient | IWsUser)[], message: IWhatsappMessage) => {
+        const {stopMessagesId} = await sendWhatsappMessage(sessionId, contacts, message);
+        setStopMessagingId(stopMessagesId);
+    }
+
+    const stopMessaging = async () => {
+        await cancelWhatsappMessaging(stopMessagingId);
+        setStopMessagingId('');
+    }
 
 
     return {
@@ -168,7 +184,9 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
         destroyWsClient,
         fetchWsSeedData,
         updateSeedDataWithLocalStorage,
-        restartWhatsapp
+        restartWhatsapp,
+        stopMessaging,
+        stopMessagingId
     };
 
 }

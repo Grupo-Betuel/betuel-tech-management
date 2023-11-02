@@ -40,15 +40,22 @@ const ClientModalForm: React.FC<IClientFormProps> = (
     const [isValidForm, setIsValidForm] = React.useState(false);
     const [isSubmiting, setIsSubmiting] = React.useState(false);
     const [step, setStep] = React.useState(1);
+    const [sureToClose, setSureToClose] = React.useState(false);
 
+    const toggleSureToClose = () => setSureToClose(!sureToClose);
     useEffect(() => {
         setClient(editClient || {});
         validForm();
     }, [editClient]);
 
-    const toggleModal = async () => {
-        toggle();
+    const handleSureToClose = async () => {
+        setSureToClose(true)
     };
+
+    const toggleModal = () => {
+        toggle();
+        setSureToClose(false);
+    }
 
     const onSubmit = async (form: any) => {
         form.preventDefault();
@@ -83,9 +90,14 @@ const ClientModalForm: React.FC<IClientFormProps> = (
         setClients(data)
     }
 
-    return (
-        <Modal isOpen={isOpen} backdrop="static" toggle={toggleModal} className="client-form-container">
 
+    return (
+        <Modal isOpen={isOpen}
+               backdrop="static"
+               keyboard={false}
+               toggle={handleSureToClose}
+               className="client-form-container"
+        >
             {
                 isSubmiting ?
                     (
@@ -95,7 +107,7 @@ const ClientModalForm: React.FC<IClientFormProps> = (
                     ) : null
             }
             <ModalHeader
-                toggle={toggleModal}
+                toggle={handleSureToClose}
             >
                 {editClient ? `Editar ${editClient.name}` : 'Crear Cliente'}
             </ModalHeader>
@@ -125,7 +137,16 @@ const ClientModalForm: React.FC<IClientFormProps> = (
                     {/*</ModalFooter>*/}
                 </Form>
             </ModalBody>
-
+            <Modal isOpen={sureToClose} toggle={toggleSureToClose}>
+                <ModalHeader toggle={toggleSureToClose}>Confirmación</ModalHeader>
+                <ModalBody>
+                  ¿Estás seguro que deseas cerrar?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={toggleModal}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={toggleSureToClose}>Cancel</Button>
+                </ModalFooter>
+            </Modal>
         </Modal>
     );
 };

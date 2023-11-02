@@ -19,7 +19,7 @@ import useWhatsapp, {whatsappSeedStorePrefix} from "../hooks/UseWhatsapp";
 import {TagContainer, TagItem} from "../Tag/Tag";
 import {
     IWsGroup,
-    IWsLabel, IWsUser,
+    IWsLabel, IWsUser, WhatsappSeedTypes,
     whatsappSessionKeys,
     whatsappSessionList,
     whatsappSessionNames,
@@ -29,6 +29,7 @@ import {Multiselect} from "multiselect-react-dropdown";
 import {IProductData} from "../../model/products";
 import {Product} from "../index";
 import "./Messaging.scss";
+import {cancelWhatsappMessaging} from "../../services/promotions";
 
 export interface IMessaging {
     contacts: IClient[],
@@ -66,7 +67,7 @@ export const DoubleSelectableWrapper = styled.div`
 export const MessagingContainer = styled.div`
 `
 
-export type SessionActionsTypes = 'restart' | 'close' | 'fetchSeedData';
+export type SessionActionsTypes = 'restart' | 'close' | 'cancel-messaging' | WhatsappSeedTypes;
 
 const Messaging: React.FC<IMessaging> = (
     {
@@ -75,7 +76,7 @@ const Messaging: React.FC<IMessaging> = (
         setSelectedProducts,
     }
 ) => {
-    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.betuelgroup)
+    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.wpadilla)
     const [message, setMessage] = useState<string>('')
     const [onlySendImagesIds, setOnlySendImagesIds] = useState<string[]>([]);
     const [photo, setPhoto] = useState<any>()
@@ -85,7 +86,7 @@ const Messaging: React.FC<IMessaging> = (
     const [selectedWhatsappUsers, setSelectedWhatsappUsers] = React.useState<IWsUser[]>([]);
     const lastSession = React.useRef<WhatsappSessionTypes>();
     const [actionToConfirm, setActionToConfirm] = React.useState<SessionActionsTypes | undefined>(undefined);
-
+    const [fetchingSeed, setFetchingSeed] = React.useState<WhatsappSeedTypes>();
     React.useEffect(() => {
         lastSession.current = selectedSession
     }, [selectedSession]);
@@ -101,7 +102,9 @@ const Messaging: React.FC<IMessaging> = (
         seedData,
         updateSeedDataWithLocalStorage,
         fetchWsSeedData,
-        restartWhatsapp
+        restartWhatsapp,
+        stopMessaging,
+        stopMessagingId,
     } = useWhatsapp(selectedSession);
 
 
@@ -178,7 +181,7 @@ const Messaging: React.FC<IMessaging> = (
                 const prefixText = message ? `${message} \n` : '';
                 let text = `${prefixText}${product.description || ''}`;
 
-                if(onlySendImagesIds.indexOf(product._id) !== -1) {
+                if (onlySendImagesIds.indexOf(product._id) !== -1) {
                     text = message;
                 }
 
@@ -204,7 +207,6 @@ const Messaging: React.FC<IMessaging> = (
             const fr = new FileReader();
 
             fr.onload = async () => {
-                console.log(fr.result);
                 setPhoto(fr.result);
             }
 
@@ -254,17 +256,23 @@ const Messaging: React.FC<IMessaging> = (
         return data;
     }
 
-    const onChangeCustomContact = ({ target: { value } }: React.ChangeEvent<HTMLInputElement>) => {
+    const onChangeCustomContact = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
 
     }
 
     const handleSessionAction = async () => {
-        if(actionToConfirm === 'restart') {
+        if (actionToConfirm === 'restart') {
             await restartWhatsapp(selectedSession);
-        } else if(actionToConfirm === 'close') {
+        } else if (actionToConfirm === 'close') {
             await logOut(selectedSession)
-        } else if(actionToConfirm === 'fetchSeedData') {
-            await fetchWsSeedData(selectedSession);
+        } else if (actionToConfirm === 'all' || actionToConfirm === 'users' || actionToConfirm === 'groups' || actionToConfirm === 'labels') {
+           setFetchingSeed(actionToConfirm);
+            fetchWsSeedData(selectedSession, actionToConfirm).then(() => {
+                toast('¡Datos Actualizados!', {type: 'success'});
+                setFetchingSeed(undefined);
+            });
+        } else if(actionToConfirm === 'cancel-messaging') {
+            stopMessaging();
         }
         setActionToConfirm(undefined);
 
@@ -295,32 +303,48 @@ const Messaging: React.FC<IMessaging> = (
                     (
                         <div className="loading-sale-container">
                             <Spinner animation="grow" variant="secondary"/>
+                            {stopMessagingId && <Button onClick={handleActionToConfirm('cancel-messaging')} color="danger">
+                                Cancelar
+                                <i className={`bi bi-x-lg`}/>
+                            </Button>}
                         </div>
                     ) : null
             }
 
             <div className="messaging-actions">
-                <Button onClick={handleActionToConfirm('fetchSeedData')} color="info" outline>Recargar Contactos</Button>
                 <Button onClick={handleActionToConfirm('restart')} color="warning" outline>Reiniciar Sesion</Button>
             </div>
             {!!logged && <>
-                <InputMask className="form-control mb-3" placeholder="Numeros de whatsapp" onChange={onChangeCustomContact} mask="+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999," />
-                <Multiselect
-                    placeholder="Todos los Usuarios"
-                    className="mb-3"
-                    onSelect={handleUserSelection(false)}
-                    onRemove={handleUserSelection(true)}
-                    options={seedData.users || []} // Options to display in the dropdown
-                    displayValue="fullName" // Property name to display in the dropdown options
-                />
-                <DoubleSelectableWrapper className="mb-3">
+                <InputMask className="form-control mb-3" placeholder="Numeros de whatsapp"
+                           onChange={onChangeCustomContact}
+                           mask="+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,+1 (999) 999-9999,"/>
+                <div className="d-flex align-items-center gap-2 w-100 mb-3 users-multiselect-wrapper">
                     <Multiselect
-                        placeholder="Grupos"
-                        options={seedData.groups || []} // Options to 2display in the dropdown
-                        displayValue="subject" // Property name to display in the dropdown options
-                        onSelect={handleGroupSelection}
-                        onRemove={handleGroupSelection}
+                        loading={fetchingSeed === 'users'}
+                        placeholder="Todos los Usuarios"
+                        className="w-100"
+                        onSelect={handleUserSelection(false)}
+                        onRemove={handleUserSelection(true)}
+                        options={seedData.users || []} // Options to display in the dropdown
+                        displayValue="fullName" // Property name to display in the dropdown options
                     />
+                    <Button disabled={fetchingSeed === 'users'} onClick={handleActionToConfirm('users')} color="info" outline><i
+                        className={`bi bi-arrow-clockwise ${fetchingSeed === 'users' ? 'rotate' : ''}`}></i></Button>
+                </div>
+
+                <DoubleSelectableWrapper className="mb-3">
+                    <div className="d-flex align-items-center gap-2">
+                        <Multiselect
+                            loading={fetchingSeed === 'groups'}
+                            placeholder="Grupos"
+                            options={seedData.groups || []} // Options to 2display in the dropdown
+                            displayValue="subject" // Property name to display in the dropdown options
+                            onSelect={handleGroupSelection}
+                            onRemove={handleGroupSelection}
+                        />
+                        <Button disabled={fetchingSeed === 'groups'} onClick={handleActionToConfirm('groups')} color="info" outline><i
+                            className={`bi bi-arrow-clockwise ${fetchingSeed === 'groups' ? 'rotate' : ''}`}></i></Button>
+                    </div>
                     <Multiselect
                         placeholder="Excepto estos usuarios"
                         onSelect={handleUserExcluding(false)}
@@ -328,20 +352,26 @@ const Messaging: React.FC<IMessaging> = (
                         options={groupedUsers || []} // Options to display in the dropdown
                         displayValue="fullName" // Property name to display in the dropdown options
                     />
+
                 </DoubleSelectableWrapper>
                 <DoubleSelectableWrapper className="mb-3">
-                    <Multiselect
-                        placeholder="Etiquetas"
-                        options={seedData.labels && seedData.labels.map(item => ({
-                            ...item,
-                            name: item.name || "example",
-                            id: Number(item.id)
-                        })) || []} // Options to display in the dropdown
-                        displayValue="name" // Property name to display in the dropdown options
-                        onSelect={handleLabelSelection}
-                        onRemove={handleLabelSelection}
-                        isObject={true}
-                    />
+                    <div className="d-flex align-items-center gap-2">
+                        <Multiselect
+                            loading={fetchingSeed === 'labels'}
+                            placeholder="Etiquetas"
+                            options={seedData.labels && seedData.labels.map(item => ({
+                                ...item,
+                                name: item.name || "example",
+                                id: Number(item.id)
+                            })) || []} // Options to display in the dropdown
+                            displayValue="name" // Property name to display in the dropdown options
+                            onSelect={handleLabelSelection}
+                            onRemove={handleLabelSelection}
+                            isObject={true}
+                        />
+                        <Button disabled={fetchingSeed === 'labels'} onClick={handleActionToConfirm('labels')} color="info" outline><i
+                            className={`bi bi-arrow-clockwise ${fetchingSeed === 'labels' ? 'rotate' : ''}`}></i></Button>
+                    </div>
                     <Multiselect
                         placeholder="Excepto estos usuarios"
                         onSelect={handleUserExcluding(false)}
@@ -411,6 +441,15 @@ const Messaging: React.FC<IMessaging> = (
                 </div>
             }
             <Modal isOpen={!!actionToConfirm} toggle={handleActionToConfirm()}>
+                <ModalHeader toggle={handleActionToConfirm()}>Confirmación</ModalHeader>
+                <ModalBody>
+                    ¿Estas Seguro que deseas realizar esta acción?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={handleSessionAction}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={handleActionToConfirm()}>Cancel</Button>
+                </ModalFooter>
+            </Modal>  <Modal isOpen={!!actionToConfirm} toggle={handleActionToConfirm()}>
                 <ModalHeader toggle={handleActionToConfirm()}>Confirmación</ModalHeader>
                 <ModalBody>
                     ¿Estas Seguro que deseas realizar esta acción?

@@ -7,6 +7,7 @@ export enum WhatsappEvents {
     ON_LOGOUT = 'ws-logged-out',
     ON_END_MESSAGE = 'ws-messages-end',
     ON_SENT_MESSAGE = 'ws-message-sent',
+    EMIT_CURRENT_MESSAGE = 'ws-messages-current',
     ON_FAILED_MESSAGE = 'ws-messages-failed',
 }
 
