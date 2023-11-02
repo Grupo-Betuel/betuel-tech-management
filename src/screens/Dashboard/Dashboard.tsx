@@ -188,9 +188,9 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const promotionPercent = 0.3;
     const history = useHistory();
     const [socket, setSocket] = React.useState<io.Socket>();
-    // const {
-    //     login,
-    // } = useWhatsapp('wpadilla');
+    const {
+        login,
+    } = useWhatsapp('betuelgroup');
 
     const [laborDays, setLaborDays] = React.useState<ILaborDay[]>([]);
     const [oldLaborDays, setOldLaborDays] = React.useState<ILaborDay[]>([]);
@@ -217,7 +217,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     // initializing socket
     React.useEffect(() => {
-        setSocket(io.connect(DEV_SOCKET_URL));
+        setSocket(io.connect(PROD_SOCKET_URL));
         handleGetLaborDays();
     }, []);
     const toggleProductForm = () => {
