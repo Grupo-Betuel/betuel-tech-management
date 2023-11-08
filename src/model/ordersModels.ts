@@ -50,8 +50,8 @@ export interface ProductId {
   stock: number
 }
 
-export type OrderTypes = 'shipping' | 'pickup';
-export const orderTypeList: OrderTypes[] = ['shipping', 'pickup'];
+export type OrderTypes = 'shipping' | 'pickup' | 'courier';
+export const orderTypeList: OrderTypes[] = ['shipping', 'pickup', 'courier'];
 export type OrderPaymentTypes = 'cash' | 'transfer' | 'card';
 export const orderPaymentTypeList: OrderPaymentTypes[] = ['cash', 'transfer', 'card'];
 
