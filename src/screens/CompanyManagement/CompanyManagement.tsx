@@ -355,6 +355,35 @@ export const CompanyManagement = () => {
                                                         : <Input value={company.instagram?.password} name="password"
                                                                  onChange={onChangeCompany(company._id, 'instagram')}/>}
                                                 </FormGroup>
+                                                <FormGroup>
+                                                    <Label><b>URL</b></Label> <br/>
+                                                    {!isEditingCompany ? <a href={company.instagram?.url} target="_blank">{company.name}</a>
+                                                        : <Input value={company.instagram?.url} name="url"
+                                                                 onChange={onChangeCompany(company._id, 'instagram')}/>}
+                                                </FormGroup>
+                                            </div>
+                                        </div>
+                                        <div className="d-flex flex-column gap-2">
+                                            <h4>Facebook</h4>
+                                            <div className="ms-3">
+                                                <FormGroup>
+                                                    <Label><b>Email</b></Label> <br/>
+                                                    {!isEditingCompany ? <span>{company.facebook?.username}</span>
+                                                        : <Input value={company.facebook?.username} name="username"
+                                                                 onChange={onChangeCompany(company._id, 'facebook')}/>}
+                                                </FormGroup>
+                                                <FormGroup>
+                                                    <Label><b>Password</b></Label> <br/>
+                                                    {!isEditingCompany ? <span>{company.facebook?.password}</span>
+                                                        : <Input value={company.facebook?.password} name="password"
+                                                                 onChange={onChangeCompany(company._id, 'facebook')}/>}
+                                                </FormGroup>
+                                                <FormGroup>
+                                                    <Label><b>URL</b></Label> <br/>
+                                                    {!isEditingCompany ? <a href={company.facebook?.url} target="_blank">{company.name}</a>
+                                                        : <Input value={company.facebook?.url} name="url"
+                                                                 onChange={onChangeCompany(company._id, 'facebook')}/>}
+                                                </FormGroup>
                                             </div>
                                         </div>
 

@@ -186,9 +186,9 @@ export const OrdersManagement = () => {
                                               }: React.ChangeEvent<HTMLInputElement>) => {
         let value: string | number | any = data;
         if (type === 'number') value = Number(value);
-        if(name === 'messenger') {
+        if (name === 'messenger') {
             const messenger = messengers.find((m) => m._id === value);
-            if(messenger) {
+            if (messenger) {
                 value = messenger;
             }
         }
@@ -527,12 +527,27 @@ export const OrdersManagement = () => {
                                     </ListGroupItem>
                                     <ListGroupItem>
                                         <b>Ordenes asignadas:</b>
+                                        <div className="d-flex flex-column gap-2 align-items-start w-100">
+
                                         {
                                             messenger
                                                 .currentOrders?.map(id =>
-                                                <div key={id}><a href={`${hostname}/order-detail/${id}`}
-                                                                 target="_blank">{id}</a> <br/></div>)
+                                                    <div key={`current-order-${id}`}
+                                                        className="d-flex align-items-center justify-content-between gap-3 w-100">
+                                                        <a href={`${hostname}/order-detail/${id}`}
+                                                           target="_blank">{id}</a>
+
+                                                        <i className="bi bi-trash remove-button"
+                                                           onClick={handleUpdateMessenger({
+                                                               ...messenger,
+                                                               currentOrders: messenger.currentOrders?.filter(orderId => orderId !== id)
+                                                           })
+                                                           }
+                                                        />
+                                                    </div>
+                                                )
                                         }
+                                        </div>
                                     </ListGroupItem>
                                 </ListGroup>
                                 <CardBody className="d-flex justify-content-between flex-wrap gap-2">
