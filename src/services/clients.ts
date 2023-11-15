@@ -1,6 +1,7 @@
-export const getClients = async (page: number) => {
+export const getClients = async (page?: number) => {
     try {
-        const response = await fetch(`${process.env.REACT_APP_API}clients/?page=${page}`);
+        // /?page=${page}
+        const response = await fetch(`${process.env.REACT_APP_API}clients`);
         return await response.json() as any;
     } catch (e) {
         throw e;
