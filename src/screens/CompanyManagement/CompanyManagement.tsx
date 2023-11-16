@@ -1,16 +1,7 @@
-import React, {KeyboardEvent, useEffect, useState} from "react";
+import React, { useEffect, useState} from "react";
 import {
-    Badge,
     Button,
-    Card,
-    CardBody,
-    CardFooter,
-    Form,
-    FormGroup,
     Input,
-    Label,
-    Modal, ModalBody, ModalFooter,
-    ModalHeader,
     Spinner
 } from "reactstrap";
 import {CompanyModel} from "../../model/companyModel";
@@ -20,15 +11,30 @@ import {toast} from "react-toastify";
 import {onChangeMediaToUpload} from "../../utils/gcloud.utils";
 import {IMedia, IMediaTagTypes} from "../../components/GCloudMediaHandler/GCloudMediaHandler";
 import {deletePhoto} from "../../services/gcloud";
+import {useHistory} from "react-router";
+import {CompanyList} from "./components/CompanyList/CompanyList";
+import {
+    addCategory,
+    deleteCategory,
+    getAllCategories,
+    updateCategories
+} from "../../services/categoryService";
+import {ICategory} from "../../model/CategoryModel";
+import {CategoryList} from "./components/CategoryList/CategoryList";
+export type CompanyMngTabsTypes = 'company' | 'category';
 
 export const CompanyManagement = () => {
     const [companies, setCompanies] = useState<CompanyModel[]>([]);
+    const [categories, setCategories] = useState<ICategory[]>([]);
     const [loading, setLoading] = useState<boolean>(false);
-    const [isEditing, setIsEditing] = useState<{ [N in string]: Partial<CompanyModel> | null }>({});
-    const [createCompany, setCreateCompany] = useState<CompanyModel>({} as CompanyModel);
-    const [companyToDelete, setCompanyToDelete] = useState<CompanyModel | null>(null);
+    const history = useHistory();
+    const [activeTab, setActiveTab] = useState<CompanyMngTabsTypes>('category');
+    const [originalCat, setOriginalCat] = useState<ICategory[]>([]);
+
+
     useEffect(() => {
         handleGetCompanies();
+        handleGetCategories();
     }, [])
 
     const handleGetCompanies = async () => {
@@ -37,179 +43,115 @@ export const CompanyManagement = () => {
         setLoading(false);
     }
 
-    const toggleEditing = (company: CompanyModel) => () => {
-        const isEditingCompany = !!isEditing[company._id]
-        setIsEditing({
-            ...isEditing,
-            [company._id]: isEditingCompany ? null : company
-        })
+    const handleGetCategories = async () => {
+        setLoading(true);
+        const cats = await getAllCategories()
+        setCategories(cats)
+        setOriginalCat(cats)
+        setLoading(false);
     }
 
-    const updateCompany = (companyId: string) => async () => {
-        const company = isEditing[companyId];
-        if (company && validCompany(company as CompanyModel)) {
+    const updateCompany = async (company: CompanyModel) => {
+        // const company = isEditing[companyId];
+        // if (company && validCompany(company as CompanyModel)) {
             setLoading(true)
             await updateCompanies(JSON.stringify(company));
             await handleGetCompanies();
             toast("Compañia actualizada con exito")
             setLoading(false)
-            setIsEditing({
-                ...isEditing,
-                [companyId]: null
-            });
-        }
+            // setIsEditing({
+            //     ...isEditing,
+            //     [companyId]: null
+            // });
+        // }
+    }
+    const updateCategory = async (category: ICategory) => {
+        setLoading(true)
+        await updateCategories(JSON.stringify(category));
+        await handleGetCategories();
+        toast("Categoria actualizada con exito")
+        setLoading(false)
     }
 
 
-    const validCompany = (company: CompanyModel) => {
-        const {name, companyId, logo, phone} = company
-        const res = (!!name && !!companyId && !!logo && !!phone)
-        if (!res) {
-            toast("Todos los campos son requeridos")
-        }
-        return res
-    }
-    const handleAddNewCompany = async () => {
 
-        if (validCompany(createCompany)) {
-            setLoading(true);
-            await addCompany(JSON.stringify(createCompany));
-            await handleGetCompanies();
-            toast("Compañia creada con exito")
-            setLoading(false);
-        }
+    const handleAddNewCompany = async (company: CompanyModel) => {
+        setLoading(true);
+        await addCompany(JSON.stringify(company));
+        await handleGetCompanies();
+        toast("Compañia creada con exito")
+        setLoading(false);
     }
 
-    const onChangeCompany = (companyId: string, key?: keyof CompanyModel) => ({
-                                                                                  target: {
-                                                                                      name,
-                                                                                      type,
-                                                                                      value
-                                                                                  }
-                                                                              }: React.ChangeEvent<HTMLInputElement>) => {
-
-
-        let newCompany = {
-            ...isEditing[companyId],
-        }
-        if (key) {
-            newCompany = {
-                ...newCompany,
-                [key]: {
-                    ...newCompany[key],
-                    [name]: type === 'number' ? Number(value) : value
-                }
-            }
-        } else {
-            newCompany = {
-                ...newCompany,
-                [name]: type === 'number' ? Number(value) : value
-
-            }
-        }
-
-        setIsEditing({
-            ...isEditing,
-            [companyId]: newCompany
-        });
+    const handleAddNewCategory = async (category: ICategory) => {
+        setLoading(true);
+        await addCategory(JSON.stringify(category));
+        await handleGetCategories();
+        toast("Categoria creada con exito")
+        setLoading(false);
     }
 
-    const onChangeCreateCompany = ({target: {name, value}}: React.ChangeEvent<HTMLInputElement>) => {
-        setCreateCompany({
-            ...createCompany,
-            [name]: value
-        })
-
-    }
-
-    const resetCompanyToDelete = () => {
-        setCompanyToDelete(null);
-    }
-
-    const handleDeleteCompany = async () => {
+    const handleDeleteCompany = async (companyToDelete: CompanyModel) => {
         setLoading(true);
         await deleteCompany(JSON.stringify(companyToDelete));
         await handleGetCompanies();
         toast("Compañia eliminada con exito")
         setLoading(false);
-        resetCompanyToDelete();
     }
 
-    const onChangeCompanyFile = (companyId: string, tag: IMediaTagTypes) =>
-        async (event: React.ChangeEvent<HTMLInputElement>) => {
-            const companyIdString = companies.find(company => company.companyId === companyId)?._id;
+    const handleDeleteCategory = async (category: ICategory) => {
+        setLoading(true);
+        await deleteCategory(JSON.stringify(category));
+        await handleGetCategories();
+        toast("Categoria eliminada con exito")
+        setLoading(false);
+    }
+
+    const onChangeMediaFile = async (data: CompanyModel | ICategory, tag: IMediaTagTypes, event: any, onLoadedMedia?:  (media: IMedia) => Promise<void>) => {
+            // const companyIdString = companies.find(company => company.companyId === companyId)?._id;
             const uploadCallBack = async (media: IMedia) => {
 
-                const companyToUpdate = isEditing[companyIdString];
-                if (companyToUpdate) {
+                // const companyToUpdate = isEditing[companyIdString];
+                if (data) {
                     setLoading(true);
-                    const mediaToDelete = companyToUpdate[tag as keyof CompanyModel]?.split('/')?.pop() as string;
+                    const mediaToDelete = (data as any)[tag as any]?.split('/')?.pop() as string;
                     mediaToDelete && await deletePhoto(mediaToDelete);
-                    await updateCompanies(JSON.stringify({
-                        ...companyToUpdate,
-                        [tag]: media.content
-                    }));
-
-                    setLoading(false);
-                    toast(`${tag} actualizado con exito para la compañia ${companyToUpdate.name}`)
-                    setIsEditing({
-                        ...isEditing,
-                        [companyIdString]: null
-                    });
-                }
-
-                onChangeCompany(companyIdString)({
-                    target: {
-                        name: tag,
-                        type: 'string',
-                        value: media.content
+                    if(activeTab === 'company') {
+                        await updateCompanies(JSON.stringify({
+                            ...data,
+                            [tag]: media.content
+                        }));
+                    } else if(activeTab === 'category') {
+                        await updateCategories(JSON.stringify({
+                            ...data,
+                            [tag]: media.content
+                        }));
                     }
-                } as any)
+
+                    onLoadedMedia && await onLoadedMedia(media);
+                    setLoading(false);
+                    toast(`${tag} actualizado con exito`)
+                }
 
             };
             setLoading(true);
-            await onChangeMediaToUpload(tag, uploadCallBack, `${companyId}-${tag}`)(event)
+            await onChangeMediaToUpload(tag, uploadCallBack, `${(data as CompanyModel).companyId || data._id}-${tag}`)(event)
             setLoading(false);
         }
-    const [newTag, setNewTag] = useState<string>('');
 
-    const addTag = (companyId: string) => (event: KeyboardEvent) => {
-        if (event.key === 'Enter') {
-            const company = isEditing[companyId];
-            console.log('key', event.key, company, companyId);
-
-            if (company) {
-                const tags = company.tags as string[];
-                console.log('tags', tags);
-
-                const newTags = [...tags, newTag];
-                onChangeCompany(companyId)({
-                    target: {
-                        name: 'tags',
-                        value: newTags
-                    }
-                } as any)
-                setNewTag('');
-            }
-        }
-
+    const goToDashboard = () => {
+        history.push('/dashboard')
     }
+    const handleActiveTab = (tab: CompanyMngTabsTypes) => () => setActiveTab(tab);
 
-    const onChangeNewTag = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
-        setNewTag(value)
-    }
-
-    const removeTag = (companyId: string, tag: string) => () => {
-        const company = isEditing[companyId];
-        if (company) {
-            const tags = company.tags as string[];
-            const newTags = tags.filter(t => t !== tag);
-            onChangeCompany(companyId)({
-                target: {
-                    name: 'tags',
-                    value: newTags
-                }
-            } as any)
+    const onSearch = ({target: {value: data}}: React.ChangeEvent<HTMLInputElement>) => {
+        const value = data.toLowerCase().replace(/[ ]/gi, '');
+        const filterObjectWithValue = (obj: any) => JSON.stringify(obj).toLowerCase().replace(/[ ]/gi, '').includes(value);
+        if(activeTab === 'company') {
+           // const newCompanies = companies.filter(filterObjectWithValue);
+        } else if(activeTab === 'category') {
+            const newCats = originalCat.filter(filterObjectWithValue);
+            setCategories(newCats);
         }
     }
 
@@ -222,226 +164,42 @@ export const CompanyManagement = () => {
                     </div>
                 </>
             )}
-            <div className="companies-grid">
-                {companies.map(companyData => {
-                        const company = {
-                            ...companyData,
-                            ...(isEditing[companyData._id] || {} as any)
-                        }
-                        const isEditingCompany = !!isEditing[company._id];
-                        return (
-                            <Card key={company._id}>
-                                <img
-                                    alt="Sample"
-                                    src={company.wallpaper}
-                                />
-                                <CardBody>
-                                    <Form onSubmit={e => e.preventDefault()}>
-                                        <FormGroup>
-                                            <Label><b>Nombre</b></Label> <br/>
-                                            {!isEditingCompany ? <span>{company.name}</span>
-                                                : <Input value={company.name} name="name"
-                                                         onChange={onChangeCompany(company._id)}/>}
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label><b>Tipo</b></Label> <br/>
-                                            {!isEditingCompany ? <span>{company.type}</span>
-                                                : <Input value={company.type}
-                                                         name="type"
-                                                         onChange={onChangeCompany(company._id)}
-                                                >
-                                                    <option value="">Seleccionar</option>
-                                                    <option value="store">Seleccionar</option>
-                                                    <option value="agency">Seleccionar</option>
-                                                </Input>
-                                            }
-                                        </FormGroup>
-
-                                        <FormGroup>
-                                            <Label><b>Logo</b></Label> <br/>
-                                            {!isEditingCompany ? <img width={100} height={100} src={company.logo}/>
-                                                : <Input className=""
-                                                         type="file"
-                                                         name="logo"
-                                                         accept="image/png,image/jpg,image/gif,image/jpeg"
-                                                         onChange={onChangeCompanyFile(company.companyId, 'logo')}/>}
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label><b>Company Id</b></Label> <br/>
-                                            {!isEditingCompany ? <span>{company.companyId}</span>
-                                                : <Input value={company.companyId} name="companyId"
-                                                         onChange={onChangeCompany(company._id)}/>}
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label><b>Telefono</b></Label> <br/>
-                                            {!isEditingCompany ? <span>{company.phone}</span>
-                                                : <Input value={company.phone} name="phone"
-                                                         onChange={onChangeCompany(company._id)}/>}
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label><b>Promotion Title</b></Label> <br/>
-                                            {!isEditingCompany ? <span>{company.title}</span>
-                                                : <Input value={company.title} name="title"
-                                                         onChange={onChangeCompany(company._id)}/>}
-                                        </FormGroup>
-
-                                        <FormGroup>
-                                            <Label><b>Descripcion</b></Label> <br/>
-                                            {!isEditingCompany ? <span>{company.description}</span>
-                                                : <Input type="textarea" value={company.description} name="description"
-                                                         onChange={onChangeCompany(company._id)}/>}
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label><b>Wallpaper</b> <br/>
-                                                {!isEditingCompany ? <span>{company.wallpaper}</span>
-                                                    : <Input className=""
-                                                             type="file"
-                                                             name="wallpaper"
-                                                             accept="image/png,image/jpg,image/gif,image/jpeg"
-                                                             onChange={onChangeCompanyFile(company.companyId, 'wallpaper')}/>}
-                                            </Label>
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label><b>Etiquetas</b></Label> <br/>
-                                            <div className="d-flex w-100 flex-column gap-3">
-                                                {isEditingCompany && <Input
-                                                    type="text"
-                                                    className="w-100"
-                                                    value={newTag}
-                                                    placeholder="Agregar nueva etiqueta"
-                                                    onChange={onChangeNewTag}
-                                                    onKeyDown={addTag(company._id)}
-                                                />}
-
-                                                <div className="d-flex flex-wrap gap-2 align-items-center">
-                                                    {company.tags.map((tag: string, i: number) =>
-                                                        <Badge key={`${tag}-${i}`} pill
-                                                               className="d-flex align-items-center gap-2 p-2 cursor-no-pointer"
-                                                               color="primary">
-                                                            {tag}
-                                                            { isEditingCompany && <i className="cursor-pointer bi bi-x-circle-fill tex-white cursor-pointer font-weight-bold"
-                                                                onClick={removeTag(company._id, tag)}/>}
-                                                        </Badge>)}
-                                                </div>
-                                            </div>
-
-                                        </FormGroup>
-                                        <FormGroup>
-                                            <Label><b>Video</b> <br/>
-                                                <video width="300px" height="auto" controls>
-                                                    <source src={company.video} type="video/mp4"/>
-                                                </video>
-                                                {!isEditingCompany ? <span>{company.video}</span>
-                                                    : <Input className=""
-                                                             type="file"
-                                                             name="video"
-                                                             accept="video/mp4,video/x-m4v,video/*"
-                                                             onChange={onChangeCompanyFile(company.companyId, 'video')}/>}
-                                            </Label>
-                                        </FormGroup>
-                                        <div className="d-flex flex-column gap-2">
-                                            <h4>Instagram</h4>
-                                            <div className="ms-3">
-                                                <FormGroup>
-
-                                                    <Label><b>Username</b></Label> <br/>
-                                                    {!isEditingCompany ? <span>{company.instagram?.username}</span>
-                                                        : <Input value={company.instagram?.username} name="username"
-                                                                 onChange={onChangeCompany(company._id, 'instagram')}/>}
-                                                </FormGroup>
-                                                <FormGroup>
-                                                    <Label><b>Password</b></Label> <br/>
-                                                    {!isEditingCompany ? <span>{company.instagram?.password}</span>
-                                                        : <Input value={company.instagram?.password} name="password"
-                                                                 onChange={onChangeCompany(company._id, 'instagram')}/>}
-                                                </FormGroup>
-                                                <FormGroup>
-                                                    <Label><b>URL</b></Label> <br/>
-                                                    {!isEditingCompany ? <a href={company.instagram?.url} target="_blank">{company.name}</a>
-                                                        : <Input value={company.instagram?.url} name="url"
-                                                                 onChange={onChangeCompany(company._id, 'instagram')}/>}
-                                                </FormGroup>
-                                            </div>
-                                        </div>
-                                        <div className="d-flex flex-column gap-2">
-                                            <h4>Facebook</h4>
-                                            <div className="ms-3">
-                                                <FormGroup>
-                                                    <Label><b>Email</b></Label> <br/>
-                                                    {!isEditingCompany ? <span>{company.facebook?.username}</span>
-                                                        : <Input value={company.facebook?.username} name="username"
-                                                                 onChange={onChangeCompany(company._id, 'facebook')}/>}
-                                                </FormGroup>
-                                                <FormGroup>
-                                                    <Label><b>Password</b></Label> <br/>
-                                                    {!isEditingCompany ? <span>{company.facebook?.password}</span>
-                                                        : <Input value={company.facebook?.password} name="password"
-                                                                 onChange={onChangeCompany(company._id, 'facebook')}/>}
-                                                </FormGroup>
-                                                <FormGroup>
-                                                    <Label><b>URL</b></Label> <br/>
-                                                    {!isEditingCompany ? <a href={company.facebook?.url} target="_blank">{company.name}</a>
-                                                        : <Input value={company.facebook?.url} name="url"
-                                                                 onChange={onChangeCompany(company._id, 'facebook')}/>}
-                                                </FormGroup>
-                                            </div>
-                                        </div>
-
-                                    </Form>
-                                </CardBody>
-                                <CardFooter className="d-flex align-items-center justify-content-between">
-                                    {isEditingCompany && <Button
-                                        onClick={updateCompany(company._id)} color="success" outline>Guardar</Button>}
-                                    <Button onClick={() => setCompanyToDelete(company)} color="danger"
-                                            outline>Eliminar</Button>
-                                    <Button color={isEditingCompany ? "danger" : "info"}
-                                            onClick={toggleEditing(company)}>{isEditingCompany ? 'Cancelar' : 'Editar'}</Button>
-
-                                </CardFooter>
-                            </Card>
-                        )
-                    }
-                )}
-                <Card>
-                    <CardBody>
-                        <Form>
-                            <FormGroup>
-                                <Label><b>Nombre</b></Label> <br/>
-                                <Input value={createCompany.name} name="name"
-                                       onChange={onChangeCreateCompany}/>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label><b>Logo</b></Label> <br/>
-                                <Input value={createCompany.logo} name="logo"
-                                       onChange={onChangeCreateCompany}/>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label><b>Company ID</b></Label> <br/>
-                                <Input value={createCompany.companyId} name="companyId"
-                                       onChange={onChangeCreateCompany}/>
-                            </FormGroup>
-                            <FormGroup>
-                                <Label><b>Telefono</b></Label> <br/>
-                                <Input value={createCompany.phone} name="phone"
-                                       onChange={onChangeCreateCompany}/>
-                            </FormGroup>
-                        </Form>
-                    </CardBody>
-                    <CardFooter>
-                        <Button color="success" onClick={handleAddNewCompany}>Crear</Button>
-                    </CardFooter>
-                </Card>
+            <div className="d-flex align-items-center justify-content-between gap-3 p-3">
+                <h1>Company Management</h1>
+                <Button onClick={goToDashboard} color="primary">Dashboard</Button>
             </div>
-            <Modal isOpen={!!companyToDelete} toggle={resetCompanyToDelete}>
-                <ModalHeader toggle={resetCompanyToDelete}>Confirmación</ModalHeader>
-                <ModalBody>
-                    ¿Estas Seguro que deseas eliminar esta Company?
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="primary" onClick={handleDeleteCompany}>Confirmar</Button>{' '}
-                    <Button color="secondary" onClick={resetCompanyToDelete}>Cancel</Button>
-                </ModalFooter>
-            </Modal>
+            <ul className="nav nav-tabs">
+                <li className="nav-item">
+                    <a className={`nav-link ${activeTab === 'company' ? 'active' : ''}`} aria-current="page" href="#"
+                       onClick={handleActiveTab('company')}>Companias</a>
+                </li>
+                <li className="nav-item">
+                    <a className={`nav-link ${activeTab === 'category' ? 'active' : ''}`} href="#"
+                       onClick={handleActiveTab('category')}>Categorias</a>
+                </li>
+            </ul>
+            <div className="orders-management-browser-wrapper p-4">
+                <Input bsSize="lg" placeholder="Buscar" onChange={onSearch}/>
+            </div>
+            {activeTab === 'company' &&
+                <CompanyList
+                    updateCompany={updateCompany}
+                    companies={companies}
+                    updateCompanyMedia={onChangeMediaFile}
+                    deleteCompany={handleDeleteCompany}
+                    addCompany={handleAddNewCompany}
+                />
+            }
+            {activeTab === 'category' &&
+                <CategoryList
+                    updateCategory={updateCategory}
+                    categories={categories}
+                    updateCategoryMedia={onChangeMediaFile}
+                    deleteCategory={handleDeleteCategory}
+                    addCategory={handleAddNewCategory}
+                    companies={companies}
+                />
+            }
         </div>
     )
 }

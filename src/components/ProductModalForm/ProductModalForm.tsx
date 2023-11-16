@@ -24,7 +24,7 @@ import {IFlyer} from "../../model/interfaces/FlyerDesigner.interfaces";
 import {toast} from "react-toastify";
 import {Multiselect} from "multiselect-react-dropdown";
 import {ICategory} from "../../model/CategoryModel";
-import {addCategory, getCategories, updateCategory} from "../../services/categoryService";
+import {addCategory, getCategories, updateCategories} from "../../services/categoryService";
 import {extractNumbersFromText, removeHTMLChars} from "../../utils/text.utils";
 import {ProductParam} from "../../model/ordersModels";
 
@@ -127,7 +127,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             setLoadingCategories(true);
             if (isUpdate) {
                 const categoryData = {...product.category, title: categoryTitle, company} as ICategory
-                const updatedCategoryData = await (await updateCategory(JSON.stringify(categoryData))).json();
+                const updatedCategoryData = await (await updateCategories(JSON.stringify(categoryData))).json();
                 setCategories(categories.map((category) => category._id === updatedCategoryData._id ? categoryData : category));
                 setProduct({...product, category: categoryData});
             } else {

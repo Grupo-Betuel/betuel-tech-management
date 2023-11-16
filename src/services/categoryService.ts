@@ -10,7 +10,17 @@ export const getCategories = async (companyId: string) => {
 
 };
 
-export const updateCategory = async (body: string) => {
+export const getAllCategories = async () => {
+    try {
+        const response = await fetch(`${process.env.REACT_APP_API}categories`);
+        return await response.json() as any;
+    } catch (e) {
+        throw e;
+    }
+
+};
+
+export const updateCategories = async (body: string) => {
     try {
         return await fetch(`${process.env.REACT_APP_API}categories`, {
                 method: 'PUT',

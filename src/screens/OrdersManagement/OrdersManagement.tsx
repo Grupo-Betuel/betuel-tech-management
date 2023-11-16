@@ -219,10 +219,21 @@ export const OrdersManagement = () => {
         toast('El bot se ejecuto correctamente');
     }
 
-    const onSearch = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
-        const originalValues = (Object.values(originalOrders) as IOrder[])
-        const newOrders = originalValues.filter((o) => JSON.stringify(o).includes(value));
-        setOrders(newOrders)
+    const onSearch = ({target: {value: data}}: React.ChangeEvent<HTMLInputElement>) => {
+        const value = data.toLowerCase().replace(/[ ]/gi, '');
+        const filterObjectWithValue = (obj: any) => JSON.stringify(obj).toLowerCase().replace(/[ ]/gi, '').includes(value);
+        if(activeTab === 'order') {
+            const originalValues = (Object.values(originalOrders) as IOrder[])
+            const newOrders = originalValues.filter((o) => filterObjectWithValue(o));
+            setOrders(newOrders)
+        } else if(activeTab === 'messenger') {
+            const newMessengers = originalMessengers.filter((m) => filterObjectWithValue(m));
+            setMessengers(newMessengers)
+        } else if(activeTab === 'clients') {
+            const newClients = originalClients.filter((c) => filterObjectWithValue(c));
+            setClients(newClients)
+        }
+
     }
 
     const handleActiveTab = (tab: OrderTabsTypes) => () => setActiveTab(tab);

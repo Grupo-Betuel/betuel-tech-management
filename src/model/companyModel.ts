@@ -18,7 +18,7 @@ export class CompanyModel {
 
     title: string = '';
 
-    wallpapper: string = '';
+    wallpaper: string = '';
 
     video: string = '';
 
