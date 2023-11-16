@@ -110,11 +110,9 @@ export const CategoryList = (
     const addTag = (companyId: string) => (event: KeyboardEvent) => {
         if (event.key === 'Enter') {
             const company = isEditing[companyId];
-            console.log('key', event.key, company, companyId);
 
             if (company) {
                 const tags = company.tags as string[];
-                console.log('tags', tags);
 
                 const newTags = [...tags, newTag];
                 onChangeCategory(companyId)({

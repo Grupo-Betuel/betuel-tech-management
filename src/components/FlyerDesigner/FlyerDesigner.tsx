@@ -488,7 +488,6 @@ const FlyerDesigner = (
     const onChangeTemplate = (template: FlyerTemplateModel) => {
         const {flyer: selectedFlyer} = template || {};
         // const selectedTemplate = templates.find(template => template._id === value);
-        console.log(selectedFlyer, 'selected?')
         const flyerData = selectedFlyer ? JSON.parse(selectedFlyer) : blankFlyer;
         flyerData.value = flyerOptions?.value;
         const newFlyer = passFlyerValueToFlyerContent({...flyerData});
