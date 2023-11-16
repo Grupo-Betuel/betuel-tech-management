@@ -6,6 +6,8 @@ export interface ILocation {
     latitude: number
     longitude: number
     description: number
+    distance: number
+    distanceUnit: string
     link: string
 }
 export interface IClient {
@@ -76,6 +78,7 @@ export interface IOrder {
   hasConversation?: boolean,
   shippingTime: string,
   createDate: string,
+  updateDate: string,
   fromSocket: boolean, // this is not in the db
   _id: string
   __v: number

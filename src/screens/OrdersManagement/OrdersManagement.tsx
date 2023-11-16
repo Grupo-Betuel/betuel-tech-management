@@ -1,5 +1,12 @@
 import React, {useEffect, useState} from "react";
-import {deleteOrder, getOrders, handleOrderWithBot, refreshBotOrders, updateOrder} from "../../services/orderService";
+import {
+    deleteOrder,
+    getOrders,
+    handleOrderWithBot,
+    refreshBotOrders, sendRequestMessenger,
+    senUpdateOrderLocation,
+    updateOrder
+} from "../../services/orderService";
 import {IClient, IOrder, OrderStatusTypes} from "../../model/ordersModels";
 import "./OrdersManagement.scss";
 import {
@@ -55,7 +62,7 @@ export const OrdersManagement = () => {
     const [originalOrders, setOriginalOrders] = useState<{ [N in string]: IOrder }>({});
     const [elementToDelete, setElementToDelete] = useState<IOrder | IMessenger | IClient>();
     const [loading, setLoading] = useState<boolean>();
-    const [activeTab, setActiveTab] = useState<OrderTabsTypes>('clients');
+    const [activeTab, setActiveTab] = useState<OrderTabsTypes>('order');
     const {connected, socket} = useSocket()
     const history = useHistory();
 
@@ -260,6 +267,21 @@ export const OrdersManagement = () => {
         setLoading(false);
     }
 
+
+    const updateOrderLocation = async (order: IOrder, link: string) => {
+        setLoading(true);
+        await senUpdateOrderLocation({order, link});
+        setLoading(false);
+        toast("Orden actualizada con exito")
+    }
+
+    const requestMessengers = async (order: IOrder) => {
+        setLoading(true);
+        await sendRequestMessenger({order});
+        setLoading(false);
+        toast("Orden actualizada con exito")
+    }
+
     return (
         <>
             {loading && (
@@ -300,6 +322,8 @@ export const OrdersManagement = () => {
                     originalOrders={originalOrders}
                     onDeleteOrder={selectElementToDelete}
                     sendOrderToBot={handleOrderBot}
+                    requestMessengers={requestMessengers}
+                    updateOrderLocation={updateOrderLocation}
                 />
             }
             {activeTab === 'messenger' &&

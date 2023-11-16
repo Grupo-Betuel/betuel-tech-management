@@ -123,3 +123,40 @@ export const deleteProductParam = async (id: string) => {
     }
 
 };
+
+
+export const senUpdateOrderLocation = async (data: { order: IOrder, link: string }) => {
+    try {
+        const body = JSON.stringify(data);
+        const response = await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/update-order-location`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body,
+        });
+        return await response.json() as any;
+    } catch (e) {
+        throw e;
+    }
+
+};
+
+export const sendRequestMessenger = async (data: { order: IOrder }) => {
+    try {
+        const body = JSON.stringify(data);
+        const response = await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/request-messengers`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body,
+        });
+        return await response.json() as any;
+    } catch (e) {
+        throw e;
+    }
+
+};

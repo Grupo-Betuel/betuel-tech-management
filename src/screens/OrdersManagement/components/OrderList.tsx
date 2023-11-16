@@ -1,9 +1,22 @@
-import {Button, Card, CardBody, CardText, Input, ListGroup, ListGroupItem} from "reactstrap";
+import {
+    Button,
+    Card,
+    CardBody,
+    CardText,
+    Input,
+    ListGroup,
+    ListGroupItem,
+    Modal,
+    ModalBody, ModalFooter,
+    ModalHeader
+} from "reactstrap";
 import {IOrder, orderPaymentTypeList, orderStatusList, orderTypeList} from "../../../model/ordersModels";
 import {IMessenger} from "../../../model/messengerModels";
-import React from "react";
+import React, {useEffect} from "react";
 import {orderStatusCardColor} from "../OrdersManagement";
 import {useHistory} from "react-router";
+
+export type OrderActionTypes = 'request-messengers' | 'update-location';
 
 export interface IOrderListProps {
     orders: IOrder[];
@@ -13,6 +26,8 @@ export interface IOrderListProps {
     updateOrder: (order: IOrder) => Promise<void>;
     onDeleteOrder: (order: IOrder) => void;
     sendOrderToBot: (order: IOrder) => Promise<void>;
+    requestMessengers: (order: IOrder) => Promise<void>;
+    updateOrderLocation: (order: IOrder, link: string) => Promise<void>;
 }
 
 
@@ -24,9 +39,25 @@ export const OrderList = (
         originalOrders,
         updateOrder,
         onDeleteOrder,
-        sendOrderToBot
+        sendOrderToBot,
+        requestMessengers,
+        updateOrderLocation,
     }: IOrderListProps) => {
     const history = useHistory();
+    const [actionToConfirm, setActionToConfirm] = React.useState<OrderActionTypes>();
+    const [actionDataToConfirm, setActionDataToConfirm] = React.useState<IOrder>();
+    const [ordersLocation, setOrdersLocation] = React.useState<{ [N in string]: string }>({});
+
+
+    useEffect(() => {
+        Object.keys(originalOrders).forEach((key) => {
+            const order = originalOrders[key];
+            if (order?.location?.link) {
+                setOrdersLocation((old: any) => ({...old, [key]: order?.location?.link}))
+            }
+        })
+        // setOrdersLocation(order?.location?.link)
+    }, [originalOrders]);
 
     const onChangeOrder = (order: IOrder) => ({
                                                   target: {
@@ -82,7 +113,6 @@ export const OrderList = (
     }
 
 
-
     const goToDetail = (order: IOrder) => () => {
         history.push(`/order-detail/${order._id}`, order)
     }
@@ -91,7 +121,45 @@ export const OrderList = (
         sendOrderToBot(order);
     }
 
+    const handleRequestMessenger = async (order: IOrder) => {
+        requestMessengers(order);
+    }
 
+    const resetActionToConfirm = () => {
+        setActionDataToConfirm(undefined)
+        setActionToConfirm(undefined)
+    };
+
+    const onChangeOrderLocation = (order: IOrder) => ({
+                                                          target: {
+                                                              value: data,
+                                                          }
+                                                      }: React.ChangeEvent<HTMLInputElement>) => {
+        const newOrdersLocation = {...ordersLocation, [order._id]: data};
+        setOrdersLocation(newOrdersLocation);
+    }
+
+    const handleUpdateOrderLocation = async (order: IOrder) => {
+        ordersLocation[order._id] && updateOrderLocation(order, ordersLocation[order._id]);
+    }
+
+    const handleActionToConfirm = async () => {
+        if(actionDataToConfirm) {
+            if(actionToConfirm === 'request-messengers') {
+               await handleRequestMessenger(actionDataToConfirm);
+            } else if (actionToConfirm === 'update-location') {
+               await handleUpdateOrderLocation(actionDataToConfirm);
+            }
+            resetActionToConfirm();
+        }
+    }
+
+    const sendActionToConfirm = (action: OrderActionTypes, order: IOrder) => async () => {
+        setActionDataToConfirm(order);
+        setActionToConfirm(action);
+    }
+
+    const orderIsPending = (order: IOrder) => order.status === 'pending' || order.status === 'personal-assistance' || order.status === 'pending-info' || order.status === 'confirmed';
     return (
         <div className="orders-management-grid" style={{width: "100vw"}}>
 
@@ -105,7 +173,8 @@ export const OrderList = (
                     <CardBody>
                         <CardText>
                             <b>ID: </b> {order.orderNumber || order._id}
-                            <br/>{new Date(order.createDate).toLocaleDateString()}.
+                            <br/><b>Creacion: </b>{new Date(order.createDate).toLocaleDateString()}.
+                            <br/><b>Last Update: </b>{new Date(order.updateDate).toLocaleDateString()}.
                         </CardText>
                     </CardBody>
                     <ListGroup flush>
@@ -171,11 +240,15 @@ export const OrderList = (
                         <ListGroupItem>
                             <b>Cliente</b>: {order.client?.firstName}
                         </ListGroupItem>
+                        {!!order?.location?.distance &&
+                            <ListGroupItem>
+                            <b>Distancia</b>: {order?.location?.distance} {order?.location?.distanceUnit}
+                        </ListGroupItem>}
                         <ListGroupItem className="d-flex gap-2 align-items-center">
                             <b>Mensajero:</b>
                             <Input placeholder="Mensajero"
                                    name="messenger"
-                                   onChange={onChangeOrder(order)} value={order.messenger?._id}
+                                   onChange={onChangeOrder(order)} value={order.messenger?._id || ''}
                                    type="select">
                                 <option value="">Select Messenger</option>
                                 {messengers.map((m: IMessenger) =>
@@ -183,6 +256,20 @@ export const OrderList = (
                                 }
                             </Input>
                         </ListGroupItem>
+                        {order.type === 'shipping' && order.paymentType &&
+                            <ListGroupItem className="d-flex flex-column gap-4">
+                            <div className="d-flex flex-column gap-2">
+                                <b>Ubicacion</b>
+                                <Input
+                                    placeholder="Ubicacion"
+                                    name="messenger"
+                                    value={ordersLocation[order._id]}
+                                    onChange={onChangeOrderLocation(order)}
+                                />
+                            </div>
+                            {ordersLocation[order._id] && ordersLocation[order._id] !== order.location?.link &&
+                                <Button color="info" outline onClick={sendActionToConfirm('request-messengers', order)}>Cambiar Ubicacion</Button>}
+                        </ListGroupItem>}
                     </ListGroup>
                     <CardBody className="d-flex justify-content-between flex-wrap gap-2">
                         {orderHasChanged(order) &&
@@ -209,8 +296,23 @@ export const OrderList = (
                                 onClick={handleOrderBot(order)}>
                             Procesar con el BOT
                         </Button>
+                        {order.type === 'shipping' && order.paymentType && order.location && orderIsPending(order) &&
+                            <Button color="warning" className="text-nowrap w-100 align-self-start"
+                                    onClick={sendActionToConfirm('request-messengers', order)}>
+                                Solicitar Mensajeros
+                            </Button>}
                     </CardBody>
                 </Card>))}
+            <Modal isOpen={!!actionToConfirm} toggle={resetActionToConfirm}>
+                <ModalHeader toggle={resetActionToConfirm}>Confirmación</ModalHeader>
+                <ModalBody>
+                    ¿Estas seguro que quieres continuar?
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="primary" onClick={handleActionToConfirm}>Confirmar</Button>{' '}
+                    <Button color="secondary" onClick={resetActionToConfirm}>Cancel</Button>
+                </ModalFooter>
+            </Modal>
         </div>
     )
 }
