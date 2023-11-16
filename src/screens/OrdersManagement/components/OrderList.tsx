@@ -268,7 +268,7 @@ export const OrderList = (
                                 />
                             </div>
                             {ordersLocation[order._id] && ordersLocation[order._id] !== order.location?.link &&
-                                <Button color="info" outline onClick={sendActionToConfirm('request-messengers', order)}>Cambiar Ubicacion</Button>}
+                                <Button color="info" outline onClick={sendActionToConfirm('update-location', order)}>Cambiar Ubicacion</Button>}
                         </ListGroupItem>}
                     </ListGroup>
                     <CardBody className="d-flex justify-content-between flex-wrap gap-2">
