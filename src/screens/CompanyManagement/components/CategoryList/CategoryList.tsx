@@ -211,13 +211,13 @@ export const CategoryList = (
                             <CardBody>
                                 <Form onSubmit={e => e.preventDefault()}>
                                     <FormGroup>
-                                        <Label><b>Nombre</b></Label> <br/>
-                                        {!isEditingCategory ? <span>{category.title}</span>
+                                        <Label><b>Título</b></Label> <br/>
+                                        {!isEditingCategory ? <h2>{category.title}</h2>
                                             : <Input value={category.title} name="title"
                                                      onChange={onChangeCategory(category._id)}/>}
                                     </FormGroup>
                                     <FormGroup>
-                                        <Label><b>Company</b></Label> <br/>
+                                        <Label><b>Compañia</b></Label> <br/>
                                         {!isEditingCategory ? <span>{category.company}</span>
                                             : <Input value={category.company}
                                                      name="company"
@@ -228,13 +228,6 @@ export const CategoryList = (
                                                 {companieIds.map( (item) => <option value={item}>{item}</option>)}
                                             </Input>
                                         }
-                                    </FormGroup>
-
-                                    <FormGroup>
-                                        <Label><b>Promotion Title</b></Label> <br/>
-                                        {!isEditingCategory ? <span>{category.title}</span>
-                                            : <Input value={category.title} name="title"
-                                                     onChange={onChangeCategory(category._id)}/>}
                                     </FormGroup>
 
                                     <FormGroup>

@@ -1,5 +1,5 @@
 import {
-    Accordion, AccordionBody, AccordionHeader, AccordionItem,
+    Accordion, AccordionBody, AccordionHeader, AccordionItem, Badge,
     Button,
     Form,
     FormGroup,
@@ -10,7 +10,7 @@ import {
     ModalFooter,
     ModalHeader, Spinner,
 } from "reactstrap";
-import React, {useEffect} from "react";
+import React, {KeyboardEvent, useEffect, useState} from "react";
 import {IProductData, IProductParam, ProductParamTypes} from "../../model/products";
 import "./ProductModalForm.scss";
 import {addProduct, deleteProductParam, updateProducts} from "../../services/products";
@@ -73,7 +73,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     const [productParamToDelete, setProductParamToDelete] = React.useState<string | number>('');
     const [categoryTitle, setCategoryTitle] = React.useState<string>();
     const [loadingCategories, setLoadingCategories] = React.useState<boolean>();
-
+    const [newTag, setNewTag] = useState<string>('');
 
     const [flyerOptions, setFlyerOptions] = React.useState<IFlyer>();
     const [companyDefaultTemplateId, setCompanyDefaultTemplateId] = React.useState<string>();
@@ -186,7 +186,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
     const onSubmit = async (flyer: IFlyer = JSON.parse(product.flyerOptions || '{}'), image: string = product.image || '', noDeleteImage?: boolean) => {
         // const flyer: IFlyer = (flyerData || JSON.parse(product.flyerOptions || '{}')) as IFlyer;
-        if(!validForm()) return;
+        if (!validForm()) return;
 
         setIsSubmiting(true);
         const price = extractNumbersFromText((flyer?.value?.price || product.price).toString());
@@ -206,7 +206,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
         if (editProduct) {
             let imageToDelete = product.image?.split('/').pop();
-            if(noDeleteImage) {
+            if (noDeleteImage) {
                 imageToDelete = undefined;
             }
             await updateProducts(body, imageToDelete);
@@ -320,8 +320,12 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             }
             return !!(product as any)[key]
         }).reduce((a, b) => a && b, true)
-        if(!isValid) {
-            toast(`Los campos ${failedKeys.join(', ')} son requeridos`, {type: 'error', position: "top-right", autoClose: false });
+        if (!isValid) {
+            toast(`Los campos ${failedKeys.join(', ')} son requeridos`, {
+                type: 'error',
+                position: "top-right",
+                autoClose: false
+            });
         }
         setIsValidForm(isValid);
         return isValid;
@@ -434,6 +438,25 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     React.useEffect(() => {
         setProductViewControlsVisibility && setProductViewControlsVisibility(!enableFlyer)
     }, [enableFlyer])
+
+    const addTag = (event: KeyboardEvent) => {
+        if (event.key === 'Enter') {
+            const tags = product.tags as string[] || [];
+            const newTags = [...tags, newTag];
+            setProduct({...product, tags: newTags});
+            setNewTag('');
+        }
+    }
+
+    const onChangeNewTag = ({target: {value}}: React.ChangeEvent<HTMLInputElement>) => {
+        setNewTag(value)
+    }
+
+    const removeTag = (tag: string) => () => {
+        const tags = product.tags as string[] || [];
+        const newTags = tags.filter(t => t !== tag);
+        setProduct({...product, tags: newTags});
+    }
 
 
     const AppAccordion = Accordion as any;
@@ -582,6 +605,31 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                       value={product.description}
                                       onChange={onChangeProduct}/>
                         </FormGroup>
+                        <FormGroup>
+                            <Label><b>Etiquetas</b></Label> <br/>
+                            <div className="d-flex w-100 flex-column gap-3">
+                                <Input
+                                    type="text"
+                                    className="w-100"
+                                    value={newTag}
+                                    placeholder="Agregar nueva etiqueta"
+                                    onChange={onChangeNewTag}
+                                    onKeyDown={addTag}
+                                />
+
+                                <div className="d-flex flex-wrap gap-2 align-items-center">
+                                    {product.tags?.map((tag: string, i: number) =>
+                                        <Badge key={`${tag}-${i}`} pill
+                                               className="d-flex align-items-center gap-2 p-2 cursor-no-pointer"
+                                               color="primary">
+                                            {tag}
+                                            <i className="cursor-pointer bi bi-x-circle-fill tex-white cursor-pointer font-weight-bold"
+                                               onClick={removeTag(tag)}/>
+                                        </Badge>)}
+                                </div>
+                            </div>
+
+                        </FormGroup>
                         <FormGroup className="expanded-action">
                             <Label>Agregar Parametro de tipo:</Label>
                             <Input placeholder="Tipo" onChange={addProductParam} value={''}
@@ -724,7 +772,8 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                 </ModalBody>
                 <ModalFooter>
                     <Button color="danger" onClick={toggleModal} outline>Salir</Button>{' '}
-                    <Button color="success" disabled={!product.category} onClick={() => onSubmit(undefined, undefined, true)}
+                    <Button color="success" disabled={!product.category}
+                            onClick={() => onSubmit(undefined, undefined, true)}
                             outline>Guardar</Button>{' '}
                 </ModalFooter>
             </Form>

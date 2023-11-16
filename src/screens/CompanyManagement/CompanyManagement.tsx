@@ -171,11 +171,11 @@ export const CompanyManagement = () => {
             <ul className="nav nav-tabs">
                 <li className="nav-item">
                     <a className={`nav-link ${activeTab === 'company' ? 'active' : ''}`} aria-current="page" href="#"
-                       onClick={handleActiveTab('company')}>Companias</a>
+                       onClick={handleActiveTab('company')}>Compañias</a>
                 </li>
                 <li className="nav-item">
                     <a className={`nav-link ${activeTab === 'category' ? 'active' : ''}`} href="#"
-                       onClick={handleActiveTab('category')}>Categorias</a>
+                       onClick={handleActiveTab('category')}>Categorías</a>
                 </li>
             </ul>
             <div className="orders-management-browser-wrapper p-4">
