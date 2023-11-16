@@ -177,7 +177,7 @@ export const GCloudMediaHandler = ({onClickMedia, mediaName, preselectTag, media
                     <input type="file"
                            className="invisible position-absolute image-handler-input-file"
                            onChange={onChangeElementImage}
-                           accept="image/png, image/gif, image/jpeg, image/webp"/>
+                           accept="image/png, image/jpeg, image/webp"/>
                 </label>
                 {
                     medias.map((image, key) =>

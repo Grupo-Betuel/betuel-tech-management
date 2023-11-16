@@ -232,7 +232,7 @@ export const CompanyList = (
                                             : <Input className=""
                                                      type="file"
                                                      name="logo"
-                                                     accept="image/png,image/jpg,image/gif,image/jpeg"
+                                                     accept="image/png,image/jpg,image/jpeg"
                                                      onChange={handleUpdateMedia(company.companyId, 'logo')}/>}
                                     </FormGroup>
                                     <FormGroup>
@@ -266,7 +266,7 @@ export const CompanyList = (
                                                 : <Input className=""
                                                          type="file"
                                                          name="wallpaper"
-                                                         accept="image/png,image/jpg,image/gif,image/jpeg"
+                                                         accept="image/png,image/jpg,image/jpeg"
                                                          onChange={handleUpdateMedia(company.companyId, 'wallpaper')}/>}
                                         </Label>
                                     </FormGroup>

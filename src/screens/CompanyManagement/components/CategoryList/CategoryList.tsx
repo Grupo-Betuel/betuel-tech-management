@@ -240,7 +240,7 @@ export const CategoryList = (
                                                 : <Input className=""
                                                          type="file"
                                                          name="wallpaper"
-                                                         accept="image/png,image/jpg,image/gif,image/jpeg"
+                                                         accept="image/png,image/jpg,image/jpeg"
                                                          onChange={handleUpdateMedia(category._id, 'wallpaper')}/>}
                                         </Label>
                                     </FormGroup>
