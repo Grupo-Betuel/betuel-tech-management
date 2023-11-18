@@ -25,7 +25,7 @@ export const removeHTMLChars = (text: string) => {
 }
 
 export const removeExtraCharactersFromText = (text: string) => {
-    return text.normalize("NFD").replace(/[\u0300-\u036f]/gi, "")
+    return text.normalize("NFD").replace(/[\u0300-\u036f]/gi, "").replace(/&nbsp;/g, "")
 }
 export const extractNumbersFromText = (text: string): number => {
     if (!text) return 0;
