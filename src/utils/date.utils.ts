@@ -10,6 +10,5 @@ export const getTimeFromDate = (date: Date) => {
     // Format the time as "hour:minutes"
     const  timeString = hours.toString().padStart(2, '0') + ":" + minutes.toString().padStart(2, '0');
 
-    console.log('currDate', timeString)
     return timeString
 }

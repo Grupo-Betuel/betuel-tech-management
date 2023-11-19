@@ -5,7 +5,7 @@
     "@typescript-eslint"
   ],
   "extends": [
-    "eslint:recommended",
+    "eslint:recommended"
   ],
   "rules": {
     "import/extensions": 0,

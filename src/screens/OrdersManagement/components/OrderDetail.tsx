@@ -179,7 +179,7 @@ export const OrderDetail = () => {
                         <Card>
                             <img
                                 alt="Card"
-                                src={`data:image/png;base64,${order.transferReceipt?.image}`}
+                                src={order.transferReceipt?.image.includes('https://') ? order.transferReceipt?.image :`data:image/png;base64,${order.transferReceipt?.image}`}
                             />
                             <CardBody>
                                 <CardText>

@@ -19,8 +19,8 @@ export const uploadMedia = async (media: IMedia, selectedTag: IMediaTagTypes, me
 
 export const onChangeMediaToUpload = (selectedTag: IMediaTagTypes, callBack?: (content: IMedia) => void, mediaName: string = 'media') => async (event: React.ChangeEvent<HTMLInputElement>) => {
         const input = event.target;
-        const url = event.target.value;
-        const ext = '.' + url.substring(url.lastIndexOf('.') + 1).toLowerCase();
+        const url = event.target?.value;
+        const ext = url ? '.' + url.substring(url.lastIndexOf('.') + 1).toLowerCase(): '.png';
         if (input.files && input.files[0]) {
                 const file = new File([input.files[0]], Date.now() + ext, {type: input.files[0].type});
                 const reader = new FileReader();

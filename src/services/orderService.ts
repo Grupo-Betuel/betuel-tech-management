@@ -1,6 +1,6 @@
 import {deletePhoto} from "./gcloud";
 import {CompanyTypes} from "../model/common";
-import {IOrder} from "../model/ordersModels";
+import {IOrder, IUpdateOrderBotRequest} from "../model/ordersModels";
 import {CurrencyData} from "../model/interfaces/rateModels";
 
 export const getOrders = async () => {
@@ -89,6 +89,25 @@ export const handleOrderWithBot = async (body: string) => {
 
 };
 
+export const sendOrderResume = async (data: { order: IOrder } ) => {
+    const body = JSON.stringify(data);
+    try {
+        const response = await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/send-order-resume`,
+            {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            });
+        return await response.json() as any;
+    } catch (e) {
+        throw e;
+    }
+
+};
+
 export const addProduct = async (body: string) => {
     try {
         return await fetch(`${process.env.REACT_APP_API}products`, {
@@ -147,6 +166,24 @@ export const sendRequestMessenger = async (data: { order: IOrder }) => {
     try {
         const body = JSON.stringify(data);
         const response = await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/request-messengers`, {
+            method: 'POST',
+            headers: {
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
+            },
+            body,
+        });
+        return await response.json() as any;
+    } catch (e) {
+        throw e;
+    }
+
+};
+
+export const sendUpdateOrderBot = async (data: IUpdateOrderBotRequest) => {
+    try {
+        const body = JSON.stringify(data);
+        const response = await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/update-order-bot`, {
             method: 'POST',
             headers: {
                 'Accept': 'application/json',

@@ -1,0 +1,14 @@
+.print-sheet-wrapper {
+  overflow: auto;
+  .print-sheet-button {
+    width: 100%;
+    margin-bottom: 1rem;
+  }
+  .print-sheet {
+    background: white;
+    border: 1px solid #4d4d4d;
+    //padding: 12px;
+    overflow: hidden;
+  }
+
+}

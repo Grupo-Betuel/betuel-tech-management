@@ -26,7 +26,6 @@ import {Multiselect} from "multiselect-react-dropdown";
 import {ICategory} from "../../model/CategoryModel";
 import {addCategory, getCategories, updateCategories} from "../../services/categoryService";
 import {extractNumbersFromText, removeHTMLChars} from "../../utils/text.utils";
-import {ProductParam} from "../../model/ordersModels";
 
 export const productParamsTypes: ProductParamTypes[] = ['color', 'size']
 

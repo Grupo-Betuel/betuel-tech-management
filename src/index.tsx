@@ -7,13 +7,17 @@ import {BrowserRouter as Router} from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
 import 'react-rotatable/dist/css/rotatable.min.css';
+import {DndProvider} from "react-dnd";
+import {HTML5Backend} from "react-dnd-html5-backend";
 
 
 ReactDOM.render(
     <Router>
-        <React.StrictMode>
-            <App/>
-        </React.StrictMode>
+        <DndProvider backend={HTML5Backend}>
+            <React.StrictMode>
+                <App/>
+            </React.StrictMode>
+        </DndProvider>
     </Router>
     ,
     document.getElementById('root')

@@ -3,11 +3,15 @@ import {
     deleteOrder,
     getOrders,
     handleOrderWithBot,
-    refreshBotOrders, sendRequestMessenger,
+    refreshBotOrders, sendOrderResume, sendRequestMessenger, sendUpdateOrderBot,
     senUpdateOrderLocation,
     updateOrder
 } from "../../services/orderService";
-import {IClient, IOrder, OrderStatusTypes} from "../../model/ordersModels";
+import {
+    IClient,
+    IOrder, UpdateOrderBotActionTypes,
+    OrderStatusTypes
+} from "../../model/ordersModels";
 import "./OrdersManagement.scss";
 import {
     Button,
@@ -30,6 +34,15 @@ import {MessengerMng} from "./components/MessengerMng/MessengerMng";
 import {OrderList} from "./components/OrderList";
 import {ClientMng} from "./components/ClientMng/ClientMng";
 import {addClient, deleteClient, getClients, updateClients} from "../../services/clients";
+import { PrintOrdersSheet} from "../../components/PrintSheet/PrintOrdersSheet";
+import {ShippingCard} from "../../components/ShippingCard/ShippingCard";
+import {DraggableGridItem} from "../../components/DraggableGrid/DraggableGrid";
+import {betuelDanceShippingCardLayout} from "../../components/FlyerDesigner/constants/shipping-card-layouts";
+
+const items: DraggableGridItem[] = [
+    { id: '1', content: <ShippingCard layout={betuelDanceShippingCardLayout}/>, x: 0, y: 0, w:2, h:2 },
+    { id: '2', content:  <ShippingCard layout={betuelDanceShippingCardLayout}/>, x: 1, y: 1, w:1, h:1 },
+];
 
 export type OrderTabsTypes = 'order' | 'messenger' | 'clients'
 export const orderStatusCardColor: { [N in OrderStatusTypes]: string } = {
@@ -52,6 +65,8 @@ export const messengerStatusCardColor: { [N in MessengerStatusTypes]: string } =
     'on-trip-to-office': 'warning',
     'on-trip-to-client': 'warning',
 }
+
+const maxOrderSelection = 6;
 
 export const OrdersManagement = () => {
     const [orders, setOrders] = useState<IOrder[]>([]);
@@ -204,9 +219,12 @@ export const OrdersManagement = () => {
     }
 
 
-    const handleUpdateOrder = async (order: IOrder) => {
+    const handleUpdateOrder = async (order: IOrder, action?: UpdateOrderBotActionTypes) => {
         setLoading(true);
         await updateOrder(JSON.stringify(order));
+        if (action) {
+            await sendUpdateOrderBot({order, action});
+        }
         setLoading(false);
         handleGetOrders();
         toast('Orden actualizada');
@@ -222,14 +240,14 @@ export const OrdersManagement = () => {
     const onSearch = ({target: {value: data}}: React.ChangeEvent<HTMLInputElement>) => {
         const value = data.toLowerCase().replace(/[ ]/gi, '');
         const filterObjectWithValue = (obj: any) => JSON.stringify(obj).toLowerCase().replace(/[ ]/gi, '').includes(value);
-        if(activeTab === 'order') {
+        if (activeTab === 'order') {
             const originalValues = (Object.values(originalOrders) as IOrder[])
             const newOrders = originalValues.filter((o) => filterObjectWithValue(o));
             setOrders(newOrders)
-        } else if(activeTab === 'messenger') {
+        } else if (activeTab === 'messenger') {
             const newMessengers = originalMessengers.filter((m) => filterObjectWithValue(m));
             setMessengers(newMessengers)
-        } else if(activeTab === 'clients') {
+        } else if (activeTab === 'clients') {
             const newClients = originalClients.filter((c) => filterObjectWithValue(c));
             setClients(newClients)
         }
@@ -293,8 +311,47 @@ export const OrdersManagement = () => {
         toast("Orden actualizada con exito")
     }
 
+    const orderResume = async (order: IOrder) => {
+        setLoading(true);
+        await sendOrderResume({order});
+        setLoading(false);
+        toast("Orden actualizada con exito")
+    }
+
+    const [printModalOpen, setPrintModalOpen] = useState(false);
+    const togglePrintModal = () => setPrintModalOpen(!printModalOpen);
+    const [selectedOrders, setSelectedOrders] = useState<IOrder[]>([]);
+
+    const selectOrder = (order: IOrder) => {
+        if(maxOrderSelection === selectedOrders.length) {
+            toast(`Solo puedes seleccionar ${maxOrderSelection} ordenes`);
+            return;
+        }
+
+        const newSelectedOrders = [...selectedOrders];
+        const index = newSelectedOrders.findIndex((o) => o._id === order._id);
+        if (index !== -1) {
+            newSelectedOrders.splice(index, 1);
+        } else {
+            newSelectedOrders.push(order);
+        }
+
+        setSelectedOrders(newSelectedOrders);
+    }
+
+
     return (
         <>
+            <Modal isOpen={printModalOpen}
+                   toggle={togglePrintModal}
+                   contentClassName="print-modal-content"
+                   className="print-modal"
+            >
+                <ModalHeader toggle={togglePrintModal}>Imprimir Ordenes</ModalHeader>
+                <ModalBody className="print-modal-body">
+                    <PrintOrdersSheet orders={selectedOrders} />
+                </ModalBody>
+            </Modal>
             {loading && (
                 <>
                     <div className="loading-sale-container">
@@ -306,6 +363,8 @@ export const OrdersManagement = () => {
                 <h1>Ultimas Ordenes</h1>
                 <Button onClick={goToDashboard} color="primary">Dashboard</Button>
                 <Button onClick={handleRefreshBotOrders} color="primary">Syncronizar las ordenes del BOT</Button>
+                {!!selectedOrders.length && <Button onClick={togglePrintModal}>Imprimir Ordenes</Button>}
+
             </div>
             <ul className="nav nav-tabs">
                 <li className="nav-item">
@@ -335,6 +394,9 @@ export const OrdersManagement = () => {
                     sendOrderToBot={handleOrderBot}
                     requestMessengers={requestMessengers}
                     updateOrderLocation={updateOrderLocation}
+                    sendOrderResume={orderResume}
+                    selectOrder={selectOrder}
+                    selectedOrders={selectedOrders}
                 />
             }
             {activeTab === 'messenger' &&

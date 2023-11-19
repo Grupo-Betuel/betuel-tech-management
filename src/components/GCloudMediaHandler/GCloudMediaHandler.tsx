@@ -21,7 +21,7 @@ export interface IGCloudImagesHandlerProps {
     mediasData:IMedia[];
 }
 
-export type IMediaTagTypes = 'element' | 'product' | 'background' | 'logo' | 'flyer' | 'video' | 'wallpaper';
+export type IMediaTagTypes = 'element' | 'product' | 'background' | 'logo' | 'flyer' | 'video' | 'wallpaper' | 'receipt';
 export type ITaggedImages = { [N in IMediaTagTypes]: IMedia[] };
 
 export const GCloudMediaHandler = ({onClickMedia, mediaName, preselectTag, mediasData}: IGCloudImagesHandlerProps) => {

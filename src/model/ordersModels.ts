@@ -7,6 +7,7 @@ export interface ILocation {
     longitude: number
     description: number
     distance: number
+    address: string
     distanceUnit: string
     link: string
 }
@@ -87,7 +88,7 @@ export interface IOrder {
 export interface ITransferReceipt {
   _id?: string
   image: string
-  order?: string
+  order: string
   status: 'confirmed' | 'pending' | 'rejected'
   confirmedBy?: string
   updateDate?: Date
@@ -122,5 +123,13 @@ export type IOrderData = {
 
 export interface IHandleOrderChangeRequest {
   order: IOrder;
-  type: 'update' | 'create';
+  type: 'update' | 'create' | 'push' | 'changed-sales' | 'delete';
+
+}
+
+
+  export type UpdateOrderBotActionTypes = 'transfer-confirmed';
+export interface IUpdateOrderBotRequest {
+  order: IOrder;
+  action: UpdateOrderBotActionTypes;
 }

@@ -10,27 +10,45 @@ import {
     ModalBody, ModalFooter,
     ModalHeader
 } from "reactstrap";
-import {IOrder, orderPaymentTypeList, orderStatusList, orderTypeList} from "../../../model/ordersModels";
+import {
+    IOrder,
+    ITransferReceipt, UpdateOrderBotActionTypes, IUpdateOrderBotRequest,
+    orderPaymentTypeList,
+    orderStatusList,
+    orderTypeList
+} from "../../../model/ordersModels";
 import {IMessenger} from "../../../model/messengerModels";
-import React, {useEffect} from "react";
+import React, {useCallback, useEffect, useState} from "react";
 import {orderStatusCardColor} from "../OrdersManagement";
 import {useHistory} from "react-router";
+import {IMedia, IMediaTagTypes} from "../../../components/GCloudMediaHandler/GCloudMediaHandler";
+import {CompanyModel} from "../../../model/companyModel";
+import {onChangeMediaToUpload} from "../../../utils/gcloud.utils";
+import {deletePhoto} from "../../../services/gcloud";
+import {toast} from "react-toastify";
 
-export type OrderActionTypes = 'request-messengers' | 'update-location';
+export type OrderActionTypes =
+    'request-messengers'
+    | 'update-location'
+    | 'order-resume'
+    | 'handle-order'
+    | 'update-order'
+    | UpdateOrderBotActionTypes
 
 export interface IOrderListProps {
     orders: IOrder[];
     updateOrdersList: (orders: IOrder[]) => void;
     messengers: IMessenger[];
     originalOrders: { [N in string]: IOrder };
-    updateOrder: (order: IOrder) => Promise<void>;
+    updateOrder: (order: IOrder, action?: UpdateOrderBotActionTypes) => Promise<void>;
     onDeleteOrder: (order: IOrder) => void;
     sendOrderToBot: (order: IOrder) => Promise<void>;
     requestMessengers: (order: IOrder) => Promise<void>;
+    sendOrderResume: (order: IOrder) => Promise<void>;
     updateOrderLocation: (order: IOrder, link: string) => Promise<void>;
+    selectedOrders: IOrder[];
+    selectOrder: (order: IOrder) => void;
 }
-
-
 export const OrderList = (
     {
         orders,
@@ -42,6 +60,9 @@ export const OrderList = (
         sendOrderToBot,
         requestMessengers,
         updateOrderLocation,
+        sendOrderResume,
+        selectedOrders,
+        selectOrder,
     }: IOrderListProps) => {
     const history = useHistory();
     const [actionToConfirm, setActionToConfirm] = React.useState<OrderActionTypes>();
@@ -117,8 +138,12 @@ export const OrderList = (
         history.push(`/order-detail/${order._id}`, order)
     }
 
-    const handleOrderBot = (order: IOrder) => async () => {
+    const handleOrderBot = async (order: IOrder) => {
         sendOrderToBot(order);
+    }
+
+    const handleOrderResume = async (order: IOrder) => {
+        sendOrderResume(order);
     }
 
     const handleRequestMessenger = async (order: IOrder) => {
@@ -144,14 +169,30 @@ export const OrderList = (
     }
 
     const handleActionToConfirm = async () => {
-        if(actionDataToConfirm) {
-            if(actionToConfirm === 'request-messengers') {
-               await handleRequestMessenger(actionDataToConfirm);
+       try {
+        if (actionDataToConfirm) {
+            if (actionToConfirm === 'request-messengers') {
+                await handleRequestMessenger(actionDataToConfirm);
             } else if (actionToConfirm === 'update-location') {
-               await handleUpdateOrderLocation(actionDataToConfirm);
+                await handleUpdateOrderLocation(actionDataToConfirm);
+            } else if (actionToConfirm === 'order-resume') {
+                await handleOrderResume(actionDataToConfirm);
+            } else if (actionToConfirm === 'handle-order') {
+                await handleOrderBot(actionDataToConfirm);
+            } else if (actionToConfirm === 'update-order' || actionToConfirm === 'transfer-confirmed') {
+                await updateOrder(
+                    actionDataToConfirm,
+                    actionToConfirm !== 'update-order' ? actionToConfirm : undefined
+                );
             }
             resetActionToConfirm();
         }
+       } catch (e: any) {
+           resetActionToConfirm();
+           console.error(e)
+           toast('Error:', e.message);
+
+       }
     }
 
     const sendActionToConfirm = (action: OrderActionTypes, order: IOrder) => async () => {
@@ -160,6 +201,41 @@ export const OrderList = (
     }
 
     const orderIsPending = (order: IOrder) => order.status === 'pending' || order.status === 'personal-assistance' || order.status === 'pending-info' || order.status === 'confirmed';
+    const enableSendResume = useCallback((order: IOrder) => order.type && order.paymentType, [orders]);
+    const getTransferStatus = useCallback((order: IOrder) => {
+        let status = '🚫No recibida 🚫';
+        if (order.transferReceipt) {
+            status = order.transferReceipt.status === 'confirmed' ? '✅ Confirmada ✅' : '☢️ Pendiente de confirmación ☢️';
+        }
+
+        return status;
+    }, [orders]);
+
+
+    const onChangeTransferReceipt = (order: IOrder) => async (event: any) => {
+        const mediaType: IMediaTagTypes = 'receipt';
+
+
+        const onload = async (content: IMedia) => {
+            const transferReceipt: ITransferReceipt = {order: order._id, status: 'pending', image: content.content};
+            await updateOrder({...order, transferReceipt})
+        }
+
+        await onChangeMediaToUpload(mediaType, onload, `${order._id}-${mediaType}`)(event)
+        if(order.transferReceipt) {
+            const mediaToDelete = order.transferReceipt.image?.split('/')?.pop();
+            mediaToDelete && await deletePhoto(mediaToDelete);
+        }
+    }
+
+    const handleSelectOrder = (order: IOrder) => () => {
+        selectOrder(order);
+    }
+
+    const isSelected = useCallback((order: IOrder) => {
+        return selectedOrders.findIndex((o) => o._id === order._id) !== -1;
+    }, [orders,selectedOrders])
+
     return (
         <div className="orders-management-grid" style={{width: "100vw"}}>
 
@@ -169,6 +245,9 @@ export const OrderList = (
                     color={orderStatusCardColor[order.status]}
                     outline={order.fromSocket}
                     inverse={order.status === 'personal-assistance'}
+                    onClick={handleSelectOrder(order)}
+                    className={`orders-management-grid-item ${isSelected(order) ? 'selected' : ''}`}
+
                 >
                     <CardBody>
                         <CardText>
@@ -211,6 +290,35 @@ export const OrderList = (
                                 }
                             </Input>
                         </ListGroupItem>
+                        {order.paymentType === 'transfer' &&
+                            <ListGroupItem className="d-flex gap-2 flex-column">
+                                <b className="text-nowrap">Estado de Transferencia</b>
+                                <i>{getTransferStatus(order)}</i>
+                                {order.transferReceipt && order.transferReceipt.status === 'pending' &&
+                                    <Button color="success" onClick={
+                                        sendActionToConfirm('transfer-confirmed',
+                                            {
+                                                ...order,
+                                                status: 'pending',
+                                                transferReceipt: {
+                                                    ...order.transferReceipt,
+                                                    status: 'confirmed',
+                                                    confirmedBy: 'admin',
+                                                }
+                                            })}>Confirmar Transferencia</Button>}
+                                <label className="btn btn-outline-success w-100 position-relative" htmlFor="file">
+                                    Subir {order.transferReceipt && 'otro'} recibo
+                                    <input
+                                        className="invisible position-absolute top-0 left-0 start-0"
+                                        onChange={onChangeTransferReceipt(order)}
+                                        type="file"
+                                        name="file"
+                                        id="file"
+                                        accept="image/png,image/jpg,image/jpeg"
+                                    />
+                                </label>
+
+                            </ListGroupItem>}
                         <ListGroupItem className="d-flex gap-2 align-items-center">
                             <b className="text-nowrap">Tipo de Orden:</b>
                             <Input placeholder="Tipos"
@@ -242,8 +350,8 @@ export const OrderList = (
                         </ListGroupItem>
                         {!!order?.location?.distance &&
                             <ListGroupItem>
-                            <b>Distancia</b>: {order?.location?.distance} {order?.location?.distanceUnit}
-                        </ListGroupItem>}
+                                <b>Distancia</b>: {order?.location?.distance} {order?.location?.distanceUnit}
+                            </ListGroupItem>}
                         <ListGroupItem className="d-flex gap-2 align-items-center">
                             <b>Mensajero:</b>
                             <Input placeholder="Mensajero"
@@ -258,18 +366,20 @@ export const OrderList = (
                         </ListGroupItem>
                         {order.type === 'shipping' && order.paymentType &&
                             <ListGroupItem className="d-flex flex-column gap-4">
-                            <div className="d-flex flex-column gap-2">
-                                <b>Ubicacion</b>
-                                <Input
-                                    placeholder="Ubicacion"
-                                    name="messenger"
-                                    value={ordersLocation[order._id]}
-                                    onChange={onChangeOrderLocation(order)}
-                                />
-                            </div>
-                            {ordersLocation[order._id] && ordersLocation[order._id] !== order.location?.link &&
-                                <Button color="info" outline onClick={sendActionToConfirm('update-location', order)}>Cambiar Ubicacion</Button>}
-                        </ListGroupItem>}
+                                <div className="d-flex flex-column gap-2">
+                                    <b>Ubicacion</b>
+                                    <Input
+                                        placeholder="Ubicacion"
+                                        name="messenger"
+                                        value={ordersLocation[order._id]}
+                                        onChange={onChangeOrderLocation(order)}
+                                    />
+                                </div>
+                                {ordersLocation[order._id] && ordersLocation[order._id] !== order.location?.link &&
+                                    <Button color="info" outline
+                                            onClick={sendActionToConfirm('update-location', order)}>Cambiar
+                                        Ubicacion</Button>}
+                            </ListGroupItem>}
                     </ListGroup>
                     <CardBody className="d-flex justify-content-between flex-wrap gap-2">
                         {orderHasChanged(order) &&
@@ -292,9 +402,14 @@ export const OrderList = (
                                 onClick={goToDetail(order)}>
                             Detalles
                         </Button>
+                        {enableSendResume(order) &&
+                            <Button color="success" className="text-nowrap w-100 align-self-start"
+                                    onClick={sendActionToConfirm('order-resume', order)}>
+                                Enviar Resumen al Cliente
+                            </Button>}
                         <Button color="primary" className="text-nowrap w-100 align-self-start"
-                                onClick={handleOrderBot(order)}>
-                            Procesar con el BOT
+                                onClick={sendActionToConfirm('handle-order', order)}>
+                            Procesar con b-bOt
                         </Button>
                         {order.type === 'shipping' && order.paymentType && order.location && orderIsPending(order) &&
                             <Button color="warning" className="text-nowrap w-100 align-self-start"
