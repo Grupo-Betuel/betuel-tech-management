@@ -17,6 +17,7 @@ import {IMedia, IMediaTagTypes} from "../../../../components/GCloudMediaHandler/
 import {ICategory} from "../../../../model/CategoryModel";
 import {CompanyModel} from "../../../../model/companyModel";
 import "./CategoryList.scss"
+import YouTubeVideo from "../YoutubeVideo/YoutubeVideo";
 export interface ICategoryListProps {
     categories: ICategory[],
     updateCategoryMedia: (companyToUpdate: ICategory, tag: IMediaTagTypes, event: any, onLoadedMedia?: (media: IMedia) => Promise<void>) => Promise<void>,
@@ -272,15 +273,15 @@ export const CategoryList = (
                                     </FormGroup>
                                     <FormGroup>
                                         <Label><b>Video</b> <br/>
-                                            <video width="300px" height="auto" controls>
-                                                <source src={category.video} type="video/mp4"/>
-                                            </video>
-                                            {!isEditingCategory ? <span>{category.video}</span>
-                                                : <Input className=""
-                                                         type="file"
-                                                         name="video"
-                                                         accept="video/mp4,video/x-m4v,video/*"
-                                                         onChange={handleUpdateMedia(category._id, 'video')}/>}
+                                            {!isEditingCategory &&
+                                                <YouTubeVideo video={category.video} />
+                                            }
+                                            {!isEditingCategory ? <a href={category.video} target="_blank">{category.video}</a>
+                                                : <Input
+                                                    value={category.video}
+                                                    className=""
+                                                    name="video"
+                                                    onChange={onChangeCategory(category._id)}/>}
                                         </Label>
                                     </FormGroup>
 

@@ -15,6 +15,7 @@ import React, {KeyboardEvent, useState} from "react";
 import {CompanyModel} from "../../../../model/companyModel";
 import {toast} from "react-toastify";
 import {IMedia, IMediaTagTypes} from "../../../../components/GCloudMediaHandler/GCloudMediaHandler";
+import YouTubeVideo from "../YoutubeVideo/YoutubeVideo";
 
 export interface ICompanyListProps {
     companies: CompanyModel[],
@@ -179,8 +180,8 @@ export const CompanyList = (
     }
 
     const handleAddNewCompany = async () => {
-        if(validCompany(companyToCreate)) {
-          await addCompany(companyToCreate)
+        if (validCompany(companyToCreate)) {
+            await addCompany(companyToCreate)
 
         }
     }
@@ -262,12 +263,23 @@ export const CompanyList = (
                                     </FormGroup>
                                     <FormGroup>
                                         <Label><b>Wallpaper</b> <br/>
-                                            {!isEditingCompany ? <span>{company.wallpaper}</span>
+                                            {!isEditingCompany ? <a href={company.wallpaper} target="_blank">Wallpaper</a>
                                                 : <Input className=""
                                                          type="file"
                                                          name="wallpaper"
                                                          accept="image/png,image/jpg,image/jpeg"
                                                          onChange={handleUpdateMedia(company.companyId, 'wallpaper')}/>}
+                                        </Label>
+                                    </FormGroup>
+                                    <FormGroup>
+                                        <Label><b>Story Template</b> <br/>
+                                            {!isEditingCompany ?
+                                                <a href={company.storyTemplate} target="_blank">Story Template</a>
+                                                : <Input className=""
+                                                         type="file"
+                                                         name="storyTemplate"
+                                                         accept="image/png,image/jpg,image/jpeg"
+                                                         onChange={handleUpdateMedia(company.companyId, 'storyTemplate')}/>}
                                         </Label>
                                     </FormGroup>
                                     <FormGroup>
@@ -298,15 +310,17 @@ export const CompanyList = (
                                     </FormGroup>
                                     <FormGroup>
                                         <Label><b>Video</b> <br/>
-                                            <video width="300px" height="auto" controls>
-                                                <source src={company.video} type="video/mp4"/>
-                                            </video>
-                                            {!isEditingCompany ? <span>{company.video}</span>
-                                                : <Input className=""
-                                                         type="file"
-                                                         name="video"
-                                                         accept="video/mp4,video/x-m4v,video/*"
-                                                         onChange={handleUpdateMedia(company.companyId, 'video')}/>}
+                                            {!isEditingCompany &&
+                                                <YouTubeVideo video={company.video} />
+                                            }
+                                            {!isEditingCompany ? <a href={company.video} target="_blank">{company.video}</a>
+                                                : <Input
+                                                    value={company.video}
+                                                    className=""
+                                                    // type="file"
+                                                    name="video"
+                                                    // accept="video/mp4,video/x-m4v,video/*"
+                                                    onChange={onChangeCompany(company._id)}/>}
                                         </Label>
                                     </FormGroup>
                                     <div className="d-flex flex-column gap-2">

@@ -16,6 +16,8 @@ export class CompanyModel {
 
     phone: string = '';
 
+    storyTemplate: string = '';
+
     title: string = '';
 
     wallpaper: string = '';
