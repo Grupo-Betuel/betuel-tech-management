@@ -1,5 +1,5 @@
 import {dataURItoBlob} from "./blob";
-import {uploadGCloudImage} from "../services/gcloud";
+import {gcloudPublicURL, uploadGCloudImage} from "../services/gcloud";
 import {IMedia, IMediaTagTypes} from "../components/GCloudMediaHandler/GCloudMediaHandler";
 import React from "react";
 import {removeExtraCharactersFromText, removeHTMLChars} from "./text.utils";
@@ -12,7 +12,7 @@ export const uploadMedia = async (media: IMedia, selectedTag: IMediaTagTypes, me
 
         const file = new File([blob], mediaName);
         const responseImage = await uploadGCloudImage(file, selectedTag, media.type);
-        const url = `https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/${mediaName}?alt=media`;
+        const url = `${gcloudPublicURL}${mediaName}`;
         media.content = url;
         return media;
 }
