@@ -49,6 +49,7 @@ export interface IOrderListProps {
     selectedOrders: IOrder[];
     selectOrder: (order: IOrder) => void;
 }
+
 export const OrderList = (
     {
         orders,
@@ -129,7 +130,8 @@ export const OrderList = (
         updateOrdersList(newOrders);
     }
 
-    const handleDeleteOrder = (order: IOrder) => () => {
+    const handleDeleteOrder = (order: IOrder) => (ev: any) => {
+        avoidPropagation(ev)
         onDeleteOrder(order);
     }
 
@@ -169,33 +171,34 @@ export const OrderList = (
     }
 
     const handleActionToConfirm = async () => {
-       try {
-        if (actionDataToConfirm) {
-            if (actionToConfirm === 'request-messengers') {
-                await handleRequestMessenger(actionDataToConfirm);
-            } else if (actionToConfirm === 'update-location') {
-                await handleUpdateOrderLocation(actionDataToConfirm);
-            } else if (actionToConfirm === 'order-resume') {
-                await handleOrderResume(actionDataToConfirm);
-            } else if (actionToConfirm === 'handle-order') {
-                await handleOrderBot(actionDataToConfirm);
-            } else if (actionToConfirm === 'update-order' || actionToConfirm === 'transfer-confirmed') {
-                await updateOrder(
-                    actionDataToConfirm,
-                    actionToConfirm !== 'update-order' ? actionToConfirm : undefined
-                );
+        try {
+            if (actionDataToConfirm) {
+                if (actionToConfirm === 'request-messengers') {
+                    await handleRequestMessenger(actionDataToConfirm);
+                } else if (actionToConfirm === 'update-location') {
+                    await handleUpdateOrderLocation(actionDataToConfirm);
+                } else if (actionToConfirm === 'order-resume') {
+                    await handleOrderResume(actionDataToConfirm);
+                } else if (actionToConfirm === 'handle-order') {
+                    await handleOrderBot(actionDataToConfirm);
+                } else if (actionToConfirm === 'update-order' || actionToConfirm === 'transfer-confirmed') {
+                    await updateOrder(
+                        actionDataToConfirm,
+                        actionToConfirm !== 'update-order' ? actionToConfirm : undefined
+                    );
+                }
+                resetActionToConfirm();
             }
+        } catch (e: any) {
             resetActionToConfirm();
-        }
-       } catch (e: any) {
-           resetActionToConfirm();
-           console.error(e)
-           toast('Error:', e.message);
+            console.error(e)
+            toast('Error:', e.message);
 
-       }
+        }
     }
 
-    const sendActionToConfirm = (action: OrderActionTypes, order: IOrder) => async () => {
+    const sendActionToConfirm = (action: OrderActionTypes, order: IOrder) => async (ev: any) => {
+        avoidPropagation(ev);
         setActionDataToConfirm(order);
         setActionToConfirm(action);
     }
@@ -222,20 +225,22 @@ export const OrderList = (
         }
 
         await onChangeMediaToUpload(mediaType, onload, `${order._id}-${mediaType}`)(event)
-        if(order.transferReceipt) {
+        if (order.transferReceipt) {
             const mediaToDelete = order.transferReceipt.image?.split('/')?.pop();
             mediaToDelete && await deletePhoto(mediaToDelete);
         }
     }
 
-    const handleSelectOrder = (order: IOrder) => () => {
+    const handleSelectOrder = (order: IOrder) => (ev: any) => {
+        ev.stopPropagation();
         selectOrder(order);
     }
 
     const isSelected = useCallback((order: IOrder) => {
         return selectedOrders.findIndex((o) => o._id === order._id) !== -1;
-    }, [orders,selectedOrders])
+    }, [orders, selectedOrders])
 
+    const avoidPropagation = (ev: any) => ev.stopPropagation();
     return (
         <div className="orders-management-grid" style={{width: "100vw"}}>
 
@@ -267,10 +272,13 @@ export const OrderList = (
                             <b>Subtotal</b>: RD${order.total?.toLocaleString()}
                         </ListGroupItem>
                         <ListGroupItem className="d-flex gap-2 align-items-center">
-                            <b className="text-nowrap">Envio: RD$</b><Input value={order.shippingPrice}
-                                                                            onChange={onChangeOrder(order)}
-                                                                            type={'number'}
-                                                                            name="shippingPrice"/>
+                            <b className="text-nowrap">Envio: RD$</b>
+                            <Input
+                                onClick={avoidPropagation}
+                                value={order.shippingPrice}
+                                onChange={onChangeOrder(order)}
+                                type={'number'}
+                                name="shippingPrice"/>
                         </ListGroupItem>
                         <ListGroupItem>
                             <b>Total</b>: RD${(order.total + order.shippingPrice)?.toLocaleString()}
@@ -280,10 +288,12 @@ export const OrderList = (
                         </ListGroupItem>
                         <ListGroupItem className="d-flex gap-2 align-items-center">
                             <b className="text-nowrap">Tipo de Pago</b>:
-                            <Input placeholder="Tipos de Pagos"
-                                   name="paymentType"
-                                   onChange={onChangeOrder(order)} value={order.paymentType}
-                                   type="select">
+                            <Input
+                                onClick={avoidPropagation}
+                                placeholder="Tipos de Pagos"
+                                name="paymentType"
+                                onChange={onChangeOrder(order)} value={order.paymentType}
+                                type="select">
                                 <option value="">Seleccionar</option>
                                 {orderPaymentTypeList.map((type: string) =>
                                     <option value={type} key={type}>{type}</option>)
@@ -306,9 +316,12 @@ export const OrderList = (
                                                     confirmedBy: 'admin',
                                                 }
                                             })}>Confirmar Transferencia</Button>}
-                                <label className="btn btn-outline-success w-100 position-relative" htmlFor="file">
+                                <label
+                                    onClick={avoidPropagation}
+                                    className="btn btn-outline-success w-100 position-relative" htmlFor="file">
                                     Subir {order.transferReceipt && 'otro'} recibo
                                     <input
+                                        onClick={avoidPropagation}
                                         className="invisible position-absolute top-0 left-0 start-0"
                                         onChange={onChangeTransferReceipt(order)}
                                         type="file"
@@ -323,6 +336,7 @@ export const OrderList = (
                             <b className="text-nowrap">Tipo de Orden:</b>
                             <Input placeholder="Tipos"
                                    name="type"
+                                   onClick={avoidPropagation}
                                    onChange={onChangeOrder(order)} value={order.type}
                                    type="select">
                                 <option value="">Seleccionar</option>
@@ -356,6 +370,7 @@ export const OrderList = (
                             <b>Mensajero:</b>
                             <Input placeholder="Mensajero"
                                    name="messenger"
+                                   onClick={avoidPropagation}
                                    onChange={onChangeOrder(order)} value={order.messenger?._id || ''}
                                    type="select">
                                 <option value="">Select Messenger</option>
@@ -369,6 +384,7 @@ export const OrderList = (
                                 <div className="d-flex flex-column gap-2">
                                     <b>Ubicacion</b>
                                     <Input
+                                        onClick={avoidPropagation}
                                         placeholder="Ubicacion"
                                         name="messenger"
                                         value={ordersLocation[order._id]}
@@ -403,7 +419,7 @@ export const OrderList = (
                             Detalles
                         </Button>
                         {enableSendResume(order) &&
-                            <Button color="success" className="text-nowrap w-100 align-self-start"
+                            <Button color="info" className="text-nowrap w-100 align-self-start"
                                     onClick={sendActionToConfirm('order-resume', order)}>
                                 Enviar Resumen al Cliente
                             </Button>}

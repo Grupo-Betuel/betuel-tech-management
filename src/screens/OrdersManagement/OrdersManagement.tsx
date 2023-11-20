@@ -363,7 +363,10 @@ export const OrdersManagement = () => {
                 <h1>Ultimas Ordenes</h1>
                 <Button onClick={goToDashboard} color="primary">Dashboard</Button>
                 <Button onClick={handleRefreshBotOrders} color="primary">Syncronizar las ordenes del BOT</Button>
-                {!!selectedOrders.length && <Button onClick={togglePrintModal}>Imprimir Ordenes</Button>}
+                {!!selectedOrders.length && <Button color="warning" className="text-white d-flex align-items-center gap-2" onClick={togglePrintModal}>
+                    <i className="bi bi-printer" />
+                    Imprimir Seleccionadas
+                </Button>}
 
             </div>
             <ul className="nav nav-tabs">

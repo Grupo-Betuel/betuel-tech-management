@@ -5,8 +5,9 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import "./DraggableGrid.scss";
 import {extractNumbersFromText} from "../../utils/text.utils";
+import {IShippingCardLayout, IShippingCardLayoutElement} from "../ShippingCard/ShippingCard";
 const ResponsiveGridLayout = WidthProvider(GridLayout);
-export interface DraggableGridItem { id: string; content: string | JSX.Element; x: number; y: number; w: number; h: number }
+export interface DraggableGridItem { id: string; content: string | JSX.Element; x: number; y: number; w: number; h: number, layout?: IShippingCardLayout; }
 
 interface DraggableGridProps {
     items: DraggableGridItem[];
@@ -27,14 +28,6 @@ const DraggableGrid: React.FC<DraggableGridProps> = ({ items, onLayoutChange, in
         setLayout(newLayout);
         onLayoutChange(updatedItems as any);
     };
-
-    useEffect(() => {
-       const gridItems = document.querySelectorAll('.shipping-card-element');
-         gridItems.forEach((item: any) => {
-            item.style.fontSize = `${(extractNumbersFromText((item?.style?.fontSize || '0' as any)) || 16) * (increaseBy || 1)}`;
-         });
-
-    },[increaseBy]);
 
     return (
         <ResponsiveGridLayout margin={[0,0]} className="grid-layout layout"

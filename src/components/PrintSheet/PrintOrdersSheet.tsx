@@ -1,13 +1,14 @@
-import React, {useMemo} from "react";
+import React, {useEffect, useMemo} from "react";
 import "./PrintSheet.scss"
 import GridLayout from 'react-grid-layout';
 import DraggableGrid, {DraggableGridItem} from "../DraggableGrid/DraggableGrid";
-import {Button} from "reactstrap";
+import {Button, Spinner} from "reactstrap";
 import {toPng} from "html-to-image";
 import {betuelDanceShippingCardLayout, EmptyGridItem} from "../FlyerDesigner/constants/shipping-card-layouts";
 import {IOrder} from "../../model/ordersModels";
 import {ShippingCard} from "../ShippingCard/ShippingCard";
 import {passOrderToShippingLayout} from "../../utils/order.utils";
+import {extractNumbersFromText} from "../../utils/text.utils";
 
 
 interface DraggableGridProps {
@@ -16,17 +17,15 @@ interface DraggableGridProps {
 
 export const PrintOrdersSheet = ({orders}: DraggableGridProps) => {
     const [increaseBy, setIncreaseBy] = React.useState<number>(1);
+    const [printing, setPrinting] = React.useState<boolean>(false);
+    const [loading, setLoading] = React.useState<boolean>(false);
     const handleLayoutChange = (newLayout: GridLayout.Layout[]) => {
         // Handle layout changes here if needed
     };
 
-    const handlePrint = async () => {
-        setIncreaseBy(5);
+    const sendToPrint = async () => {
         const printWindow = window.open('', '_blank');
-        // return;
         if (printWindow) {
-            // const options = { quality: 2.0, width: containerRef.current.offsetWidth };
-
             const content = document.getElementById('printableArea')!
             const image = document.createElement('img')
             image.width = 816;
@@ -65,24 +64,48 @@ export const PrintOrdersSheet = ({orders}: DraggableGridProps) => {
                                 `);
             await printWindow.document.close();
             await printWindow.print();
+            setIncreaseBy(1);
+            setPrinting(false);
         }
-        setIncreaseBy(1);
+    }
+    const handlePrint = async () => {
+        setIncreaseBy(5);
+        setLoading(true);
+        setTimeout( () => {
+            setPrinting(true);
+        }, 1000);
     };
 
-    const items: DraggableGridItem[] = useMemo(() => {
-        return orders.map((order, i) => ({
-            x: Math.floor((i / 2) + 1),
-            y: Math.floor((i / 2) + 1),
-            w:1,
-            h:1,
-            id: `${Date.now()}-${i}`,
-            content:
-                <ShippingCard
-                    layout={passOrderToShippingLayout(order, betuelDanceShippingCardLayout)}
-                />
-        }))
-    }, [orders]);
+    useEffect(() => {
+        const handle = async () => {
+            setLoading(true);
+            await sendToPrint()
+            setLoading(false);
+        }
+        if (printing) {
+            handle();
+        }
 
+    }, [printing, setIncreaseBy])
+
+    const items: DraggableGridItem[] = useMemo(() => {
+
+        return orders.map((order, i) => {
+            const layout = passOrderToShippingLayout(order, betuelDanceShippingCardLayout)
+            return ({
+                x: Math.floor((i / 2) + 1),
+                y: Math.floor((i / 2) + 1),
+                w: 1,
+                h: 1,
+                id: `${Date.now()}-${i}`,
+                layout,
+                content:
+                    <ShippingCard
+                        layout={layout}
+                    />
+            })
+        })
+    }, [orders]);
 
 
     const gridItems: DraggableGridItem[] = useMemo(() => {
@@ -92,15 +115,42 @@ export const PrintOrdersSheet = ({orders}: DraggableGridProps) => {
         return [...items, ...extra]
     }, [items])
 
+    useEffect(() => {
+        // const gridItems = document.querySelectorAll('.shipping-card-element');
+        items.forEach(item => {
+            const layout = item.layout;
+            if (layout) {
+                Object.keys(layout as any).forEach((key: any) => {
+                    const shippingCardItem = (layout as any)[key];
+                    const elem = document.getElementById(shippingCardItem.id);
+                    if (elem) {
+                        elem.style.fontSize = `${(extractNumbersFromText((shippingCardItem.fontSize || '0' as any)) || 16) * (increaseBy || 1)}px`;
+                        elem.style.width = `${(extractNumbersFromText((shippingCardItem.width || '0' as any)) || 300) * (increaseBy || 1)}px`;
+                    }
+                });
+
+            }
+        });
+    }, [increaseBy, items]);
     return (
-        <div className="print-sheet-wrapper">
-            <Button onClick={handlePrint} className="print-sheet-button">Imprimir</Button>
-            <div id="printableArea" className="print-sheet" style={{
-                width: 816 * increaseBy,
-                height: 1056 * increaseBy,
-            }}>
-                <DraggableGrid increaseBy={increaseBy} items={gridItems} onLayoutChange={handleLayoutChange}/>
+        <>
+            {loading &&
+                <div className="loading-sale-container">
+                    <Spinner animation="grow" variant="secondary"/>
+                </div>
+            }
+            <div className="print-sheet-wrapper">
+                <Button onClick={handlePrint} className="print-sheet-button text-white d-flex align-items-center gap-2 justify-content-center"  color="warning">
+                    <i className="bi bi-printer" />
+                    Imprimir
+                </Button>
+                <div id="printableArea" className="print-sheet" style={{
+                    width: 816 * increaseBy,
+                    height: 1056 * increaseBy,
+                }}>
+                    <DraggableGrid increaseBy={increaseBy} items={gridItems} onLayoutChange={handleLayoutChange}/>
+                </div>
             </div>
-        </div>
+        </>
     );
 }

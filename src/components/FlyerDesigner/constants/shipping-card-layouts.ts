@@ -19,9 +19,7 @@ export const betuelDanceShippingCardLayout: IShippingCardLayout = {
         x: '30.46875%',
         y: '48.4935706911116%',
         width: 220,
-        style: {
-            fontSize: '10px',
-        },
+        fontSize: '10px',
         content: 'Manzana 28 #63 C Las Caobas de Herrera',
 
     },
@@ -29,9 +27,7 @@ export const betuelDanceShippingCardLayout: IShippingCardLayout = {
         x: '32.03125%',
         y: '56.62797609736258%',
         width: 222,
-        style: {
-            fontSize: '10px',
-        },
+        fontSize: '10px',
         content: '1 Pandero, 2 Cintas, 3 Fuego Santo',
 
     },
@@ -64,6 +60,6 @@ export const betuelDanceShippingCardLayout: IShippingCardLayout = {
 
     },
     image: "https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/media-1700425078448.png?alt=media",
-}
+} as IShippingCardLayout;
 
 export const EmptyGridItem: (index: number) => DraggableGridItem = (index) => ({ id: `${Date.now()}-${index}`, content: "", x: index, y: index, w:1, h:1 });

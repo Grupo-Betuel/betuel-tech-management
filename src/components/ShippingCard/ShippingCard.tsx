@@ -3,12 +3,15 @@ import React from "react";
 import "./ShippingCard.scss";
 
 export interface IShippingCardLayoutElement {
+    id: string;
     width?: number | string;
     x: number | string;
     y: number | string;
     content: string | JSX.Element;
+    fontSize?: number | string;
     style?: React.CSSProperties;
 }
+
 export interface IShippingCardLayout {
     name: IShippingCardLayoutElement;
     phone: IShippingCardLayoutElement;
@@ -26,19 +29,19 @@ export interface IShippingCardLayout {
     companyInstagram?: IShippingCardLayoutElement;
     companyLogo?: IShippingCardLayoutElement;
 }
+
 export interface IShippingCardProps {
     layout: IShippingCardLayout;
     className?: string;
-    increaseFontSize?: number;
 }
 
 
-export const ShippingCard = ({ layout, className, increaseFontSize }: IShippingCardProps) => {
+export const ShippingCard = ({layout, className }: IShippingCardProps) => {
     const elements = useMemo(() => {
         return Object.keys(layout).map((key) => {
             const item: any = layout[key as keyof IShippingCardLayout];
-            if(typeof item === 'string') return;
-            if('y' in item && 'x' in item) {
+            if (typeof item === 'string') return;
+            if ('y' in item && 'x' in item) {
                 return {
                     key,
                     ...item,
@@ -53,14 +56,16 @@ export const ShippingCard = ({ layout, className, increaseFontSize }: IShippingC
             <img className="shipping-card-image" src={layout.image} alt="shipping-card-image"/>
             {elements.map((element) => (
                 <div
+                    id={element.id}
                     className="shipping-card-element"
                     style={{
-                    position: 'absolute',
-                    top: element.y,
-                    left: element.x,
-                    width: element.width,
-                    ...(element?.style || {}),
-                }}>
+                        position: 'absolute',
+                        top: element.y,
+                        left: element.x,
+                        width: element.width,
+                        // fontSize: `${(element?.fontSize || '16px')}`,
+                        ...(element?.style || {}),
+                    }}>
                     {element.content}
                 </div>
             ))}

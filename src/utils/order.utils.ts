@@ -6,8 +6,17 @@ export const passOrderToShippingLayout = (order: IOrder, layoutData: IShippingCa
     const layout: IShippingCardLayout = structuredClone({...layoutData}) as IShippingCardLayout;
     (Object.keys(layout) as any[]).forEach((key: keyof IShippingCardLayout) => {
         const elementLayout = (layout as any)[key];
+        // this only apply to layoutElements of recelayout
+        if (typeof elementLayout === 'string' || !('y' in elementLayout && 'x' in elementLayout)) return;
         if(key === 'details') {
-            elementLayout.content = `${order.sales.map((sale: ISale) => sale.product.name).join(', ')}.`;
+            const categoryQuantities: any = {};
+            order.sales.forEach((sale: ISale) => {
+               categoryQuantities[sale.product.category.title] = categoryQuantities[sale.product.category.title] + 1 || 1;
+            });
+            elementLayout.content = `${Object.keys(categoryQuantities).map((cat: string) => {
+                return `${categoryQuantities[cat]} ${cat}`
+            }).join(', ')}.`;
+
         } else if (key === 'name') {
             elementLayout.content = order.client.firstName || '' + ' ' + order.client.lastName || '';
         } else if(key === 'phone') {
@@ -15,14 +24,16 @@ export const passOrderToShippingLayout = (order: IOrder, layoutData: IShippingCa
         } else if(key === 'address') {
             elementLayout.content = order?.location?.address || '';
         } else if(key === 'paymentStatus') {
-            let status = 'NO';
+            const not = 'NO ❌';
+            const yes = 'SÍ ✅';
+            let status = not;
             if(order.paymentType === 'cash') {
-                status = 'NO';
+                status = not;
             } else if(order.paymentType === 'transfer') {
                 if(order.transferReceipt) {
-                    status = order.transferReceipt.status === 'confirmed' ? 'SI' : 'NO';
+                    status = order.transferReceipt.status === 'confirmed' ? yes : not;
                 } else {
-                    status = 'NO';
+                    status = not;
                 }
             }
             elementLayout.content = status;
@@ -34,6 +45,10 @@ export const passOrderToShippingLayout = (order: IOrder, layoutData: IShippingCa
             elementLayout.content = `RD$${(order.total + order.shippingPrice)?.toLocaleString() || ''}`;
         }
 
+        // setting id only to layout elements
+        // if ('y' in elementLayout && 'x' in elementLayout) {
+        elementLayout.id = `${Date.now()}-${Math.random()}-${key}`;
+        // }
       (layout as any)[key] = elementLayout;
     });
 
