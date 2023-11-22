@@ -12,7 +12,7 @@ export const passOrderToShippingLayout = (order: IOrder, layoutData: IShippingCa
         if(key === 'details') {
             const categoryQuantities: any = {};
             order.sales.forEach((sale: ISale) => {
-               categoryQuantities[sale.product.category.title] = categoryQuantities[sale.product.category.title] + 1 || 1;
+               categoryQuantities[sale.product.category.title] = categoryQuantities[sale.product.category.title] + sale.quantity || sale.quantity;
             });
             elementLayout.content = `${Object.keys(categoryQuantities).map((cat: string) => {
                 return `${categoryQuantities[cat]} ${cat}`

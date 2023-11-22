@@ -144,7 +144,7 @@ export const PrintOrdersSheet = ({orders}: DraggableGridProps) => {
                     <i className="bi bi-printer" />
                     Imprimir
                 </Button>
-                <div id="printableArea" className="print-sheet" style={{
+                <div id="printableArea" className={`print-sheet ${printing ? 'printing' : ''}`} style={{
                     width: 816 * increaseBy,
                     height: 1056 * increaseBy,
                 }}>

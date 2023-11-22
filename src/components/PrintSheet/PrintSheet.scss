@@ -7,8 +7,14 @@
   .print-sheet {
     background: white;
     border: 1px solid #4d4d4d;
-    //padding: 12px;
+    padding: 12px 0;
     overflow: hidden;
+
+    &.printing {
+      .grid-layout-item {
+        outline: unset;
+      }
+    }
   }
 
 }
