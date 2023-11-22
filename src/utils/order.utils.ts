@@ -1,6 +1,7 @@
 import {IOrder} from "../model/ordersModels";
 import {IShippingCardLayout} from "../components/ShippingCard/ShippingCard";
 import {ISale} from "../model/interfaces/SalesModel";
+import {formatPhoneNumber} from "./text.utils";
 
 export const passOrderToShippingLayout = (order: IOrder, layoutData: IShippingCardLayout): IShippingCardLayout  => {
     const layout: IShippingCardLayout = structuredClone({...layoutData}) as IShippingCardLayout;
@@ -20,7 +21,7 @@ export const passOrderToShippingLayout = (order: IOrder, layoutData: IShippingCa
         } else if (key === 'name') {
             elementLayout.content = order.client.firstName || '' + ' ' + order.client.lastName || '';
         } else if(key === 'phone') {
-            elementLayout.content = order.client.phone || '';
+            elementLayout.content = formatPhoneNumber(order.client.phone || '');
         } else if(key === 'address') {
             elementLayout.content = order?.location?.address || '';
         } else if(key === 'paymentStatus') {

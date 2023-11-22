@@ -26,6 +26,7 @@ import {CompanyModel} from "../../../model/companyModel";
 import {onChangeMediaToUpload} from "../../../utils/gcloud.utils";
 import {deletePhoto} from "../../../services/gcloud";
 import {toast} from "react-toastify";
+import {getWhatsappNumberURl} from "../../../services/promotions";
 
 export type OrderActionTypes =
     'request-messengers'
@@ -359,8 +360,11 @@ export const OrderList = (
                         </Input>
 
                         </ListGroupItem>
-                        <ListGroupItem>
-                            <b>Cliente</b>: {order.client?.firstName}
+                        <ListGroupItem className="d-flex align-items-center gap-2 justify-content-between">
+                            <div>
+                                <b>Cliente:</b> {order.client?.firstName}
+                            </div>
+                            <Button color="primary" outline><a target="_blank" className="text-decoration-none" href={getWhatsappNumberURl(order?.client?.phone)}>Contactar</a></Button>
                         </ListGroupItem>
                         {!!order?.location?.distance &&
                             <ListGroupItem>

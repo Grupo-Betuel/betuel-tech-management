@@ -179,7 +179,7 @@ export const OrderDetail = () => {
                         <Card>
                             <img
                                 alt="Card"
-                                src={order.transferReceipt?.image.includes('https://') ? order.transferReceipt?.image :`data:image/png;base64,${order.transferReceipt?.image}`}
+                                src={order.transferReceipt?.image.includes('https://') ? order.transferReceipt?.image : `data:image/png;base64,${order.transferReceipt?.image}`}
                             />
                             <CardBody>
                                 <CardText>
@@ -201,13 +201,18 @@ export const OrderDetail = () => {
                 <div className="d-flex justify-content-center flex-column gap-3 mb-3">
                     <h1>Datos</h1>
                     <div className="d-flex align-items-center gap-2">
-                        <b>Ubicacion:</b> <a  target="_blank" href={order?.location?.link}>Ubicacion de {order?.client?.firstName}</a>
+                        <b>Ubicacion:</b> <a target="_blank" href={order?.location?.link}>Ubicacion
+                        de {order?.client?.firstName}</a>
                     </div>
                     <div className="d-flex align-items-center gap-2">
                         <b>Mensajero:</b> <a target="_blank"
-                        href={order?.messenger?.phone && getWhatsappNumberURl(order?.messenger?.phone)}>
+                                             href={order?.messenger?.phone && getWhatsappNumberURl(order?.messenger?.phone)}>
                         Contactar a {order?.messenger?.firstName}
                     </a>
+                    </div>
+                    <div className="d-flex align-items-center gap-2">
+                        <b>Cliente:</b> <a target="_blank" className="text-decoration-none"
+                                           href={getWhatsappNumberURl(order?.client?.phone)}>{order?.client?.firstName} {order?.client?.lastName}</a>
                     </div>
                 </div>
                 <h1>Productos</h1>

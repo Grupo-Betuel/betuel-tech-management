@@ -31,3 +31,22 @@ export const extractNumbersFromText = (text: string): number => {
     if (!text) return 0;
     return Number(text.toString().replace(/[^0-9]/g, ''));
 }
+
+export function formatPhoneNumber(inputNumber: string): string | null {
+    // Remove any non-numeric characters from the input
+    const numericOnly: string = inputNumber.replace(/\D/g, '');
+
+    // Check if the numericOnly value has at least 10 digits
+    if (numericOnly.length < 10) {
+        console.error('Invalid phone number');
+        return null;
+    }
+
+    // Extract the first 10 digits
+    const extractedDigits: string = numericOnly.slice(0, 11);
+
+    // Format the phone number
+    const formattedNumber: string = `+1 (${extractedDigits.slice(1, 4)}) ${extractedDigits.slice(4, 7)}-${extractedDigits.slice(7)}`;
+
+    return formattedNumber;
+}

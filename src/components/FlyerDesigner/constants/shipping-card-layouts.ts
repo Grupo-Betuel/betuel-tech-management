@@ -2,7 +2,6 @@ import {IShippingCardLayout} from "../../ShippingCard/ShippingCard";
 import {DraggableGridItem} from "../../DraggableGrid/DraggableGrid";
 
 export const betuelDanceShippingCardLayout: IShippingCardLayout = {
-// 319.68
     name: {
         x: '26.302083333333332%',
         y: '31.5%',
@@ -38,7 +37,6 @@ export const betuelDanceShippingCardLayout: IShippingCardLayout = {
         width: 300,
         content: 'RD$300',
     },
-
     subtotal: {
         x: '62%',
         y: '63%',
