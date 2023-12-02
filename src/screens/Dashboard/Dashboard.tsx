@@ -578,8 +578,8 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const handleScheduledPromotionStatus = async (company: CompanyModel = selectedCompany) => {
         const response = await getScheduleStatus(selectedCompanyId);
-        const status: 'running' | 'stopped' | 'error' = response.status;
-        toast(`${company.name} Automation is ${status}`);
+        const status: 'running' | 'npm' | 'error' = response.status;
+        // toast(`${company.name} Automation is ${status}`);
         setPromotionLoading((data) => ({
             ...promotionLoading,
             ...data,

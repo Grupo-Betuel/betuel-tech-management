@@ -10,7 +10,8 @@ export interface IWhatsappMessage {
     photo?: Blob;
 }
 
-export const whatsappSessionNames: {[K in WhatsappSessionTypes]: string} = {
+export const whatsappSessionNames: {[K in WhatsappSessionTypes & any]: string} = {
+    betueldance: 'Betuel Dance Shop',
     betuelgroup: 'Betuel Group',
     betueltravel: 'Betuel Travel',
     wpadilla: 'Williams',

@@ -228,7 +228,7 @@ const FlyerDesigner = (
         const photoName = `${productURLName}-${Date.now()}.png`;
         setImageToChangeType(undefined);
         setSelectedElement({} as FlyerElementModel);
-
+        console.log(productImageWrapper.current);
         await toPng(productImageWrapper.current, {cacheBust: true,})
             .then(async (dataUrl: string) => {
                 if (downloadImage) {
