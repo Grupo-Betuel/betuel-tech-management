@@ -147,6 +147,7 @@ export const PrintOrdersSheet = ({orders}: DraggableGridProps) => {
                 <div id="printableArea" className={`print-sheet ${printing ? 'printing' : ''}`} style={{
                     width: 816 * increaseBy,
                     height: 1056 * increaseBy,
+                    padding: (16 * 3) * increaseBy + 'px 0'
                 }}>
                     <DraggableGrid increaseBy={increaseBy} items={gridItems} onLayoutChange={handleLayoutChange}/>
                 </div>

@@ -30,7 +30,7 @@ const DraggableGrid: React.FC<DraggableGridProps> = ({ items, onLayoutChange, in
     };
 
     return (
-        <ResponsiveGridLayout margin={[16,0]} className="grid-layout layout"
+        <ResponsiveGridLayout margin={[16 * (increaseBy || 1),0]} className="grid-layout layout"
                               layout={layout}
                               onLayoutChange={handleLayoutChange} cols={2} maxRows={3}
                               rowHeight={319.68 * (increaseBy || 1)}
