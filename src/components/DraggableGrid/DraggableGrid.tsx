@@ -1,11 +1,10 @@
 // DraggableGrid.tsx
-import React, {useEffect, useState} from 'react';
+import React, {useState} from 'react';
 import GridLayout, { WidthProvider } from 'react-grid-layout';
 import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import "./DraggableGrid.scss";
-import {extractNumbersFromText} from "../../utils/text.utils";
-import {IShippingCardLayout, IShippingCardLayoutElement} from "../ShippingCard/ShippingCard";
+import {IShippingCardLayout} from "../ShippingCard/ShippingCard";
 const ResponsiveGridLayout = WidthProvider(GridLayout);
 export interface DraggableGridItem { id: string; content: string | JSX.Element; x: number; y: number; w: number; h: number, layout?: IShippingCardLayout; }
 

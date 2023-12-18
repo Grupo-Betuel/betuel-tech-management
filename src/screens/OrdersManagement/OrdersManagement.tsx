@@ -52,6 +52,7 @@ export const orderStatusCardColor: { [N in OrderStatusTypes]: string } = {
     'cancel-attempt': 'danger',
     'completed': 'success',
     'pending-info': 'warning',
+    'pending-confirm': 'info',
     'personal-assistance': 'dark',
     'checking-transfer': 'warning',
     'delivering': 'warning',
