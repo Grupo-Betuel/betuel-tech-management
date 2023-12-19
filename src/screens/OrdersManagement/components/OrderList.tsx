@@ -458,7 +458,7 @@ export const OrderList = (
                                         onClick={sendActionToConfirm('request-messengers', order)}>
                                     Solicitar Mensajeros
                                 </Button>}
-                            {order.type && order.paymentType &&
+                            {order.type && order.paymentType && !order.finished &&
                                 <Button color="success" className="text-nowrap w-100 align-self-start"
                                         onClick={sendActionToConfirm('handle-order', {...order, status: 'completed' })}>
                                     Finalizar Orden

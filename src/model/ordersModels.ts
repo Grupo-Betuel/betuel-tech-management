@@ -83,6 +83,7 @@ export interface IOrder {
   createDate: string,
   updateDate: string,
   from: OrderFromTypes;
+  finished: boolean;
   fromSocket: boolean, // this is not in the db
   _id: string
   __v: number
