@@ -100,7 +100,7 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
     }
 
     const handleRemoveClient = (client: IClient) => () => {
-        if (client && client.number) {
+        if (client && client.phone) {
             toggleEditable(client)()
         } else {
             removeClientFromList(client)
@@ -163,7 +163,7 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
         setLoading(true);
         const temp = tempClients[index];
         if (temp) {
-            if (temp.number) {
+            if (temp.phone) {
                 let response;
                 if (temp._id) {
                     response = await updateClients(JSON.stringify(temp));

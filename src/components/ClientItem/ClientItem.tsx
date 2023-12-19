@@ -92,16 +92,16 @@ const ClientItem: React.FC<IClientItem> = (
                 <span className="client-item-data">{client.lastName}</span>
             </FormGroup>
             <FormGroup className="client-item">
-                <Label for="number">Number:</Label>
+                <Label for="number">Phone:</Label>
                 <Input
                     onChange={onChangeClient}
                     type="text"
-                    name="number"
-                    id="number"
-                    value={client.number}
+                    name="phone"
+                    id="phone"
+                    value={client.phone}
                     maxLength={10}
                 />
-                <span className="client-item-data">{client.number}</span>
+                <span className="client-item-data">{client.phone}</span>
             </FormGroup>
             <FormGroup className="client-item">
                 <Label for="number">Stage:</Label>
@@ -123,7 +123,7 @@ const ClientItem: React.FC<IClientItem> = (
                         <option value={m} key={m}>{m}</option>)
                     }
                 </Input>
-                <span className="client-item-data">{client.number}</span>
+                <span className="client-item-data">{client.phone}</span>
             </FormGroup>
         </ClientWrapper>
 

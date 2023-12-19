@@ -7,7 +7,7 @@ export interface IClient {
     _id?: string;
     firstName: string,
     lastName: string,
-    number: string,
+    phone: string,
     stage: ClientStageTypes,
     tags: string[],
     fullName: string;
