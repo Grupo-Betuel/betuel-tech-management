@@ -1,7 +1,8 @@
 import {FormGroup, Input, Label} from "reactstrap";
-import React, { useEffect } from "react";
+import React, {useEffect} from "react";
 import styled from "styled-components";
-import { IClient } from "../../model/interfaces/ClientModel";
+import {clientStageList, IClient} from "../../model/interfaces/ClientModel";
+import {IMessenger} from "../../model/messengerModels";
 
 const ClientWrapper: any = styled.div`
   display: grid;
@@ -100,6 +101,28 @@ const ClientItem: React.FC<IClientItem> = (
                     value={client.number}
                     maxLength={10}
                 />
+                <span className="client-item-data">{client.number}</span>
+            </FormGroup>
+            <FormGroup className="client-item">
+                <Label for="number">Stage:</Label>
+                <Input
+                    onChange={onChangeClient}
+                    type="text"
+                    name="stage"
+                    id="stage"
+                    value={client.stage}
+                />
+                <Input
+                    onChange={onChangeClient}
+                    name="stage"
+                    id="stage"
+                    value={client.stage}
+                    type="select">
+                    <option value="">Select Messenger</option>
+                    {clientStageList.map((m: string) =>
+                        <option value={m} key={m}>{m}</option>)
+                    }
+                </Input>
                 <span className="client-item-data">{client.number}</span>
             </FormGroup>
         </ClientWrapper>
