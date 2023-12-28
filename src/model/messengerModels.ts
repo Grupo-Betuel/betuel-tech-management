@@ -13,4 +13,7 @@ export interface IMessenger {
   currentOrders?: string[];
   quotingOrder?: string | null;
   fromSocket?: boolean; // this is not from db
+  //  consider these properties are not in the messenger table
+  pendingMoney: number;
+  pendingPayment: number;
 }
