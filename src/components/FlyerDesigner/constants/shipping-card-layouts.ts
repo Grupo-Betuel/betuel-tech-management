@@ -60,4 +60,4 @@ export const betuelDanceShippingCardLayout: IShippingCardLayout = {
     image: "https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/media-1700425078448.png?alt=media",
 } as IShippingCardLayout;
 
-export const EmptyGridItem: (index: number) => DraggableGridItem = (index) => ({ id: `${Date.now()}-${index}`, content: "", x: index, y: index, w:1, h:1 });
+export const EmptyGridItem: (index: number) => DraggableGridItem = (index) => ({ id: `${Math.random()}-${Date.now()}-${index}`, content: "", x: index, y: index, w:1, h:1 });

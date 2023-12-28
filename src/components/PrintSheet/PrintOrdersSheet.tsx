@@ -110,7 +110,7 @@ export const PrintOrdersSheet = ({orders}: DraggableGridProps) => {
 
     const gridItems: DraggableGridItem[] = useMemo(() => {
         const max = 6;
-        const left = max - orders.length;
+        const left = (max - orders.length);
         const extra = Array.from(new Array(left)).map((p, i) => EmptyGridItem(i));
         return [...items, ...extra]
     }, [items])

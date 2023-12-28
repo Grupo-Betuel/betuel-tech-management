@@ -1,6 +1,7 @@
 import {useMemo} from "react";
 import React from "react";
 import "./ShippingCard.scss";
+import ContentEditable from "react-contenteditable";
 
 export interface IShippingCardLayoutElement {
     id: string;
@@ -66,7 +67,12 @@ export const ShippingCard = ({layout, className }: IShippingCardProps) => {
                         // fontSize: `${(element?.fontSize || '16px')}`,
                         ...(element?.style || {}),
                     }}>
-                    {element.content}
+                    <ContentEditable
+                        className="flyer-element-content-editable"
+                        html={element.content?.toString() || ''} // innerHTML of the editable div
+                        onChange={() => {}} // handle innerHTML change
+                    />
+                    {/*{element.content}*/}
                 </div>
             ))}
         </div>

@@ -5,6 +5,7 @@ import 'react-grid-layout/css/styles.css';
 import 'react-resizable/css/styles.css';
 import "./DraggableGrid.scss";
 import {IShippingCardLayout} from "../ShippingCard/ShippingCard";
+import ContentEditable from "react-contenteditable";
 const ResponsiveGridLayout = WidthProvider(GridLayout);
 export interface DraggableGridItem { id: string; content: string | JSX.Element; x: number; y: number; w: number; h: number, layout?: IShippingCardLayout; }
 
@@ -29,7 +30,9 @@ const DraggableGrid: React.FC<DraggableGridProps> = ({ items, onLayoutChange, in
     };
 
     return (
-        <ResponsiveGridLayout margin={[12 * (increaseBy || 1),0]} className="grid-layout layout"
+        <>
+        <ResponsiveGridLayout margin={[14 * (increaseBy || 1),0]}
+                              className="grid-layout layout"
                               layout={layout}
                               onLayoutChange={handleLayoutChange} cols={2} maxRows={3}
                               rowHeight={319.68 * (increaseBy || 1)}
@@ -42,6 +45,7 @@ const DraggableGrid: React.FC<DraggableGridProps> = ({ items, onLayoutChange, in
                 </div>
             ))}
         </ResponsiveGridLayout>
+            </>
     );
 };
 
