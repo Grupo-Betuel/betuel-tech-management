@@ -165,10 +165,10 @@ export const MessengerMng = ({ updateMessenger, originalMessengers, messengers, 
                             </div>
                         </ListGroupItem>
                         <ListGroupItem>
-                            <b>Pendiente de entregar</b>: RD${(messenger.pendingMoney || 0)?.toLocaleString()}
+                            <b>Pendiente en tienda</b>: RD${(messenger.pendingMoney || 0)?.toLocaleString()}
                         </ListGroupItem>
                         <ListGroupItem>
-                            <b>Pendiente de cobrar</b>: RD${(messenger.pendingPayment || 0)?.toLocaleString()}
+                            <b>Pendiente para el mensajero</b>: RD${(messenger.pendingPayment || 0)?.toLocaleString()}
                         </ListGroupItem>
                     </ListGroup>
                     <CardBody className="d-flex justify-content-between flex-wrap gap-2">
