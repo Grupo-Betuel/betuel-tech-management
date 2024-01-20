@@ -114,6 +114,7 @@ export const MessengerMng = ({ updateMessenger, originalMessengers, messengers, 
                     outline={messenger.fromSocket}
                 >
                     {messenger.photo && <img
+                        className="messenger-photo"
                         alt={`foto del mensajero ${messenger.firstName}`}
                         src={messenger.photo}
                     />}

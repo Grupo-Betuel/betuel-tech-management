@@ -44,10 +44,12 @@ export const CreateMessenger = () => {
             setPhotoFiles(ev?.target?.files);
             const {files} = ev.target;
             if (FileReader && files.length) {
+                setLoading(true);
                 const fr = new FileReader();
 
                 fr.onload = async () => {
                     setPreviewPhoto(fr.result);
+                    setLoading(false);
                 }
 
                 fr.readAsDataURL(files[0]);
@@ -62,9 +64,12 @@ export const CreateMessenger = () => {
     }
 
     const uploadWithPhoto = async () => {
+        setLoading(true);
+
         const photoName = `${messengerToCreate.firstName} ${messengerToCreate.lastName} mensajero ${generateCustomID()}`.replace(/[ ]/gi, '-');
         const creatMessengerWithPhoto = async (media: IMedia) => {
             await addNewMessenger({...messengerToCreate, photo: media.content});
+            setLoading(false);
         }
 
         await onChangeMediaToUpload('messenger', creatMessengerWithPhoto, photoName)({ target: { files: photoFiles}} as any);
@@ -100,6 +105,7 @@ export const CreateMessenger = () => {
             setPreviewPhoto(undefined);
         }
         toggleConfirmation();
+        document?.body?.focus();
     }
 
 
@@ -146,7 +152,7 @@ export const CreateMessenger = () => {
                 </FormGroup>
                 <FormGroup>
                     <Label><b>Telefono (Whatsapp)</b></Label> <br/>
-                    <InputMask className="form-control mb-3" placeholder="Numeros de whatsapp"
+                    <InputMask className="form-control mb-3" placeholder="Numero de whatsapp"
                                type="tel"
                                name="phone"
                                value={phone}
