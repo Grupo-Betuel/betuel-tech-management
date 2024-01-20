@@ -1,4 +1,4 @@
-import {IShippingCardLayout} from "../../ShippingCard/ShippingCard";
+import {IMessengerCardLayout, IShippingCardLayout} from "../../ShippingCard/ShippingCard";
 import {DraggableGridItem} from "../../DraggableGrid/DraggableGrid";
 
 export const betuelDanceShippingCardLayout: IShippingCardLayout = {
@@ -59,5 +59,28 @@ export const betuelDanceShippingCardLayout: IShippingCardLayout = {
     },
     image: "https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/media-1700425078448.png?alt=media",
 } as IShippingCardLayout;
+
+export const betuelDanceMessengerCard: IMessengerCardLayout = {
+    name: {
+        x: '26.302083333333332%',
+        y: '31.5%',
+        width: 300,
+        content: 'Williams Padilla',
+    },
+    lastName: {
+        x: '26.302083333333332%',
+        y: '31.5%',
+        width: 300,
+        content: 'Williams Padilla',
+    },
+    photo: {
+        x: '26.302083333333332%',
+        y: '31.5%',
+        width: 300,
+        content: 'Williams Padilla',
+    },
+    image: "https://storage.googleapis.com/betuel-tech-photos/media-1705760022235.png",
+} as IMessengerCardLayout;
+
 
 export const EmptyGridItem: (index: number) => DraggableGridItem = (index) => ({ id: `${Math.random()}-${Date.now()}-${index}`, content: "", x: index, y: index, w:1, h:1 });

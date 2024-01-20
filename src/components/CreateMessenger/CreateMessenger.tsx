@@ -20,6 +20,7 @@ import "./CreateMessenger.scss";
 import {onChangeMediaToUpload} from "../../utils/gcloud.utils";
 import {generateCustomID} from "../../utils/text.utils";
 import {IMedia} from "../GCloudMediaHandler/GCloudMediaHandler";
+import {sendWhatsappMessage} from "../../services/promotions";
 
 export const CreateMessenger = () => {
     const [messengerToCreate, setMessengerToCreate] = useState<IMessenger>({} as IMessenger);
@@ -101,6 +102,7 @@ export const CreateMessenger = () => {
             } else {
                 await addNewMessenger(messengerToCreate);
             }
+            await sendWhatsappMessage('betuelgroup', [messengerToCreate], { text: 'Hola @firstName Dios te bendiga 🙌 te damos la bienvenida a Grupo betuel 🤗, por esta via nos comunicaremos contigo para hacer envios 📦✅, estamos a tus ordenes 🫡🧑‍💻'});
             setMessengerToCreate({} as any);
             setPhone('');
             setPhotoFiles(undefined);

@@ -8,7 +8,7 @@ import {betuelDanceShippingCardLayout, EmptyGridItem} from "../FlyerDesigner/con
 import {IOrder} from "../../model/ordersModels";
 import {ShippingCard} from "../ShippingCard/ShippingCard";
 import {passOrderToShippingLayout} from "../../utils/order.utils";
-import {extractNumbersFromText} from "../../utils/text.utils";
+import {extractNumbersFromText, generateCustomID} from "../../utils/text.utils";
 
 
 interface DraggableGridProps {
@@ -97,7 +97,7 @@ export const PrintOrdersSheet = ({orders}: DraggableGridProps) => {
                 y: Math.floor((i / 2) + 1),
                 w: 1,
                 h: 1,
-                id: `${Date.now()}-${i}`,
+                id: `${generateCustomID()}-${i}`,
                 layout,
                 content:
                     <ShippingCard

@@ -31,6 +31,13 @@ export interface IShippingCardLayout {
     companyLogo?: IShippingCardLayoutElement;
 }
 
+export interface IMessengerCardLayout {
+    name: IShippingCardLayoutElement;
+    lastName: IShippingCardLayoutElement;
+    photo: IShippingCardLayoutElement;
+    image: string;
+}
+
 export interface IShippingCardProps {
     layout: IShippingCardLayout;
     className?: string;
