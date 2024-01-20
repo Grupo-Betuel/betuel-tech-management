@@ -15,6 +15,7 @@ import React, {useMemo, useState} from "react";
 import {messengerStatusCardColor} from "../../OrdersManagement";
 import {toast} from "react-toastify";
 import "./MessengerMng.scss";
+import {addMessenger} from "../../../../services/messengerService";
 export interface IMessengersMngProps {
     messengers: IMessenger[];
     originalMessengers: IMessenger[];
@@ -25,6 +26,7 @@ export interface IMessengersMngProps {
 }
 export const MessengerMng = ({ updateMessenger, originalMessengers, messengers, addNewMessenger, updateMessengerList, onDeleteMessenger }: IMessengersMngProps) => {
     const [messengerToCreate, setMessengerToCreate] = useState<IMessenger>({} as IMessenger);
+
     const onChangeMessengerToCreate = ({target: {name, value}}: React.ChangeEvent<HTMLInputElement>) => {
         setMessengerToCreate({
             ...messengerToCreate,
@@ -75,6 +77,7 @@ export const MessengerMng = ({ updateMessenger, originalMessengers, messengers, 
 
     return (
         <div className="messenger-mng-grid">
+
             <Card>
                 <CardBody>
                     <Form>
@@ -110,6 +113,10 @@ export const MessengerMng = ({ updateMessenger, originalMessengers, messengers, 
                     color={messengerStatusCardColor[messenger.status]}
                     outline={messenger.fromSocket}
                 >
+                    {messenger.photo && <img
+                        alt={`foto del mensajero ${messenger.firstName}`}
+                        src={messenger.photo}
+                    />}
                     <CardBody>
                         <CardText>
                             <b>{messenger.firstName} {messenger.lastName}</b>

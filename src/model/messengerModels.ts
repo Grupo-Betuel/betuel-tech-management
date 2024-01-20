@@ -8,6 +8,7 @@ export interface IMessenger {
   firstName: string
   lastName: string
   phone: string
+  photo: string;
   trips: ITrip[];
   status: MessengerStatusTypes;
   currentOrders?: string[];
