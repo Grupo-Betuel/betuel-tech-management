@@ -43,12 +43,14 @@ export const CreateMessenger = () => {
         } else if (type === 'file') {
             setPhotoFiles(ev?.target?.files);
             const {files} = ev.target;
-            if (FileReader && files.length) {
+            // eslint-disable-next-line no-undef
+            if (FileReader && files?.length) {
                 setLoading(true);
-                const fr = new FileReader();
+                // eslint-disable-next-line no-undef
+                const fr: any = new FileReader();
 
                 fr.onload = async () => {
-                    setPreviewPhoto(fr.result);
+                    setPreviewPhoto(fr?.result);
                     setLoading(false);
                 }
 
