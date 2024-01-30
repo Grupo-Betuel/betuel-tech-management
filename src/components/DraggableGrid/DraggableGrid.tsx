@@ -34,13 +34,14 @@ const DraggableGrid: React.FC<DraggableGridProps> = ({ items, onLayoutChange, in
         <ResponsiveGridLayout margin={[14 * (increaseBy || 1),0]}
                               className="grid-layout layout"
                               layout={layout}
-                              onLayoutChange={handleLayoutChange} cols={2} maxRows={3}
+                              onLayoutChange={handleLayoutChange} cols={2}
                               rowHeight={319.68 * (increaseBy || 1)}
                               // rowHeight={719.68}
         >
             {layout.map((item: any, index: any) => (
                 <div className="grid-layout-item" key={item.i}
-                     data-grid={{ x: item.x, y: item.y, w: 1, h: 1, static: false, width: 384 * (increaseBy || 1) }}>
+                     data-grid={{ x: item.x, y: item.y, w: 1, h: 1, static: false, width: 384 * (increaseBy || 1) }}
+                >
                     {items[index].content}
                 </div>
             ))}

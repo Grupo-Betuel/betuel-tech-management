@@ -1,13 +1,34 @@
-.messenger-mng-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
-  gap: 1.5rem;
-  padding: 2rem;
-  width: 100dvw;
+.messenger-mng {
+  &-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+    gap: 1.5rem;
+    padding: 2rem;
+    width: 100dvw;
+
+  }
+
+  &-actions {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    padding: 1rem 2rem;
+    flex-wrap: wrap;
+  }
+
+  .messenger-card {
+    cursor: pointer;
+    &.selected {
+      outline: 3px dashed #2d5ea7;
+    }
+  }
+
+  .messenger-photo {
+    max-height: 300px;
+    object-fit: cover;
+  }
+
+
 
 }
 
-.messenger-photo {
-  max-height: 300px;
-  object-fit: cover;
-}

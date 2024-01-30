@@ -28,7 +28,13 @@ import {OrderEvents} from "../../model/socket-events";
 import {useHistory} from "react-router";
 import {toast} from "react-toastify";
 import {IMessenger, MessengerStatusTypes} from "../../model/messengerModels";
-import {addMessenger, deleteMessenger, getMessengers, updateMessenger} from "../../services/messengerService";
+import {
+    addMessenger,
+    deleteMessenger,
+    getMessengers,
+    updateMessenger,
+    updateMultipleMessenger
+} from "../../services/messengerService";
 import {CreateNewFloatButton} from "../Dashboard/Dashboard";
 import {MessengerMng} from "./components/MessengerMng/MessengerMng";
 import {OrderList} from "./components/OrderList";
@@ -258,11 +264,18 @@ export const OrdersManagement = () => {
     const handleActiveTab = (tab: OrderTabsTypes) => () => setActiveTab(tab);
 
 
-    const handleUpdateMessenger = async (messenger: IMessenger) => {
+    const handleUpdateMessenger = async (data: IMessenger | IMessenger[]) => {
+
         setLoading(true);
-        await updateMessenger(JSON.stringify(messenger));
+        if(Array.isArray(data)) {
+            await updateMultipleMessenger(JSON.stringify(data));
+        } else {
+            await updateMessenger(JSON.stringify(data));
+        }
+
         setLoading(false);
         handleGetMessengers();
+        setSelectedMessengers([]);
         toast('Mensajero actualizado');
     }
     const handleUpdateClient = async (client: IClient) => {
@@ -322,6 +335,16 @@ export const OrdersManagement = () => {
     const [printModalOpen, setPrintModalOpen] = useState(false);
     const togglePrintModal = () => setPrintModalOpen(!printModalOpen);
     const [selectedOrders, setSelectedOrders] = useState<IOrder[]>([]);
+    const [selectedMessengers, setSelectedMessengers] = useState<IMessenger[]>([]);
+
+    const selectMessenger = (messenger: IMessenger) => {
+        if(selectedMessengers.find(m => m._id ===messenger._id)) {
+            setSelectedMessengers(selectedMessengers.filter(m => m._id !== messenger._id));
+            return;
+        }
+
+        setSelectedMessengers([...selectedMessengers, messenger]);
+    }
 
     const selectOrder = (order: IOrder) => {
         if(maxOrderSelection === selectedOrders.length) {
@@ -410,6 +433,8 @@ export const OrdersManagement = () => {
                     updateMessengerList={setMessengers}
                     addNewMessenger={handleAddNewMessenger}
                     onDeleteMessenger={setElementToDelete}
+                    onSelectMessenger={selectMessenger}
+                    selectedMessengers={selectedMessengers}
                     messengers={messengers}/>}
             {activeTab === 'clients' &&
                 <ClientMng

@@ -18,3 +18,7 @@ export interface IMessenger {
   pendingMoney: number;
   pendingPayment: number;
 }
+
+export enum MessengerActions {
+  Status = 'status',
+}
