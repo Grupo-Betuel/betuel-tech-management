@@ -92,7 +92,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
 
     const generateQr = (data: any) => {
         const canvas = document.getElementById('canvas-qr');
-        if(canvas) {
+        if(canvas && data) {
             QRCode.toCanvas(canvas, data, function (error) {
                 if (error) console.error('qr error:', error);
             })

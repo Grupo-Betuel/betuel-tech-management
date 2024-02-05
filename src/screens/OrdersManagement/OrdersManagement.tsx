@@ -275,7 +275,7 @@ export const OrdersManagement = () => {
 
         setLoading(false);
         handleGetMessengers();
-        setSelectedMessengers([]);
+        // setSelectedMessengers([]);
         toast('Mensajero actualizado');
     }
     const handleUpdateClient = async (client: IClient) => {
