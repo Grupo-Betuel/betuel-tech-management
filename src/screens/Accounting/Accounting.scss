@@ -1,12 +1,12 @@
 .accounting {
-  padding: 2rem 4rem;
+  padding: 2rem 6rem;
 
   &__expenses-table {
     tbody {
       tr {
         .accounting__expenses-table--actions {
-          visibility: hidden;
-          opacity: 0;
+          //visibility: hidden;
+          //opacity: 0;
           transition: visibility 0s, opacity 0.5s linear;
           display: flex;
           align-items: center;

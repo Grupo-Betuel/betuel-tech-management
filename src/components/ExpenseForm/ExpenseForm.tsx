@@ -250,7 +250,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
                 </FormGroup>
                 <FormGroup>
                     <Label>Tipo de Pago:</Label>
-                    <Input placeholder="Tipo de Pago" onChange={onChangeExpense} value={expense.paymentType}
+                    <Input placeholder="Tipo de Pago" onChange={onChangeExpense} name="paymentType" value={expense.paymentType}
                            type="select">
                         <option value="">Select</option>
                         {orderPaymentTypeList.map((type: string) =>
