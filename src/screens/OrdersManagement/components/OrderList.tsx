@@ -263,7 +263,7 @@ export const OrderList = (
                     }
                 </div>
             </div>
-            <div className="orders-management-grid" style={{width: "100vw"}}>
+            <div className="orders-management-grid">
 
                 {orders.map((order) => (
                     <Card

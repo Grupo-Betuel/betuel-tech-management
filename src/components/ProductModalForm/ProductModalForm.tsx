@@ -580,11 +580,11 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                     keepSearchTerm={true}
                                     displayValue="title"
                                 />
-                                <Button color="info" className="w-100 mb-2"
-                                        disabled={!categoryTitle}
-                                        onClick={handleCategory(!!product.category)}>
-                                    {!product.category ? 'Crear Nueva' : 'Actualizar'}
-                                </Button>
+                                {/*<Button color="info" className="w-100 mb-2"*/}
+                                {/*        disabled={!categoryTitle}*/}
+                                {/*        onClick={handleCategory(!!product.category)}>*/}
+                                {/*    {!product.category ? 'Crear Nueva' : 'Actualizar'}*/}
+                                {/*</Button>*/}
                             </div>
                         </FormGroup>
 

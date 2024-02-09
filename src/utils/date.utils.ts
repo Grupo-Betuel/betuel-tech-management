@@ -12,3 +12,23 @@ export const getTimeFromDate = (date: Date) => {
 
     return timeString
 }
+
+export interface IDateMonth {
+    id: string;
+    text: string;
+    date: Date;
+
+}
+export const months: IDateMonth[] = Array.from({ length: 12 }, (item, index) => {
+    const date = new Date(0, index);
+    const id = date.toLocaleString('es-ES', {month: 'numeric'})
+    const text = date.toLocaleString('es-ES', {month: 'long'})
+
+    return {
+        id,
+        text,
+        date,
+    };
+});
+
+export const years = [new Date().getFullYear(), ...Array.from({ length: new Date().getFullYear() - 2020 }, (item, index) => new Date().getFullYear() - index - 1)];

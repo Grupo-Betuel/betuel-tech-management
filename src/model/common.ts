@@ -34,3 +34,5 @@ export class ConstructorClass<T> {
         });
     }
 }
+
+export type CommonActionTypes = 'update' | 'delete' | 'create';

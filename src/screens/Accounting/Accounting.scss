@@ -1,0 +1,32 @@
+.accounting {
+  padding: 2rem 4rem;
+
+  &__expenses-table {
+    tbody {
+      tr {
+        .accounting__expenses-table--actions {
+          visibility: hidden;
+          opacity: 0;
+          transition: visibility 0s, opacity 0.5s linear;
+          display: flex;
+          align-items: center;
+          gap: 1rem;
+        }
+
+        &:hover {
+          .accounting__expenses-table--actions {
+            visibility: visible;
+            opacity: 1;
+          }
+        }
+      }
+    }
+
+  }
+
+  &__actions {
+    display: flex;
+    justify-content: space-between;
+    margin: 2rem 0;
+  }
+}

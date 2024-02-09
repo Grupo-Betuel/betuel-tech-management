@@ -53,6 +53,8 @@ import {getCompanies} from "../../services/companies";
 import {CompanyModel} from "../../model/companyModel";
 import {ILaborDay, ILaborDayData, LaborDayTypes} from "../../model/interfaces/LaborDayModel";
 import {getLaborDays, updateLaborDays} from "../../services/laborDaysService";
+import {Schedule} from "../../components/Schedule/Schedule";
+import {Navigation} from "../../components/Navigation/Navigation";
 
 // export const accountLogos: { [N in ]} ;
 
@@ -192,8 +194,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         login,
     } = useWhatsapp('betuelgroup');
 
-    const [laborDays, setLaborDays] = React.useState<ILaborDay[]>([]);
-    const [oldLaborDays, setOldLaborDays] = React.useState<ILaborDay[]>([]);
     const [scheduleIsOpen, setScheduleIsOpen] = React.useState(false);
 
 
@@ -208,17 +208,9 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     }, [companies]);
 
-    const handleGetLaborDays = async () => {
-        const laborDays = await getLaborDays();
-        setLaborDays(laborDays);
-        setOldLaborDays(laborDays);
-    }
-
-
     // initializing socket
     React.useEffect(() => {
         setSocket(io.connect(PROD_SOCKET_URL));
-        handleGetLaborDays();
     }, []);
     const toggleProductForm = () => {
         setEditProduct(null as any);
@@ -530,17 +522,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         setToken("");
     };
 
-    const togglePortfolioDashboard = () => {
-        if (portfolioMode) {
-            history.push("/dashboard");
-        } else {
-            history.push(`/portfolio/${selectedCompanyId}`);
-        }
-    };
-
-    const goTo = (path: 'templates' | 'companies' | 'orders') => () => {
-        history.push(`/${path}`);
-    }
 
     const toggleClientFormModal = () => setClientModalIsOpen(!clientModalIsOpen);
 
@@ -778,45 +759,10 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const toggleSchedule = () => setScheduleIsOpen(!scheduleIsOpen);
 
-    const onChangeLaborDay = (day: LaborDayTypes) => ({target: {value, name, type, checked}}: any) => {
-        if (type === 'checkbox') {
-            value = checked
-        }
-        setLaborDays(laborDays.map((laborDay) => {
-            if (laborDay.day === day) {
-                return {
-                    ...laborDay,
-                    [name]: value
-                }
-            }
-
-            return laborDay;
-        }));
-    }
-
-    const laborDaysData = React.useMemo(() => {
-        const data: ILaborDayData = {} as ILaborDayData;
-
-        laborDays.forEach((laborDay) => {
-            data[laborDay.day] = laborDay
-        });
-
-        return data;
-    }, [laborDays]);
 
 
-    const onSaveSchedule = () => {
-        Promise.all(Object.keys(laborDaysData).map(async (day: LaborDayTypes | any) => {
-            const laborDay = laborDaysData[day as LaborDayTypes];
-            const oldLaborDay = JSON.stringify(oldLaborDays.find((oldLaborDay) => oldLaborDay.day === Number(day)) || '{}');
 
-            if (oldLaborDay !== JSON.stringify(laborDay)) {
-                await updateLaborDays(JSON.stringify(laborDay));
-            }
-        })).then(() => {
-            toast('Horario guardado con éxito', {type: 'success'});
-        });
-    }
+
 
 
     return (
@@ -848,53 +794,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 loadProducts={getAllProducts}
             />
             {<div className="d-flex align-items-center flex-column">
-                {localStorage.getItem("authToken") && (
-                    <div className="float-options">
-                        <FloatButton
-                            className="btn btn-outline-danger"
-                            title="Salir"
-                            onClick={logOut}
-                        >
-                            <i className="bi bi-box-arrow-right"/>
-                        </FloatButton>
-                        <FloatButton
-                            className="btn btn-outline-danger go-to-portfolio"
-                            title={`Ordenes`}
-                            onClick={goTo('orders')}
-                        >
-                            <i
-                                className="bi bi-truck"
-                            />
-                        </FloatButton>
-                        <FloatButton
-                            className="btn btn-outline-danger go-to-portfolio"
-                            title={`Disenio de Plantillas`}
-                            onClick={goTo('templates')}
-                        >
-                            <i
-                                className="bi bi-easel2"
-                            />
-                        </FloatButton>
-                        <FloatButton
-                            className="btn btn-outline-danger go-to-portfolio"
-                            title={`Companies`}
-                            onClick={goTo('companies')}
-                        >
-                            <i
-                                className="bi bi-building"
-                            />
-                        </FloatButton>
-                        <FloatButton
-                            className="btn btn-outline-danger go-to-portfolio"
-                            title={`Horiario`}
-                            onClick={toggleSchedule}
-                        >
-                            <i
-                                className="bi bi-calendar-week"
-                            />
-                        </FloatButton>
-                    </div>
-                )}
                 <Col lg={2} md={4} sm={4} className="p-4  logo-container">
                     <img
                         src={logo}
@@ -961,15 +860,10 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                             </div>
 
                             <div className="d-flex align-items-center">
-                                <Button onClick={goToOrders} color="primary" outline>Ver Ordenes</Button>
-                                {/*<label className="me-2 mb-0">Más Ingresos</label>*/}
-                                {/*<Input*/}
-                                {/*    id="sales"*/}
-                                {/*    type="switch"*/}
-                                {/*    label="Más Vendidos"*/}
-                                {/*    className="customize-switch"*/}
-                                {/*    onChange={filterChange}*/}
-                                {/*/>*/}
+                                <Button onClick={toggleSchedule} color="primary" className="d-flex align-items-center gap-2" outline>
+                                    <span>Horario</span>
+                                    <i className="bi bi-calendar-week" />
+                                </Button>
                             </div>
                             <div
                                 className={`d-flex align-items-center ${
@@ -1210,37 +1104,8 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     Horario Laboral
                 </ModalHeader>
                 <ModalBody className="schedule-grid">
-                    {laborDays.map(laborDay =>
-                        <div className="d-flex flex-column gap-1 align-items-center schedule-grid-item">
-                            <div className="d-flex align-items-center gap-2">
-                                <h4>{laborDay.name}</h4>
-                                <FormGroup switch={true} className="m-0">
-                                    <Input type="switch" checked={laborDay.available}
-                                           name="available" id="available"
-                                           label="Disponible" onChange={onChangeLaborDay(laborDay.day)}
-                                           role="switch"/>
-                                </FormGroup>
-                            </div>
-                            <div className="d-flex align-items-center gap-2">
-                                <div className="d-flex flex-column gap-2 align-items-center">
-                                    <b>Desde</b>
-                                    <Input name="timeFrom" type="time"
-                                           value={laborDay.timeFrom}
-                                           onChange={onChangeLaborDay(laborDay.day)}/>
-                                </div>
-                                <div className="d-flex flex-column gap-2 align-items-center">
-                                    <b>Hasta</b>
-                                    <Input name="timeTo" type="time" value={laborDay.timeTo}
-                                           onChange={onChangeLaborDay(laborDay.day)}/>
-                                </div>
-                            </div>
-                        </div>
-                    )}
-
+                    <Schedule/>
                 </ModalBody>
-                <ModalFooter>
-                    <Button color="primary" onClick={onSaveSchedule}>Guardar</Button>
-                </ModalFooter>
             </Modal>
         </>
     );

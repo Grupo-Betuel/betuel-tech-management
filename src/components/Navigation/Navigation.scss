@@ -1,0 +1,11 @@
+.float-options {
+  position: fixed;
+  top: 4rem;
+  right: 0px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 1rem;
+  z-index: 99;
+}
