@@ -36,13 +36,13 @@ export const Accounting = () => {
     }, []);
 
 
-    const filteredExpenses = React.useMemo( () => expenses.filter(expense => {
+    const filteredExpenses = React.useMemo(() => expenses.filter(expense => {
         const date = new Date(expense.date);
         return date.getMonth() + 1 === parseInt(dateFilter.month) && date.getFullYear() === parseInt(dateFilter.year);
     }), [expenses, dateFilter]);
 
     const handleConfirmedActions = async (type?: CommonActionTypes, data?: ExpenseModel) => {
-        if(type === 'delete') {
+        if (type === 'delete') {
             setLoading(true);
             data && data._id && await deleteExpense(data?._id)
             loadData();
@@ -59,9 +59,6 @@ export const Accounting = () => {
     } = useConfirmAction<CommonActionTypes, ExpenseModel>(handleConfirmedActions, handleDeniedActions);
 
 
-
-
-
     const loadData = async () => {
         setLoading(true);
         setExpenses(await getExpenses())
@@ -75,7 +72,7 @@ export const Accounting = () => {
             // total: expense.tips + expense.itbis + expense.amount,
         }
 
-        if(expense._id) {
+        if (expense._id) {
             await updateExpense(expenseData)
             setExpenseToUpdate(undefined);
         } else {
@@ -98,18 +95,18 @@ export const Accounting = () => {
         toggleExpensesModal();
     }
 
-    const onChangeDateFilter = ({ target: { value, name }}: React.ChangeEvent<HTMLInputElement>) => {
+    const onChangeDateFilter = ({target: {value, name}}: React.ChangeEvent<HTMLInputElement>) => {
         setDateFilter({
             ...dateFilter,
             [name]: value
         })
     }
 
-    const exportFilename = React.useMemo( () => `gastos-grupo-betuel-SRL-${dateFilter.month.toString().padStart(2,'0')}-${dateFilter.year}`, [dateFilter]);
+    const exportFilename = React.useMemo(() => `gastos-grupo-betuel-SRL-${dateFilter.month.toString().padStart(2, '0')}-${dateFilter.year}`, [dateFilter]);
 
     return (
         <div className="accounting">
-            <ConfirmModal />
+            <ConfirmModal/>
             {
                 !loading ? null :
                     <>
@@ -155,8 +152,8 @@ export const Accounting = () => {
                     <FormGroup className="d-flex align-items-center gap-2">
                         <Label for="type">Año:</Label>
                         <Input placeholder="Año" id="type" name="year"
-                            onChange={onChangeDateFilter}
-                            value={dateFilter.year}
+                               onChange={onChangeDateFilter}
+                               value={dateFilter.year}
                                type="select">
                             <option value="">Select</option>
                             {
@@ -173,7 +170,8 @@ export const Accounting = () => {
                     sheet="gastos"
                     currentTableRef={tableRef.current}
                 >
-                    <Button color="info" outline> Exportar Excel <i className="bi bi-file-earmark-spreadsheet"/></Button>
+                    <Button color="info" outline> Exportar Excel <i
+                        className="bi bi-file-earmark-spreadsheet"/></Button>
                 </DownloadTableExcel>
             </div>
             <Table innerRef={tableRef} className="accounting__expenses-table">
@@ -249,7 +247,8 @@ export const Accounting = () => {
                                 </td>
                                 <div className="accounting__expenses-table--actions">
                                     <div>
-                                        <Button onClick={() => handleSetActionToConfirm('delete', item)} color="danger" id={`delete-btn-${item._id}`} outline>
+                                        <Button onClick={() => handleSetActionToConfirm('delete', item)} color="danger"
+                                                id={`delete-btn-${item._id}`} outline>
                                             <i className="bi bi-trash"/>
                                         </Button>
                                         <UncontrolledTooltip placement="top" target={`delete-btn-${item._id}`}>
@@ -257,13 +256,25 @@ export const Accounting = () => {
                                         </UncontrolledTooltip>
                                     </div>
                                     <div>
-                                        <Button onClick={handleUpdateExpense(item)} color="info" id={`update-btn-${item._id}`} outline>
+                                        <Button onClick={handleUpdateExpense(item)} color="info"
+                                                id={`update-btn-${item._id}`} outline>
                                             <i className="bi bi-pencil-square"/>
                                         </Button>
                                         <UncontrolledTooltip placement="top" target={`update-btn-${item._id}`}>
                                             Editar
                                         </UncontrolledTooltip>
                                     </div>
+                                    {item.invoice &&
+                                        <div>
+                                            <a href={item.invoice} target="_blank">
+                                                <Button color="primary" id={`see-invoice-btn-${item._id}`} outline>
+                                                    <i className="bi bi-receipt"/>
+                                                </Button>
+                                            </a>
+                                            <UncontrolledTooltip placement="top" target={`see-invoice-btn-${item._id}`}>
+                                                Ver Factura
+                                            </UncontrolledTooltip>
+                                        </div>}
                                 </div>
                             </tr>
                         )

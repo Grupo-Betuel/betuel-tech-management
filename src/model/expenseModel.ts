@@ -8,6 +8,7 @@ export class ExpenseModel {
     commerce: CommerceModel = {} as CommerceModel;
     taxReceipt: string = '';
     description: string = '';
+    invoice: string = '';
     updateDate?: Date;
     paymentType: OrderPaymentTypes = 'card';
     createDate: Date = new Date();

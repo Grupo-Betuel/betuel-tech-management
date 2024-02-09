@@ -6,6 +6,15 @@ import {orderPaymentTypeList} from "../../model/ordersModels";
 import {CommerceModel} from "../../model/commerceModels";
 import {addCommerce, getCommerces, updateCommerce} from "../../services/commercesService";
 import {toast} from "react-toastify";
+import {IMedia, IMediaTagTypes} from "../GCloudMediaHandler/GCloudMediaHandler";
+import {ICategory} from "../../model/CategoryModel";
+import {deletePhoto} from "../../services/gcloud";
+import {updateCompanies} from "../../services/companies";
+import {updateCategories} from "../../services/categoryService";
+import {onChangeMediaToUpload} from "../../utils/gcloud.utils";
+import {CompanyModel} from "../../model/companyModel";
+import {generateCustomID} from "../../utils/text.utils";
+import exp from "constants";
 
 export const expenseTypeList: ExpenseTypes[] = ['promotion', 'merchant', 'office', 'other', 'fuel'];
 
@@ -21,6 +30,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
     const [commerces, setCommerces] = React.useState<CommerceModel[]>([]);
     const [creatingNewCommerce, setCreatingNewCommerce] = React.useState<boolean>(false);
     const [editCommerceMode, setEditCommerceMode] = React.useState<boolean>(false);
+    const [invoiceFileTarget, setInvoiceTarget] = React.useState<any>();
 
     React.useEffect(() => {
         loadData();
@@ -64,12 +74,34 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
         });
     }
 
-    const handleOnSubmit = (ev: any) => {
+    const handleOnSubmit = async (ev: any) => {
         if (editCommerceMode) return;
-
         ev.preventDefault();
-        console.log('expense', expense);
-        onSubmit && onSubmit(expense);
+        const expenseObj = {...expense}
+
+
+        if (invoiceFileTarget?.files?.length) {
+            setLoadingData(true);
+            const uploadCallBack = async (media: IMedia) => {
+                onSubmit && onSubmit({
+                    ...expenseObj,
+                    invoice: media.content,
+                });
+                // deleting last filr
+                if(expense._id && expense.invoice) {
+                    await deletePhoto(expense.invoice.split('/').pop() as string)
+                }
+
+                setLoadingData(false);
+            }
+
+            await onChangeMediaToUpload('invoice',
+                uploadCallBack,
+                `${expense.commerce.name}-invoice-${generateCustomID()}`
+            )({ target: invoiceFileTarget } as React.ChangeEvent<HTMLInputElement>);
+        } else {
+            onSubmit && onSubmit(expenseObj);
+        }
     }
 
     const onSelectCommerce = (list: CommerceModel[], item: CommerceModel) => {
@@ -121,8 +153,11 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
 
     const expenseIsValid = React.useMemo(() => {
         return !!(expense.commerce?._id && expense.type && expense.date && expense.amount && expense.total && expense.paymentType);
-    },[expense]);
+    }, [expense]);
 
+    const handleInvoiceMedia = async (event: React.ChangeEvent<HTMLInputElement>) => {
+        setInvoiceTarget(event.target);
+    }
 
     const CommerceInputs = (<>
             <FormGroup>
@@ -150,7 +185,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
                             onChange={onChangeCommerceData}
                             name="name"
                             id="name"
-                            value={commerceData?.name} />}
+                            value={commerceData?.name}/>}
                     {expense.commerce?._id && !editCommerceMode &&
                         <div>
                             <Button onClick={toggleEditCommerceMode} color="info" id={`update-commerce-btn`} outline>
@@ -171,7 +206,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
                         onChange={onChangeCommerceData}
                         name="rnc"
                         id="rnc"
-                        value={ editCommerceMode ? commerceData.rnc : expense.commerce?.rnc || commerceData?.rnc}/>
+                        value={editCommerceMode ? commerceData.rnc : expense.commerce?.rnc || commerceData?.rnc}/>
                 </div>
                 {!expense.commerce?._id && commerceData?.name &&
                     <Button color="info" className="w-100 my-2"
@@ -182,6 +217,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
             </FormGroup>
         </>
     )
+
 
     return (
         <Form onSubmit={handleOnSubmit} className="position-relative">
@@ -197,7 +233,8 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
 
             {editCommerceMode &&
                 <FormGroup className="d-flex justify-content-stretch align-items-center gap-4">
-                    <Button color="danger" className="flex-grow-1" onClick={toggleEditCommerceMode} outline>Cancelar</Button>
+                    <Button color="danger" className="flex-grow-1" onClick={toggleEditCommerceMode}
+                            outline>Cancelar</Button>
                     <Button color="primary" className="flex-grow-1" onClick={handleUpdateCommerce}>Actualizar</Button>
                 </FormGroup>
             }
@@ -250,7 +287,8 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
                 </FormGroup>
                 <FormGroup>
                     <Label>Tipo de Pago:</Label>
-                    <Input placeholder="Tipo de Pago" onChange={onChangeExpense} name="paymentType" value={expense.paymentType}
+                    <Input placeholder="Tipo de Pago" onChange={onChangeExpense} name="paymentType"
+                           value={expense.paymentType}
                            type="select">
                         <option value="">Select</option>
                         {orderPaymentTypeList.map((type: string) =>
@@ -272,8 +310,19 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
                                value={expense.description}/>
                     </div>
                 </FormGroup>
+                <FormGroup>
+                    {expense.invoice && <span>{expense.invoice.split('/').pop()}</span>}
+                    <Label><b>Subir Factura</b> <br/>
+                        <Input className=""
+                               type="file"
+                               name="wallpaper"
+                               accept="image/png,image/jpg,image/jpeg,application/pdf"
+                               onChange={handleInvoiceMedia}/>
+                    </Label>
+                </FormGroup>
                 <FormGroup className="d-flex justify-content-stretch align-items-center">
-                    <Button disabled={!expenseIsValid} type="submit" color="primary" className="flex-grow-1">Enviar</Button>
+                    <Button disabled={!expenseIsValid} type="submit" color="primary"
+                            className="flex-grow-1">Enviar</Button>
                 </FormGroup>
             </>}
         </Form>
