@@ -5,9 +5,12 @@ export const whatsappSessionKeys: {[K in WhatsappSessionTypes]: WhatsappSessionT
     betuelgroup: 'betuelgroup',
     betueltravel: 'betueltravel',
 }
+
+export interface IAudioFile { content: string, fileName: string }
 export interface IWhatsappMessage {
     text?: string;
     photo?: Blob;
+    audio?: IAudioFile;
 }
 
 export const whatsappSessionNames: {[K in WhatsappSessionTypes & any]: string} = {

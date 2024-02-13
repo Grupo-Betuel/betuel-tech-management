@@ -18,6 +18,7 @@ import {toast} from "react-toastify";
 import useWhatsapp, {whatsappSeedStorePrefix} from "../hooks/UseWhatsapp";
 import {TagContainer, TagItem} from "../Tag/Tag";
 import {
+    IAudioFile,
     IWsGroup,
     IWsLabel, IWsUser, WhatsappSeedTypes,
     whatsappSessionKeys,
@@ -80,6 +81,7 @@ const Messaging: React.FC<IMessaging> = (
     const [message, setMessage] = useState<string>('')
     const [onlySendImagesIds, setOnlySendImagesIds] = useState<string[]>([]);
     const [photo, setPhoto] = useState<any>()
+    const [audio, setAudio] = useState<IAudioFile>()
     const [labeledUsers, setLabeledUsers] = React.useState<IWsUser[]>([]);
     const [groupedUsers, setGroupedUsers] = React.useState<IWsUser[]>([]);
     const [excludedWhatsappUsers, setExcludedWhatsappUsers] = React.useState<IWsUser[]>([]);
@@ -186,11 +188,11 @@ const Messaging: React.FC<IMessaging> = (
                 }
 
                 parseUrlToBase64(product.image, async (image: Blob) => {
-                    await sendMessage(sessionId, whatsappUsers, {text, photo: image})
+                    await sendMessage(sessionId, whatsappUsers, {text, photo: image, audio})
                 });
             }));
         } else {
-            sendMessage(sessionId, whatsappUsers, {text: message, photo})
+            sendMessage(sessionId, whatsappUsers, {text: message, photo, audio});
         }
     }
 
@@ -211,6 +213,20 @@ const Messaging: React.FC<IMessaging> = (
             }
 
             fr.readAsDataURL(files[0]);
+        }
+    }
+
+    const onSelectAudio = async (event: any) => {
+        const {files} = event.target;
+        if (FileReader && files.length) {
+            const fr = new FileReader();
+            const file = files[0];
+
+            fr.onload = async () => {
+                setAudio({content: fr.result as any, fileName: file.name});
+                toast('Audio cargado con exito', {type: 'success'});
+            }
+            fr.readAsDataURL(file);
         }
     }
 
@@ -266,12 +282,12 @@ const Messaging: React.FC<IMessaging> = (
         } else if (actionToConfirm === 'close') {
             await logOut(selectedSession)
         } else if (actionToConfirm === 'all' || actionToConfirm === 'users' || actionToConfirm === 'groups' || actionToConfirm === 'labels') {
-           setFetchingSeed(actionToConfirm);
+            setFetchingSeed(actionToConfirm);
             fetchWsSeedData(selectedSession, actionToConfirm).then(() => {
                 toast('¡Datos Actualizados!', {type: 'success'});
                 setFetchingSeed(undefined);
             });
-        } else if(actionToConfirm === 'cancel-messaging') {
+        } else if (actionToConfirm === 'cancel-messaging') {
             stopMessaging();
         }
         setActionToConfirm(undefined);
@@ -303,10 +319,11 @@ const Messaging: React.FC<IMessaging> = (
                     (
                         <div className="loading-sale-container">
                             <Spinner animation="grow" variant="secondary"/>
-                            {stopMessagingId && <Button onClick={handleActionToConfirm('cancel-messaging')} color="danger">
-                                Cancelar
-                                <i className={`bi bi-x-lg`}/>
-                            </Button>}
+                            {stopMessagingId &&
+                                <Button onClick={handleActionToConfirm('cancel-messaging')} color="danger">
+                                    Cancelar
+                                    <i className={`bi bi-x-lg`}/>
+                                </Button>}
                         </div>
                     ) : null
             }
@@ -328,7 +345,8 @@ const Messaging: React.FC<IMessaging> = (
                         options={seedData.users || []} // Options to display in the dropdown
                         displayValue="fullName" // Property name to display in the dropdown options
                     />
-                    <Button disabled={fetchingSeed === 'users'} onClick={handleActionToConfirm('users')} color="info" outline><i
+                    <Button disabled={fetchingSeed === 'users'} onClick={handleActionToConfirm('users')} color="info"
+                            outline><i
                         className={`bi bi-arrow-clockwise ${fetchingSeed === 'users' ? 'rotate' : ''}`}></i></Button>
                 </div>
 
@@ -342,7 +360,8 @@ const Messaging: React.FC<IMessaging> = (
                             onSelect={handleGroupSelection}
                             onRemove={handleGroupSelection}
                         />
-                        <Button disabled={fetchingSeed === 'groups'} onClick={handleActionToConfirm('groups')} color="info" outline><i
+                        <Button disabled={fetchingSeed === 'groups'} onClick={handleActionToConfirm('groups')}
+                                color="info" outline><i
                             className={`bi bi-arrow-clockwise ${fetchingSeed === 'groups' ? 'rotate' : ''}`}></i></Button>
                     </div>
                     <Multiselect
@@ -369,7 +388,8 @@ const Messaging: React.FC<IMessaging> = (
                             onRemove={handleLabelSelection}
                             isObject={true}
                         />
-                        <Button disabled={fetchingSeed === 'labels'} onClick={handleActionToConfirm('labels')} color="info" outline><i
+                        <Button disabled={fetchingSeed === 'labels'} onClick={handleActionToConfirm('labels')}
+                                color="info" outline><i
                             className={`bi bi-arrow-clockwise ${fetchingSeed === 'labels' ? 'rotate' : ''}`}></i></Button>
                     </div>
                     <Multiselect
@@ -424,7 +444,7 @@ const Messaging: React.FC<IMessaging> = (
 
                     <div className="mt-3 mb-5">
                         <label className="btn btn-outline-info w-100" htmlFor="file">
-                            Cargar Archivo
+                            Cargar Imagen
                         </label>
                         <input
                             className="invisible"
@@ -433,6 +453,20 @@ const Messaging: React.FC<IMessaging> = (
                             name="file"
                             id="file"
                             accept="image/png,image/jpg,image/gif,image/jpeg"
+                        />
+                    </div>
+                    <div className="mt-3 mb-5">
+                      {audio?.fileName && <span className="text-success">Audio: {audio?.fileName}</span>}
+                        <label className="btn btn-outline-info w-100" htmlFor="audioFile">
+                            Subir Audio
+                        </label>
+                        <input
+                            className="invisible"
+                            onChange={onSelectAudio}
+                            type="file"
+                            name="audioFile"
+                            id="audioFile"
+                            accept="audio/*"
                         />
                     </div>
                     <Button className="float-right" color="success" outline
@@ -449,16 +483,16 @@ const Messaging: React.FC<IMessaging> = (
                     <Button color="primary" onClick={handleSessionAction}>Confirmar</Button>{' '}
                     <Button color="secondary" onClick={handleActionToConfirm()}>Cancel</Button>
                 </ModalFooter>
-            </Modal>  <Modal isOpen={!!actionToConfirm} toggle={handleActionToConfirm()}>
-                <ModalHeader toggle={handleActionToConfirm()}>Confirmación</ModalHeader>
-                <ModalBody>
-                    ¿Estas Seguro que deseas realizar esta acción?
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="primary" onClick={handleSessionAction}>Confirmar</Button>{' '}
-                    <Button color="secondary" onClick={handleActionToConfirm()}>Cancel</Button>
-                </ModalFooter>
-            </Modal>
+            </Modal> <Modal isOpen={!!actionToConfirm} toggle={handleActionToConfirm()}>
+            <ModalHeader toggle={handleActionToConfirm()}>Confirmación</ModalHeader>
+            <ModalBody>
+                ¿Estas Seguro que deseas realizar esta acción?
+            </ModalBody>
+            <ModalFooter>
+                <Button color="primary" onClick={handleSessionAction}>Confirmar</Button>{' '}
+                <Button color="secondary" onClick={handleActionToConfirm()}>Cancel</Button>
+            </ModalFooter>
+        </Modal>
         </MessagingContainer>
     )
 }
