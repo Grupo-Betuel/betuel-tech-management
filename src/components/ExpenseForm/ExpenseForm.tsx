@@ -254,7 +254,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
                 <FormGroup>
                     <Label for="date">Fecha:</Label>
                     <Input onChange={onChangeExpense} type="date" name="date" id="date"
-                           value={formatedDate}
+                           value={expense?.date as any}
                     />
                 </FormGroup>
                 <FormGroup>
