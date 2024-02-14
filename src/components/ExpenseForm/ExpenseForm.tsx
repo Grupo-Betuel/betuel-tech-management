@@ -47,7 +47,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
 
     React.useEffect(() => {
         if (expenseData) {
-            setExpense(expenseData);
+            setExpense({...expenseData, date: new Date(expenseData.date as any)});
         }
     }, [expenseData]);
 
@@ -88,7 +88,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
                     invoice: media.content,
                 });
                 // deleting last filr
-                if(expense._id && expense.invoice) {
+                if (expense._id && expense.invoice) {
                     await deletePhoto(expense.invoice.split('/').pop() as string)
                 }
 
@@ -98,7 +98,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
             await onChangeMediaToUpload('invoice',
                 uploadCallBack,
                 `${expense.commerce.name}-invoice-${generateCustomID()}`
-            )({ target: invoiceFileTarget } as React.ChangeEvent<HTMLInputElement>);
+            )({target: invoiceFileTarget} as React.ChangeEvent<HTMLInputElement>);
         } else {
             onSubmit && onSubmit(expenseObj);
         }
@@ -132,10 +132,22 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
     }
 
     const formatedDate = React.useMemo(() => {
-        const date = new Date(expense.date);
+        let date = new Date();
+        if (expense.date.toString().length > 12) {
+            date = new Date(expense.date);
+
+        } else {
+            const splitDate = expense.date.toString()?.split('-');
+            date = new Date(`${splitDate[1]}-${splitDate[2]}-${splitDate[0]}`);
+        }
+
         const month = String(date.getMonth() + 1).padStart(2, '0');
-        return `${date.getFullYear()}-${month}-${date.getDate()}`
+        const day = String(date.getDate()).padStart(2, '0');
+        // return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-${String(date.getDate()).padStart(2, '0')}`;
+        const value = `${date.getFullYear()}-${month}-${day}`
+        return value
     }, [expense.date]);
+
 
     const toggleEditCommerceMode = () => setEditCommerceMode(!editCommerceMode);
 
@@ -254,7 +266,7 @@ export const ExpenseForm = ({onSubmit, expenseData}: IExpenseFormProps) => {
                 <FormGroup>
                     <Label for="date">Fecha:</Label>
                     <Input onChange={onChangeExpense} type="date" name="date" id="date"
-                           value={expense?.date as any}
+                           value={formatedDate}
                     />
                 </FormGroup>
                 <FormGroup>
