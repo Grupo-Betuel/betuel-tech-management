@@ -208,6 +208,9 @@ export const Accounting = () => {
                         Total
                     </th>
                     <th>
+                        Factura
+                    </th>
+                    <th>
 
                     </th>
                 </tr>
@@ -225,7 +228,9 @@ export const Accounting = () => {
                                     {item.taxReceipt}
                                 </td>
                                 <td>
-                                    {item.description}
+                                    <div className="text-truncate" style={{width: "100px"}}>
+                                        {item.description}
+                                    </div>
                                 </td>
                                 <td>
                                     {date ? `${date.toLocaleDateString('ES-es')}` : 'n/a'}
@@ -244,6 +249,9 @@ export const Accounting = () => {
                                 </td>
                                 <td>
                                     RD${item.total.toLocaleString()}
+                                </td>
+                                <td>
+                                    <a href={item.invoice}>Ver Factura</a>
                                 </td>
                                 <div className="accounting__expenses-table--actions">
                                     <div>
