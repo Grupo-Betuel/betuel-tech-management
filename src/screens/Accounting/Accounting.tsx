@@ -228,7 +228,7 @@ export const Accounting = () => {
                                     {item.taxReceipt}
                                 </td>
                                 <td>
-                                    <div className="text-truncate" style={{width: "100px"}}>
+                                    <div className="text-truncate" style={{width: "150px"}}>
                                         {item.description}
                                     </div>
                                 </td>
