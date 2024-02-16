@@ -252,7 +252,7 @@ export const Accounting = () => {
                                     RD${item.total.toLocaleString()}
                                 </td>
                                 <td>
-                                    <a target="_blank" href={item.invoice}>Ver Factura</a>
+                                    <a target="_blank" href={item.invoice}>{item.invoice}</a>
                                 </td>
                                 <div className="accounting__expenses-table--actions">
                                     <div>
