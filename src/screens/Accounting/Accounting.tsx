@@ -18,6 +18,7 @@ import {useConfirmAction} from "../../components/hooks/confirmActionHook";
 import {CommonActionTypes} from "../../model/common";
 import {deleteExpense} from "../../services/expensesService";
 import {IDateMonth, months, years} from "../../utils/date.utils";
+import {generateCustomID} from "../../utils/text.utils";
 
 
 export const Accounting = () => {
@@ -102,7 +103,7 @@ export const Accounting = () => {
         })
     }
 
-    const exportFilename = React.useMemo(() => `gastos-grupo-betuel-SRL-${dateFilter.month.toString().padStart(2, '0')}-${dateFilter.year}`, [dateFilter]);
+    const exportFilename = React.useMemo(() => `gastos-grupo-betuel-SRL-${dateFilter.month.toString().padStart(2, '0')}-${dateFilter.year}-${generateCustomID()}`, [dateFilter]);
 
     return (
         <div className="accounting">
@@ -251,7 +252,7 @@ export const Accounting = () => {
                                     RD${item.total.toLocaleString()}
                                 </td>
                                 <td>
-                                    <a href={item.invoice}>Ver Factura</a>
+                                    <a target="_blank" href={item.invoice}>Ver Factura</a>
                                 </td>
                                 <div className="accounting__expenses-table--actions">
                                     <div>
