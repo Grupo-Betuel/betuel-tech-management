@@ -38,6 +38,7 @@ export type OrderActionTypes =
 
 export interface IOrderListProps {
     orders: IOrder[];
+    stopRequestingMessengerIds: { [N in string]: string };
     updateOrdersList: (orders: IOrder[]) => void;
     messengers: IMessenger[];
     originalOrders: { [N in string]: IOrder };
@@ -49,6 +50,7 @@ export interface IOrderListProps {
     updateOrderLocation: (order: IOrder, link: string) => Promise<void>;
     selectedOrders: IOrder[];
     selectOrder: (order: IOrder) => void;
+    stopRequestingMessenger: (orderId: string) => void;
 }
 
 export const OrderList = (
@@ -65,6 +67,8 @@ export const OrderList = (
         sendOrderResume,
         selectedOrders,
         selectOrder,
+        stopRequestingMessenger,
+        stopRequestingMessengerIds
     }: IOrderListProps) => {
     const history = useHistory();
     const [actionToConfirm, setActionToConfirm] = React.useState<OrderActionTypes>();
@@ -175,7 +179,12 @@ export const OrderList = (
         try {
             if (actionDataToConfirm) {
                 if (actionToConfirm === 'request-messengers') {
-                    await handleRequestMessenger(actionDataToConfirm);
+                    const isRequesting = !!stopRequestingMessengerIds[actionDataToConfirm._id];
+                    if (isRequesting) {
+                        await stopRequestingMessenger(actionDataToConfirm._id);
+                    } else {
+                        await handleRequestMessenger(actionDataToConfirm);
+                    }
                 } else if (actionToConfirm === 'update-location') {
                     await handleUpdateOrderLocation(actionDataToConfirm);
                 } else if (actionToConfirm === 'order-resume') {
@@ -265,206 +274,213 @@ export const OrderList = (
             </div>
             <div className="orders-management-grid">
 
-                {orders.map((order) => (
-                    <Card
-                        key={order._id}
-                        color={orderStatusCardColor[order.status]}
-                        outline={order.fromSocket}
-                        inverse={order.status === 'personal-assistance'}
-                        onClick={handleSelectOrder(order)}
-                        className={`orders-management-grid-item ${isSelected(order) ? 'selected' : ''}`}
+                {orders.map((order) => {
+                    const orderIsBeingRequested = !!stopRequestingMessengerIds[order._id];
+                    return (
+                        <Card
+                            key={order._id}
+                            color={orderStatusCardColor[order.status]}
+                            outline={order.fromSocket}
+                            inverse={order.status === 'personal-assistance'}
+                            onClick={handleSelectOrder(order)}
+                            className={`orders-management-grid-item ${isSelected(order) ? 'selected' : ''}`}
 
-                    >
-                        <CardBody>
-                            <CardText>
-                                <b>ID: </b> {(order.orderNumber || order._id).toString().toUpperCase()}
-                                <br/><b>from: </b>{order.from}.
-                                <br/><b>Creacion: </b>{new Date(order.createDate).toLocaleDateString()}.
-                                <br/><b>Last Update: </b>{new Date(order.updateDate).toLocaleDateString()}.
-                            </CardText>
-                        </CardBody>
-                        <ListGroup flush>
-                            <ListGroupItem>
-                                <b>Tienda</b>: {order.company}
-                            </ListGroupItem>
-                            <ListGroupItem>
-                                <b>{order.sales.length} Productos</b>
-                            </ListGroupItem>
-                            <ListGroupItem>
-                                <b>Subtotal</b>: RD${order.total?.toLocaleString()}
-                            </ListGroupItem>
-                            <ListGroupItem className="d-flex gap-2 align-items-center">
-                                <b className="text-nowrap">Envio: RD$</b>
-                                <Input
-                                    onClick={avoidPropagation}
-                                    value={order.shippingPrice}
-                                    onChange={onChangeOrder(order)}
-                                    type={'number'}
-                                    name="shippingPrice"/>
-                            </ListGroupItem>
-                            <ListGroupItem>
-                                <b>Total</b>: RD${(order.total + order.shippingPrice)?.toLocaleString()}
-                            </ListGroupItem>
-                            <ListGroupItem>
-                                <b>Beneficio</b>: {getOrderProfit(order)}
-                            </ListGroupItem>
-                            <ListGroupItem className="d-flex gap-2 align-items-center">
-                                <b className="text-nowrap">Tipo de Pago</b>:
-                                <Input
-                                    onClick={avoidPropagation}
-                                    placeholder="Tipos de Pagos"
-                                    name="paymentType"
-                                    onChange={onChangeOrder(order)} value={order.paymentType}
-                                    type="select">
-                                    <option value="">Seleccionar</option>
-                                    {orderPaymentTypeList.map((type: string) =>
-                                        <option value={type} key={type}>{type}</option>)
-                                    }
-                                </Input>
-                            </ListGroupItem>
-                            {order.paymentType === 'transfer' &&
-                                <ListGroupItem className="d-flex gap-2 flex-column">
-                                    <b className="text-nowrap">Estado de Transferencia</b>
-                                    <i>{getTransferStatus(order)}</i>
-                                    {order.transferReceipt && order.transferReceipt.status === 'pending' &&
-                                        <Button color="success" onClick={
-                                            sendActionToConfirm('transfer-confirmed',
-                                                {
-                                                    ...order,
-                                                    status: 'pending',
-                                                    transferReceipt: {
-                                                        ...order.transferReceipt,
-                                                        status: 'confirmed',
-                                                        confirmedBy: 'admin',
-                                                    }
-                                                })}>Confirmar Transferencia</Button>}
-                                    <label
-                                        onClick={avoidPropagation}
-                                        className="btn btn-outline-success w-100 position-relative" htmlFor="file">
-                                        Subir {order.transferReceipt && 'otro'} recibo
-                                        <input
-                                            onClick={avoidPropagation}
-                                            className="invisible position-absolute top-0 left-0 start-0"
-                                            onChange={onChangeTransferReceipt(order)}
-                                            type="file"
-                                            name="file"
-                                            id="file"
-                                            accept="image/png,image/jpg,image/jpeg"
-                                        />
-                                    </label>
-
-                                </ListGroupItem>}
-                            <ListGroupItem className="d-flex gap-2 align-items-center">
-                                <b className="text-nowrap">Tipo de Orden:</b>
-                                <Input placeholder="Tipos"
-                                       name="type"
-                                       onClick={avoidPropagation}
-                                       onChange={onChangeOrder(order)} value={order.type}
-                                       type="select">
-                                    <option value="">Seleccionar</option>
-
-                                    {orderTypeList.map((type: string) =>
-                                        <option value={type} key={type}>{type}</option>)
-                                    }
-                                </Input>
-                            </ListGroupItem>
-                            <ListGroupItem className="d-flex gap-2 align-items-center">
-                                <b>Estado:</b> <Input placeholder="Estados"
-                                                      name="status"
-                                                      onChange={onChangeOrder(order)} value={order.status}
-                                                      type="select">
-                                <option value="">Seleccionar</option>
-
-                                {orderStatusList.map((type: string) =>
-                                    <option value={type} key={type}>{type}</option>)
-                                }
-                            </Input>
-
-                            </ListGroupItem>
-                            <ListGroupItem className="d-flex align-items-center gap-2 justify-content-between">
-                                <div>
-                                    <b>Cliente:</b> {order.client?.firstName}
-                                </div>
-                                <Button color="primary" outline><a target="_blank" className="text-decoration-none"
-                                                                   href={getWhatsappNumberURl(order?.client?.phone)}>Contactar</a></Button>
-                            </ListGroupItem>
-                            {!!order?.location?.distance &&
+                        >
+                            <CardBody>
+                                <CardText>
+                                    <b>ID: </b> {(order.orderNumber || order._id).toString().toUpperCase()}
+                                    <br/><b>from: </b>{order.from}.
+                                    <br/><b>Creacion: </b>{new Date(order.createDate).toLocaleDateString()}.
+                                    <br/><b>Last Update: </b>{new Date(order.updateDate).toLocaleDateString()}.
+                                </CardText>
+                            </CardBody>
+                            <ListGroup flush>
                                 <ListGroupItem>
-                                    <b>Distancia</b>: {order?.location?.distance} {order?.location?.distanceUnit}
-                                </ListGroupItem>}
-                            <ListGroupItem className="d-flex gap-2 align-items-center">
-                                <b>Mensajero:</b>
-                                <Input placeholder="Mensajero"
-                                       name="messenger"
-                                       onClick={avoidPropagation}
-                                       onChange={onChangeOrder(order)} value={order.messenger?._id || ''}
-                                       type="select">
-                                    <option value="">Select Messenger</option>
-                                    {messengers.map((m: IMessenger) =>
-                                        <option value={m._id} key={m._id}>{m.firstName} {m.lastName}</option>)
+                                    <b>Tienda</b>: {order.company}
+                                </ListGroupItem>
+                                <ListGroupItem>
+                                    <b>{order.sales.length} Productos</b>
+                                </ListGroupItem>
+                                <ListGroupItem>
+                                    <b>Subtotal</b>: RD${order.total?.toLocaleString()}
+                                </ListGroupItem>
+                                <ListGroupItem className="d-flex gap-2 align-items-center">
+                                    <b className="text-nowrap">Envio: RD$</b>
+                                    <Input
+                                        onClick={avoidPropagation}
+                                        value={order.shippingPrice}
+                                        onChange={onChangeOrder(order)}
+                                        type={'number'}
+                                        name="shippingPrice"/>
+                                </ListGroupItem>
+                                <ListGroupItem>
+                                    <b>Total</b>: RD${(order.total + order.shippingPrice)?.toLocaleString()}
+                                </ListGroupItem>
+                                <ListGroupItem>
+                                    <b>Beneficio</b>: {getOrderProfit(order)}
+                                </ListGroupItem>
+                                <ListGroupItem className="d-flex gap-2 align-items-center">
+                                    <b className="text-nowrap">Tipo de Pago</b>:
+                                    <Input
+                                        onClick={avoidPropagation}
+                                        placeholder="Tipos de Pagos"
+                                        name="paymentType"
+                                        onChange={onChangeOrder(order)} value={order.paymentType}
+                                        type="select">
+                                        <option value="">Seleccionar</option>
+                                        {orderPaymentTypeList.map((type: string) =>
+                                            <option value={type} key={type}>{type}</option>)
+                                        }
+                                    </Input>
+                                </ListGroupItem>
+                                {order.paymentType === 'transfer' &&
+                                    <ListGroupItem className="d-flex gap-2 flex-column">
+                                        <b className="text-nowrap">Estado de Transferencia</b>
+                                        <i>{getTransferStatus(order)}</i>
+                                        {order.transferReceipt && order.transferReceipt.status === 'pending' &&
+                                            <Button color="success" onClick={
+                                                sendActionToConfirm('transfer-confirmed',
+                                                    {
+                                                        ...order,
+                                                        status: 'pending',
+                                                        transferReceipt: {
+                                                            ...order.transferReceipt,
+                                                            status: 'confirmed',
+                                                            confirmedBy: 'admin',
+                                                        }
+                                                    })}>Confirmar Transferencia</Button>}
+                                        <label
+                                            onClick={avoidPropagation}
+                                            className="btn btn-outline-success w-100 position-relative" htmlFor="file">
+                                            Subir {order.transferReceipt && 'otro'} recibo
+                                            <input
+                                                onClick={avoidPropagation}
+                                                className="invisible position-absolute top-0 left-0 start-0"
+                                                onChange={onChangeTransferReceipt(order)}
+                                                type="file"
+                                                name="file"
+                                                id="file"
+                                                accept="image/png,image/jpg,image/jpeg"
+                                            />
+                                        </label>
+
+                                    </ListGroupItem>}
+                                <ListGroupItem className="d-flex gap-2 align-items-center">
+                                    <b className="text-nowrap">Tipo de Orden:</b>
+                                    <Input placeholder="Tipos"
+                                           name="type"
+                                           onClick={avoidPropagation}
+                                           onChange={onChangeOrder(order)} value={order.type}
+                                           type="select">
+                                        <option value="">Seleccionar</option>
+
+                                        {orderTypeList.map((type: string) =>
+                                            <option value={type} key={type}>{type}</option>)
+                                        }
+                                    </Input>
+                                </ListGroupItem>
+                                <ListGroupItem className="d-flex gap-2 align-items-center">
+                                    <b>Estado:</b> <Input placeholder="Estados"
+                                                          name="status"
+                                                          onChange={onChangeOrder(order)} value={order.status}
+                                                          type="select">
+                                    <option value="">Seleccionar</option>
+
+                                    {orderStatusList.map((type: string) =>
+                                        <option value={type} key={type}>{type}</option>)
                                     }
                                 </Input>
-                            </ListGroupItem>
-                            {order.type === 'shipping' && order.paymentType &&
-                                <ListGroupItem className="d-flex flex-column gap-4">
-                                    <div className="d-flex flex-column gap-2">
-                                        <b>Ubicacion</b>
-                                        <Input
-                                            onClick={avoidPropagation}
-                                            placeholder="Ubicacion"
-                                            name="messenger"
-                                            value={ordersLocation[order._id]}
-                                            onChange={onChangeOrderLocation(order)}
-                                        />
+
+                                </ListGroupItem>
+                                <ListGroupItem className="d-flex align-items-center gap-2 justify-content-between">
+                                    <div>
+                                        <b>Cliente:</b> {order.client?.firstName}
                                     </div>
-                                    {ordersLocation[order._id] && ordersLocation[order._id] !== order.location?.link &&
-                                        <Button color="info" outline
-                                                onClick={sendActionToConfirm('update-location', order)}>Cambiar
-                                            Ubicacion</Button>}
-                                </ListGroupItem>}
-                        </ListGroup>
-                        <CardBody className="d-flex justify-content-between flex-wrap gap-2">
-                            {orderHasChanged(order) &&
-                                <>
-                                    <Button color="primary" className="text-nowrap w-100 align-self-start"
-                                            onClick={handleUpdateOrder(order)}>
-                                        Guardar Cambios
-                                    </Button>
-                                    <Button color="warning" className="text-nowrap w-100 align-self-start"
-                                            onClick={resetOrderChanges(order)}>
-                                        Revertir Cambios
-                                    </Button>
-                                </>
-                            }
-                            <Button color="danger" className="text-nowrap align-self-start"
-                                    onClick={handleDeleteOrder(order)}>
-                                Eliminar
-                            </Button>
-                            <Button color="primary" className="text-nowrap align-self-start"
-                                    onClick={goToDetail(order)}>
-                                Detalles
-                            </Button>
-                            {enableSendResume(order) &&
-                                <Button color="info" className="text-nowrap w-100 align-self-start"
-                                        onClick={sendActionToConfirm('order-resume', order)}>
-                                    Enviar Resumen al Cliente
-                                </Button>}
-                            <Button color="primary" className="text-nowrap w-100 align-self-start"
-                                    onClick={sendActionToConfirm('handle-order', order)}>
-                                Procesar con b-bOt
-                            </Button>
-                            {order.type === 'shipping' && order.paymentType && order.location && orderIsPending(order) &&
-                                <Button color="warning" className="text-nowrap w-100 align-self-start"
-                                        onClick={sendActionToConfirm('request-messengers', order)}>
-                                    Solicitar Mensajeros
-                                </Button>}
-                            {order.type && order.paymentType && !order.finished &&
-                                <Button color="success" className="text-nowrap w-100 align-self-start"
-                                        onClick={sendActionToConfirm('handle-order', {...order, status: 'completed' })}>
-                                    Finalizar Orden
-                                </Button>}
-                        </CardBody>
-                    </Card>))}
+                                    <Button color="primary" outline><a target="_blank" className="text-decoration-none"
+                                                                       href={getWhatsappNumberURl(order?.client?.phone)}>Contactar</a></Button>
+                                </ListGroupItem>
+                                {!!order?.location?.distance &&
+                                    <ListGroupItem>
+                                        <b>Distancia</b>: {order?.location?.distance} {order?.location?.distanceUnit}
+                                    </ListGroupItem>}
+                                <ListGroupItem className="d-flex gap-2 align-items-center">
+                                    <b>Mensajero:</b>
+                                    <Input placeholder="Mensajero"
+                                           name="messenger"
+                                           onClick={avoidPropagation}
+                                           onChange={onChangeOrder(order)} value={order.messenger?._id || ''}
+                                           type="select">
+                                        <option value="">Select Messenger</option>
+                                        {messengers.map((m: IMessenger) =>
+                                            <option value={m._id} key={m._id}>{m.firstName} {m.lastName}</option>)
+                                        }
+                                    </Input>
+                                </ListGroupItem>
+                                {order.type === 'shipping' && order.paymentType &&
+                                    <ListGroupItem className="d-flex flex-column gap-4">
+                                        <div className="d-flex flex-column gap-2">
+                                            <b>Ubicacion</b>
+                                            <Input
+                                                onClick={avoidPropagation}
+                                                placeholder="Ubicacion"
+                                                name="messenger"
+                                                value={ordersLocation[order._id]}
+                                                onChange={onChangeOrderLocation(order)}
+                                            />
+                                        </div>
+                                        {ordersLocation[order._id] && ordersLocation[order._id] !== order.location?.link &&
+                                            <Button color="info" outline
+                                                    onClick={sendActionToConfirm('update-location', order)}>Cambiar
+                                                Ubicacion</Button>}
+                                    </ListGroupItem>}
+                            </ListGroup>
+                            <CardBody className="d-flex justify-content-between flex-wrap gap-2">
+                                {orderHasChanged(order) &&
+                                    <>
+                                        <Button color="primary" className="text-nowrap w-100 align-self-start"
+                                                onClick={handleUpdateOrder(order)}>
+                                            Guardar Cambios
+                                        </Button>
+                                        <Button color="warning" className="text-nowrap w-100 align-self-start"
+                                                onClick={resetOrderChanges(order)}>
+                                            Revertir Cambios
+                                        </Button>
+                                    </>
+                                }
+                                <Button color="danger" className="text-nowrap align-self-start"
+                                        onClick={handleDeleteOrder(order)}>
+                                    Eliminar
+                                </Button>
+                                <Button color="primary" className="text-nowrap align-self-start"
+                                        onClick={goToDetail(order)}>
+                                    Detalles
+                                </Button>
+                                {enableSendResume(order) &&
+                                    <Button color="info" className="text-nowrap w-100 align-self-start"
+                                            onClick={sendActionToConfirm('order-resume', order)}>
+                                        Enviar Resumen al Cliente
+                                    </Button>}
+                                <Button color="primary" className="text-nowrap w-100 align-self-start"
+                                        onClick={sendActionToConfirm('handle-order', order)}>
+                                    Procesar con b-bOt
+                                </Button>
+                                {order.type === 'shipping' && order.paymentType && order.location && orderIsPending(order) &&
+                                    <Button color={orderIsBeingRequested ? 'danger' : 'warning'}
+                                            className="text-nowrap w-100 align-self-start"
+                                            onClick={sendActionToConfirm('request-messengers', order)}>
+                                        {orderIsBeingRequested ? 'Detener Solicitud de Mensajeros' : 'Solicitar Mensajeros'}
+                                    </Button>}
+                                {order.type && order.paymentType && !order.finished &&
+                                    <Button color="success" className="text-nowrap w-100 align-self-start"
+                                            onClick={sendActionToConfirm('handle-order', {
+                                                ...order,
+                                                status: 'completed'
+                                            })}>
+                                        Finalizar Orden
+                                    </Button>}
+                            </CardBody>
+                        </Card>)
+                })}
                 <Modal isOpen={!!actionToConfirm} toggle={resetActionToConfirm}>
                     <ModalHeader toggle={resetActionToConfirm}>Confirmación</ModalHeader>
                     <ModalBody>

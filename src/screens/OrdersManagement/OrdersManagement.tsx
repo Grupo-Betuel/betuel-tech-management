@@ -44,6 +44,7 @@ import { PrintOrdersSheet} from "../../components/PrintSheet/PrintOrdersSheet";
 import {ShippingCard} from "../../components/ShippingCard/ShippingCard";
 import {DraggableGridItem} from "../../components/DraggableGrid/DraggableGrid";
 import {betuelDanceShippingCardLayout} from "../../components/FlyerDesigner/constants/shipping-card-layouts";
+import {cancelWhatsappMessaging} from "../../services/promotions";
 
 const items: DraggableGridItem[] = [
     { id: '1', content: <ShippingCard layout={betuelDanceShippingCardLayout}/>, x: 0, y: 0, w:2, h:2 },
@@ -77,6 +78,7 @@ const maxOrderSelection = 6;
 
 export const OrdersManagement = () => {
     const [orders, setOrders] = useState<IOrder[]>([]);
+    const [stopRequestingMessengerIds, setStopRequestingMessengerIds] = useState<{ [N in string]: string }>({});
     const [messengers, setMessengers] = useState<IMessenger[]>([]);
     const [clients, setClients] = useState<IClient[]>([]);
     const [originalMessengers, setOriginalMessengers] = useState<IMessenger[]>([]);
@@ -134,6 +136,16 @@ export const OrdersManagement = () => {
                 const originalValues = (Object.values(originalOrders) as IOrder[])
                 setOriginalOrders(parseOrdersToObject([newOrder, ...originalValues]))
             })
+            onSocketOnce(socket, OrderEvents.REQUEST_ORDER_SHIPPING_START, (stopRequest: { [N in string]: string }) => {
+                const orderId = Object.keys(stopRequest)[0];
+                setStopRequestingMessengerIds({...stopRequestingMessengerIds, [orderId]: stopRequest[orderId]});
+            })
+            onSocketOnce(socket, OrderEvents.REQUEST_ORDER_SHIPPING_END, (stopRequest: { [N in string]: string }) => {
+                const orderId = Object.keys(stopRequest)[0];
+                const stopRequestData = structuredClone(stopRequestingMessengerIds);
+                delete stopRequestData[orderId];
+                setStopRequestingMessengerIds({ ...stopRequestData });
+            });
 
             onSocketOnce(socket, OrderEvents.UPDATED_ORDER, (order: IOrder) => {
                 let newOrderChanged = order;
@@ -152,23 +164,30 @@ export const OrdersManagement = () => {
                 setOriginalOrders(newOriginalOrders)
             })
 
-            onSocketOnce(socket, OrderEvents.UPDATED_MESSENGER, (messenger: IMessenger) => {
 
+            const updateMessengers = (eventMessengerData: IMessenger | IMessenger[]) => {
+                const eventMessengers = Array.isArray(eventMessengerData) ? eventMessengerData : [eventMessengerData];
                 const newMessengers = messengers.map((m) => {
-                    if (m._id === messenger._id) {
-                        return {...messenger, fromSocket: true};
+                    const msgData = eventMessengers.find((msg) => msg._id === m._id);
+                    if (msgData) {
+                        return {...msgData, fromSocket: true};
                     }
                     return m;
-                })
+                });
                 const newOriginalMessengers = originalMessengers.map((m) => {
-                    if (m._id === messenger._id) {
-                        return {...messenger, fromSocket: true};
+                    const msgData = eventMessengers.find((msg) => msg._id === m._id);
+                    if (msgData) {
+                        return {...msgData, fromSocket: true};
                     }
                     return m;
                 })
                 setMessengers(newMessengers)
                 setOriginalMessengers(newOriginalMessengers)
-            });
+            }
+
+            onSocketOnce(socket, OrderEvents.UPDATED_MESSENGER, updateMessengers);
+
+            onSocketOnce(socket, OrderEvents.UPDATED_MULTIPLE_MESSENGER, updateMessengers);
 
 
         }
@@ -364,6 +383,16 @@ export const OrdersManagement = () => {
     }
 
 
+    const stopMessaging = async (orderId: string) => {
+        if(stopRequestingMessengerIds[orderId]) {
+            await cancelWhatsappMessaging(stopRequestingMessengerIds[orderId]);
+            const stopMsgData = structuredClone(stopRequestingMessengerIds);
+            delete stopMsgData[orderId];
+            setStopRequestingMessengerIds(stopMsgData);
+        }
+    }
+
+
     return (
         <>
             <Modal isOpen={printModalOpen}
@@ -424,6 +453,8 @@ export const OrdersManagement = () => {
                     sendOrderResume={orderResume}
                     selectOrder={selectOrder}
                     selectedOrders={selectedOrders}
+                    stopRequestingMessengerIds={stopRequestingMessengerIds}
+                    stopRequestingMessenger={stopMessaging}
                 />
             }
             {activeTab === 'messenger' &&

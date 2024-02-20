@@ -28,4 +28,7 @@ export enum OrderEvents {
     UPDATED_ORDER = 'updated-order',
     CREATED_ORDER = 'created-order',
     UPDATED_MESSENGER = 'updated-messenger',
+    UPDATED_MULTIPLE_MESSENGER = 'updated-multiple-messengers',
+    REQUEST_ORDER_SHIPPING_START = 'request-order-shipping-start',
+    REQUEST_ORDER_SHIPPING_END = 'request-order-shipping-end',
 }
