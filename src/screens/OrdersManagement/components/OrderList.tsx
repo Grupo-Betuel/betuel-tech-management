@@ -8,7 +8,7 @@ import {
     ListGroupItem,
     Modal,
     ModalBody, ModalFooter,
-    ModalHeader
+    ModalHeader, Spinner
 } from "reactstrap";
 import {
     IOrder,
@@ -468,7 +468,11 @@ export const OrderList = (
                                     <Button color={orderIsBeingRequested ? 'danger' : 'warning'}
                                             className="text-nowrap w-100 align-self-start"
                                             onClick={sendActionToConfirm('request-messengers', order)}>
-                                        {orderIsBeingRequested ? 'Detener Solicitud de Mensajeros' : 'Solicitar Mensajeros'}
+                                        {orderIsBeingRequested ?
+                                            <div className="d-flex align-items-center justify-content-center gap-2">
+                                                <span>Detener Solicitud de Mensajeros</span>
+                                                <Spinner animation="grow" color="white"  size="sm" variant="secondary"/>
+                                            </div> : 'Solicitar Mensajeros'}
                                     </Button>}
                                 {order.type && order.paymentType && !order.finished &&
                                     <Button color="success" className="text-nowrap w-100 align-self-start"
