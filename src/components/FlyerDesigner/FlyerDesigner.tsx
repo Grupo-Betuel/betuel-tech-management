@@ -85,11 +85,6 @@ const referenceOptions: IReference[] = [
         type: 'price',
         label: 'Precio del producto'
     },
-
-    {
-        type: 'description',
-        label: 'Descripcion del producto'
-    },
 ]
 
 const flyerTemplateStoreKey = 'flyerTemplates';
