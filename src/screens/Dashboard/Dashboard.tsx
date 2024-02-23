@@ -29,7 +29,7 @@ import ProductModalForm from "../../components/ProductModalForm/ProductModalForm
 import {deleteProduct, getProducts} from "../../services/products";
 import {
     ecommerceNames,
-    ECommerceTypes, getScheduleStatus, handleSchedulePromotion,
+    ECommerceTypes, getScheduleStatus, handleSchedulePromotion, handleScheduleWsPromotion,
     promoteProduct, PublicationTypes,
 } from "../../services/promotions";
 import {IProduct} from "../../components/Product/Product";
@@ -156,6 +156,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const [loadingApp, setLoadingApp] = React.useState(false);
     const [clientModalIsOpen, setClientModalIsOpen] = React.useState(false);
     const [productFormIsOpen, setProductFormIsOpen] = React.useState(false);
+    const [whatsappPromotionIsRunning, setWhatsappPromotionIsRunning] = React.useState(false);
     const [productViewControlsVisibility, setProductViewControlsVisibility] = React.useState(true);
     const [promotionLoading, setPromotionLoading] = React.useState<{
         [N in ECommerceTypes | string]?: boolean;
@@ -560,6 +561,8 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     const handleScheduledPromotionStatus = async (company: CompanyModel = selectedCompany) => {
         const response = await getScheduleStatus(selectedCompanyId);
         const status: 'running' | 'npm' | 'error' = response.status;
+        const wsPromotionStatus = response.wsPromotionStatus
+        setWhatsappPromotionIsRunning(wsPromotionStatus === 'running')
         // toast(`${company.name} Automation is ${status}`);
         setPromotionLoading((data) => ({
             ...promotionLoading,
@@ -588,6 +591,18 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
             ...data,
             [sessionId]: status === "running"
         }));
+    };
+
+    const runWhatsappPromotion = async () => {
+        const action = whatsappPromotionIsRunning ? "stop" : "run";
+
+        const response: any = await (
+            await handleScheduleWsPromotion(action)
+        ).json();
+
+        const status: 'running' | 'stopped' | 'error' = response.status;
+        toast(`Whatsapp Promotion is ${status}`);
+        setWhatsappPromotionIsRunning(action === 'run');
     };
 
     const runPromotionEvents = () => {
@@ -870,6 +885,18 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                     !enableSelection ? "disable-promotions" : ""
                                 }`}
                             >
+                                <PromotionOption
+                                    loading={whatsappPromotionIsRunning}
+                                >
+                                    <Spinner
+                                        className="loading-spinner"
+                                        animation="grow"
+                                        variant="secondary"
+                                        size="sm"
+                                    />
+                                    <i className="bi bi-whatsapp cursor-pointer promotion-icon text-primary"
+                                       onClick={runWhatsappPromotion}/>
+                                </PromotionOption>
                                 <PromotionOption
                                     loading={promotionLoading[selectedCompanyId]}
                                 >

@@ -137,6 +137,23 @@ export const handleSchedulePromotion = async (
     }
 };
 
+export const handleScheduleWsPromotion = async (
+    action: 'run' | 'stop' = 'run'
+) => {
+    try {
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}schedule/whatsapp-promotion`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({action}),
+        });
+    } catch (e) {
+        throw e;
+    }
+};
+
 
 export const getScheduleStatus = async (
     clientId: string,
