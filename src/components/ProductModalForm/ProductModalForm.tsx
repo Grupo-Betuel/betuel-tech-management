@@ -167,8 +167,12 @@ const ProductModalForm: React.FC<IProductFormProps> = (
     }
 
     const onChangeProduct = async (ev: React.ChangeEvent<any>) => {
-        const {name, value, type} = ev.target;
-        const finalValue = type === "number" ? Number(value) : value;
+        const {name, value, type, checked} = ev.target;
+        let finalValue = type === "number" ? Number(value) : value;
+        if(type === 'checkbox' || type === 'radio') {
+            finalValue = checked;
+        }
+
         let priceData = {};
         // setting price values when cost is added
         if (name === 'cost') {
@@ -562,6 +566,12 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                             <Label for="price">Precio:</Label>
                             <Input onChange={onChangeProduct} type="number" name="price" id="price"
                                    value={product.price}/>
+                        </FormGroup>
+
+                        <FormGroup switch={true}>
+                            <Label for="newArrival">Es Nuevo?</Label>
+                            <Input onChange={onChangeProduct} type="switch" name="newArrival" id="newArrival"
+                                   checked={!!product.newArrival} role="switch" />
                         </FormGroup>
                         <FormGroup>
                             <Label for="price">Categoria:</Label>

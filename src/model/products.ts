@@ -17,6 +17,7 @@ export interface IProductData {
   productParams: IProductParam[];
   category: ICategory;
   facebookId?: string;
+  newArrival?: boolean;
   tags?: string[];
 }
 
