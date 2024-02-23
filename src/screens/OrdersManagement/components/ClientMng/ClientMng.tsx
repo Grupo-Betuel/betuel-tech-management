@@ -14,7 +14,7 @@ import {
 import React, {useMemo, useState} from "react";
 import {toast} from "react-toastify";
 import "./ClientMng.scss";
-import {IClient} from "../../../../model/ordersModels";
+import {clientStageList, IClient} from "../../../../model/interfaces/ClientModel";
 
 export interface IClientsMngProps {
     clients: IClient[];
@@ -104,6 +104,18 @@ export const ClientMng = ({
                             <Input value={clientToCreate.lastName || ''} name="lastName"
                                    onChange={onChangeClientToCreate}/>
                         </FormGroup>
+                        <FormGroup className="client-item">
+                            <Label for="stage">Etapa:</Label>
+                            <Input
+                                onChange={onChangeClientToCreate}
+                                type="select"
+                                name="stage"
+                                id="stage"
+                                value={clientToCreate.stage}
+                            >
+                                {clientStageList.map(stage => <option value={stage} key={stage}>{stage}</option>)}
+                            </Input>
+                        </FormGroup>
                         <FormGroup>
                             <Label><b>Whatsapp:</b></Label> <br/>
                             <Input minLength={10} maxLength={11}
@@ -114,7 +126,7 @@ export const ClientMng = ({
                         </FormGroup>
                         <FormGroup>
                             <Label><b>Instagram</b></Label> <br/>
-                            <Input minLength={10} maxLength={11} value={clientToCreate.instagram || ''}
+                            <Input value={clientToCreate.instagram || ''}
                                    name="instagram"
                                    onChange={onChangeClientToCreate}/>
                         </FormGroup>
@@ -149,6 +161,19 @@ export const ClientMng = ({
                             <Input value={client.lastName}
                                    onChange={onChangeClient(client)}
                                    name="lastName"/>
+                        </ListGroupItem>
+
+                        <ListGroupItem>
+                            <Label for="stage1"><b className="text-nowrap">Etapa:</b></Label>
+                            <Input
+                                onChange={onChangeClient(client)}
+                                type="select"
+                                name="stage"
+                                id="stage1"
+                                value={client.stage}
+                            >
+                                {clientStageList.map(stage => <option value={stage} key={stage}>{stage}</option>)}
+                            </Input>
                         </ListGroupItem>
                         <ListGroupItem className="d-flex gap-2 align-items-center">
                             <b className="text-nowrap">Whatsapp: </b>

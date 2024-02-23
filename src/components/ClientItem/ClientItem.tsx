@@ -92,6 +92,19 @@ const ClientItem: React.FC<IClientItem> = (
                 <span className="client-item-data">{client.lastName}</span>
             </FormGroup>
             <FormGroup className="client-item">
+                <Label for="lastName">Apellido:</Label>
+                <Input
+                    onChange={onChangeClient}
+                    type="select"
+                    name="stage"
+                    id="stage"
+                    value={client.stage}
+                >
+                    {clientStageList.map(stage => <option value={stage} key={stage}>{stage}</option>)}
+                </Input>
+                {/*<span className="client-item-data">{client.lastName}</span>*/}
+            </FormGroup>
+            <FormGroup className="client-item">
                 <Label for="number">Phone:</Label>
                 <Input
                     onChange={onChangeClient}

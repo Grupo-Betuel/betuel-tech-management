@@ -1,7 +1,8 @@
 import { ITag } from "./TagModel";
 
-export type ClientStageTypes = 'potential' | 'real' | 'order-request';
-export const clientStageList: ClientStageTypes[] = ['potential', 'real', 'order-request'];
+export type ClientStageTypes = 'potential' | 'order-request' | 'retained' | 'loyal' | 'valued';
+
+export const clientStageList: ClientStageTypes[] = ['potential', 'order-request', 'retained', 'loyal', 'valued'];
 
 export interface IClient {
     _id?: string;
@@ -11,4 +12,5 @@ export interface IClient {
     stage: ClientStageTypes,
     tags: string[],
     fullName: string;
+    instagram: string
 }

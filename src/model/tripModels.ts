@@ -1,5 +1,6 @@
-import {IClient, ILocation} from './ordersModels';
+import {ILocation} from './ordersModels';
 import { IMessenger } from './messengerModels';
+import {IClient} from "./interfaces/ClientModel";
 
 export interface ITrip {
   location: ILocation;

@@ -1,6 +1,7 @@
 import { IMessenger, MessengerStatusTypes } from './messengerModels';
 import { ITrip } from './tripModels';
 import {ISale} from "./interfaces/SalesModel";
+import {IClient} from "./interfaces/ClientModel";
 
 export interface ILocation {
     latitude: number
@@ -11,16 +12,6 @@ export interface ILocation {
     distanceUnit: string
     link: string
 }
-export interface IClient {
-  _id: string
-  firstName: string
-  lastName: string
-  phone: string
-  instagram: string
-  tags: any[]
-  __v: number
-}
-
 export interface ProductParam {
   isChildren: boolean
   relatedParams: ProductParam[]

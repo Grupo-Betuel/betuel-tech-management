@@ -8,7 +8,6 @@ import {
     updateOrder
 } from "../../services/orderService";
 import {
-    IClient,
     IOrder, UpdateOrderBotActionTypes,
     OrderStatusTypes
 } from "../../model/ordersModels";
@@ -45,6 +44,7 @@ import {ShippingCard} from "../../components/ShippingCard/ShippingCard";
 import {DraggableGridItem} from "../../components/DraggableGrid/DraggableGrid";
 import {betuelDanceShippingCardLayout} from "../../components/FlyerDesigner/constants/shipping-card-layouts";
 import {cancelWhatsappMessaging} from "../../services/promotions";
+import {IClient} from "../../model/interfaces/ClientModel";
 
 const items: DraggableGridItem[] = [
     { id: '1', content: <ShippingCard layout={betuelDanceShippingCardLayout}/>, x: 0, y: 0, w:2, h:2 },
