@@ -6,6 +6,7 @@ import {
     WhatsappSessionTypes,
 } from "../model/interfaces/WhatsappModels";
 import {generateProductDescriptionFromParams} from "../utils/promotion.utils";
+import {removeExtraCharactersFromText, removeHTMLChars} from "../utils/text.utils";
 
 export const localPromotionsApi = "http://10.0.0.13:5000/api/";
 export const whatsappPhone = "+18298937075";
@@ -48,7 +49,11 @@ export const promoteProduct = async (
         // description: `${product.description}${product.productParams.length ? '\n\n' + generateProductDescriptionFromParams(product.productParams) : ''}`,
     // }));
 
-    const body = JSON.stringify({data: products, sessionKey, type});
+    const body = JSON.stringify({data: products.map(item => ({
+            ...item,
+            name: removeExtraCharactersFromText(removeHTMLChars(item.name)),
+            description: removeExtraCharactersFromText(removeHTMLChars(item.description)),
+        })), sessionKey, type});
 
     try {
         // `${eCommerce !== 'facebook' ? process.env.REACT_APP_PROMOTION_API : localPromotionsApi}${eCommerce}`
