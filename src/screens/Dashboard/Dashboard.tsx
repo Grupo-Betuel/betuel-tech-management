@@ -55,6 +55,7 @@ import {ILaborDay, ILaborDayData, LaborDayTypes} from "../../model/interfaces/La
 import {getLaborDays, updateLaborDays} from "../../services/laborDaysService";
 import {Schedule} from "../../components/Schedule/Schedule";
 import {Navigation} from "../../components/Navigation/Navigation";
+import FirebaseMessaging from "../../components/Firebase/FirebaseMessaging";
 
 // export const accountLogos: { [N in ]} ;
 
@@ -1134,6 +1135,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                     <Schedule/>
                 </ModalBody>
             </Modal>
+            <FirebaseMessaging />
         </>
     );
 };
