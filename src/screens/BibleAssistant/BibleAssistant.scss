@@ -1,0 +1,56 @@
+.bible-assistant {
+  &__content {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 2rem 2rem;
+    width: 100%;
+    max-width: 1200px;
+    gap: 3rem;
+  }
+}
+
+
+//I need a component according to the last requirement that contains a grid of cards with the following characteristics:
+//// This is the model interfacce
+//export interface BibleDays extends BaseModel {
+//  position: number;
+//  resources: Array<BibleDayResources>; // Assuming the type of resources is an array of strings
+//  updateDate: Date;
+//  createDate: Date;
+//  // Add other properties here based on the actual schema
+//}
+//
+//- A list of cards with the following information according to the BibleDay interface:
+//  - Title
+//  - Description
+//  - URL
+//  - A button to delete the card
+//  - A button to edit the card
+//  - Resources Section (Multitple Add)
+//    - the resource information must be horizontal aligned:
+//    - Model:
+//        export interface BibleDayResources extends BaseModel {
+//          url: string;
+//          title: string;
+//          description: string;
+//          language: string;
+//          type: 'image' | 'audio' | 'lecture' | 'audio-lecture' | 'video';
+//          updateDate: Date;
+//          createDate: Date;
+//          // Add other properties here based on the actual schema
+//        }
+//    - resource information:
+//      - thumbnail of the resource according to its type
+//      - title of the resource & description with 2 lines and ellipsis
+//      - button with plus icon to add resources
+//- A Search Bar (functional)
+//- A Create Day Card at the begining of the grid to create new days
+//  - must be a form that collect the data of the BibleDayModel
+//  - must has the same structure of the other cards but with the form to collect data
+//  - must have a section to add multiple resources according to the BibleDayResources model
+//    - the resource section must has a file input hidden trigered by a button with a file icon to add resources according to the BibleDayResources type property
+//  - must has a submit button to send the collected new BibleDays data
+//
+//

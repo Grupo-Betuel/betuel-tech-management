@@ -1,7 +1,7 @@
 import React, {useContext} from "react";
 import {FloatButton} from "../../screens/Dashboard/Dashboard";
 import {useHistory} from "react-router";
-import {AppContext} from "../../App";
+import {AppContext, privateRoutes} from "../../App";
 import "./Navigation.scss";
 
 export const Navigation = () => {
@@ -12,56 +12,29 @@ export const Navigation = () => {
         setToken("");
     };
 
-    const goTo = (path: 'dashboard'| 'templates' | 'companies' | 'orders' | 'accounting') => () => {
+    const goTo = (path: string) => () => {
         history.push(`/${path}`);
     }
 
     return localStorage.getItem("authToken") &&
         (
             <div className="float-options">
-                <FloatButton
-                    className="btn btn-outline-danger"
-                    title="Dashboard"
-                    onClick={goTo('dashboard')}
-                >
-                    <i className="bi bi-layout-text-window-reverse"/>
-                </FloatButton>
-                <FloatButton
-                    className="btn btn-outline-danger go-to-portfolio"
-                    title={`Ordenes`}
-                    onClick={goTo('orders')}
-                >
-                    <i
-                        className="bi bi-truck"
-                    />
-                </FloatButton>
-                <FloatButton
-                    className="btn btn-outline-danger go-to-portfolio"
-                    title={`Disenio de Plantillas`}
-                    onClick={goTo('templates')}
-                >
-                    <i
-                        className="bi bi-easel2"
-                    />
-                </FloatButton>
-                <FloatButton
-                    className="btn btn-outline-danger go-to-portfolio"
-                    title={`Companies`}
-                    onClick={goTo('companies')}
-                >
-                    <i
-                        className="bi bi-building"
-                    />
-                </FloatButton>
-                <FloatButton
-                    className="btn btn-outline-danger go-to-portfolio"
-                    title={`Contabilidad`}
-                    onClick={goTo('accounting')}
-                >
-                    <i
-                        className="bi bi-123"
-                    />
-                </FloatButton>
+                {
+                    privateRoutes.map((route, index) => {
+                        return !route.inBackground && (
+                            <FloatButton
+                                key={index}
+                                className="btn btn-outline-danger go-to-portfolio"
+                                title={route.path}
+                                onClick={goTo(route.path)}
+                            >
+                                <i
+                                    className={`bi bi-${route.icon}`}
+                                />
+                            </FloatButton>
+                        )
+                    })
+                }
                 <FloatButton
                     className="btn btn-outline-danger go-to-portfolio"
                     title={`Salir`}
@@ -71,6 +44,7 @@ export const Navigation = () => {
                         className="bi bi-box-arrow-right"
                     />
                 </FloatButton>
+
             </div>
         )
 }

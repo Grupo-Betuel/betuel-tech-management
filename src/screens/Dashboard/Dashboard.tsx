@@ -133,13 +133,11 @@ const companyLogos: { [N in CompanyTypes | string]: any } = {
 const companyStorageKey = "betuelGroup:company";
 
 export interface IDashboardComponent {
-    setToken?: any;
     portfolioMode?: boolean;
     company?: CompanyTypes;
 }
 
 const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
-                                                                     setToken,
                                                                      portfolioMode,
                                                                      company,
                                                                  }) => {
@@ -517,11 +515,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 setSelectedECommerce(ecommerceType);
                 setPublicationType(type)
             };
-
-    const logOut = () => {
-        localStorage.setItem("authToken", "");
-        setToken("");
-    };
 
 
     const toggleClientFormModal = () => setClientModalIsOpen(!clientModalIsOpen);
