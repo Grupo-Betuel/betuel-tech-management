@@ -30,6 +30,9 @@ export interface IWsUser {
 export interface IWsGroup {
     subject: string;
     participants: IWsUser[];
+    id?: string;
+    description?: string;
+    createAt?: any;
 }
 
 export interface IWsLabel {

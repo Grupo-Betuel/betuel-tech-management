@@ -28,7 +28,7 @@ export const QrCanvas = styled.canvas`
 
 export const whatsappSeedStorePrefix = 'whatsappSeedData::';
 
-const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
+const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes, autologin = true) => {
     const [logged, setLogged] = React.useState(false);
     const [loading, setLoading] = React.useState(true);
     const [stopMessagingId, setStopMessagingId] = React.useState('');
@@ -145,7 +145,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes) => {
                     setLogged(false);
                 });
 
-                login(whatsappSessionId)
+                autologin && login(whatsappSessionId)
             })
         }
 

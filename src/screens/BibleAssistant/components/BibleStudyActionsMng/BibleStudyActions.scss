@@ -1,0 +1,8 @@
+.bible-study-actions {
+  width: 100%;
+  .bible-study-actions-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    grid-gap: 2rem;
+  }
+}

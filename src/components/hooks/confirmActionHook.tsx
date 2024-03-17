@@ -1,7 +1,7 @@
 import React, {useCallback} from "react";
 import {Button, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 
-export function useConfirmAction<ActionsType, ActionDataType>(handleConfirmedAction: (type?: ActionsType, data?: ActionDataType) => void, handleDeniedAction?: (type?: ActionsType, data?: ActionDataType) => void) {
+export function useConfirmAction<ActionsType, ActionDataType>(handleConfirmedAction: (type?: ActionsType, data?: ActionDataType) => any, handleDeniedAction?: (type?: ActionsType, data?: ActionDataType) => any) {
     const [actionDataToConfirm, setActionDataToConfirm] = React.useState<ActionDataType>();
     const [actionToConfirm, setActionToConfirm] = React.useState<ActionsType>();
 
@@ -16,8 +16,8 @@ export function useConfirmAction<ActionsType, ActionDataType>(handleConfirmedAct
         setActionToConfirm(type)
     }
 
-    const handleConfirm = async () => {
-        await handleConfirmedAction(actionToConfirm, actionDataToConfirm);
+    const handleConfirm = () => {
+        handleConfirmedAction(actionToConfirm, actionDataToConfirm);
         resetActionToConfirm();
     }
 

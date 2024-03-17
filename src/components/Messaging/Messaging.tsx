@@ -33,9 +33,10 @@ import "./Messaging.scss";
 import {cancelWhatsappMessaging} from "../../services/promotions";
 
 export interface IMessaging {
-    contacts: IClient[],
-    selectedProducts: IProductData[];
-    setSelectedProducts: (products: IProductData[]) => any;
+    contacts?: IClient[],
+    selectedProducts?: IProductData[];
+    setSelectedProducts?: (products: IProductData[]) => any;
+    whatsappSession?: WhatsappSessionTypes;
 }
 
 export const ImageWrapper = styled.div`
@@ -75,9 +76,10 @@ const Messaging: React.FC<IMessaging> = (
         contacts,
         selectedProducts,
         setSelectedProducts,
-    }
+        whatsappSession
+    } = { selectedProducts: [], contacts: [] }
 ) => {
-    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSessionKeys.betuelgroup)
+    const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSession || whatsappSessionKeys.betuelgroup)
     const [message, setMessage] = useState<string>('')
     const [onlySendImagesIds, setOnlySendImagesIds] = useState<string[]>([]);
     const [photo, setPhoto] = useState<any>()
@@ -134,7 +136,7 @@ const Messaging: React.FC<IMessaging> = (
     };
 
     const removeSelection = (id: string) => () => {
-        setSelectedProducts(selectedProducts.filter((product: IProductData) => product._id !== id))
+        selectedProducts && setSelectedProducts && setSelectedProducts(selectedProducts?.filter((product: IProductData) => product._id !== id))
     }
 
     const onMessageSent = (contact: IClient) => {

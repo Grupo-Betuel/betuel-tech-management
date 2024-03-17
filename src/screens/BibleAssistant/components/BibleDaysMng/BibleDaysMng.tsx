@@ -1,194 +1,589 @@
-import React, { useState } from 'react';
-import { Card, CardBody, CardTitle, CardText, CardImg, Button, Input, FormGroup, Label, Col, Row, Modal, ModalHeader, ModalBody, ModalFooter } from 'reactstrap';
-import {BibleDays, BibleDayResources} from "../../../../model/interfaces/BibleModel";
+import React, {useState} from 'react';
+import {
+    Card,
+    CardBody,
+    CardImg,
+    Button,
+    Input,
+    FormGroup,
+    Label,
+    Col,
+    Row,
+    Modal,
+    ModalHeader,
+    ModalBody,
+    ModalFooter, Spinner
+} from 'reactstrap';
+import {
+    BibleDayModel,
+    BibleDayResourcesModel,
+    BibleDayResourceTypesList,
+    BibleDayResourceTypes, UploableDayResourceTypes, BibleStudyModel, BibleStudyActionsModel
+} from "../../../../model/interfaces/BibleModel";
+import './BibleDaysMng.scss';
+import {generateCustomID} from "../../../../utils/text.utils";
+import {IMedia, IMediaTagTypes} from "../../../../components/GCloudMediaHandler/GCloudMediaHandler";
+import {deletePhoto} from "../../../../services/gcloud";
+import {toast} from "react-toastify";
+import {onChangeMediaToUpload} from "../../../../utils/gcloud.utils";
+import {CommonActionTypes} from "../../../../model/common";
+import {useConfirmAction} from "../../../../components/hooks/confirmActionHook";
 
 interface BibleDaysGridProps {
-    bibleDays: BibleDays[];
+    study: BibleStudyModel;
+    onDaySubmit: (day: BibleDayModel) => void;
+    onDayDelete: (id?: string) => void;
+    onResourceDelete: (id?: string) => void;
 }
 
-const BibleDaysGrid: React.FC<BibleDaysGridProps> = ({ bibleDays }) => {
+const BibleDaysGrid: React.FC<BibleDaysGridProps> = ({study, onDaySubmit, onDayDelete, onResourceDelete}) => {
     const [searchTerm, setSearchTerm] = useState('');
-    const [editFormVisible, setEditFormVisible] = useState<number | null>(null);
-    const [deleteModalVisible, setDeleteModalVisible] = useState<number | null>(null);
+    const [editMode, setEditMode] = useState<string | null>(null); // Tracks the ID of the BibleDay currently being edited
+    const [editableFields, setEditableFields] = useState<{ [key: string]: any }>({});
+    const [bibleDays, setBibleDays] = useState<BibleDayModel[]>(study.days);
+    const [loading, setLoading] = useState(false);
+    React.useEffect(() => {
+        setBibleDays(study.days);
+    }, [study]);
+
+
+    const handleConfirmedAction = async (actionToConfirm?: CommonActionTypes | 'delete-resource', data?: BibleDayModel | string) => {
+        setLoading(true);
+        switch (actionToConfirm) {
+            case 'create':
+            case 'update':
+                onDaySubmit(data as BibleDayModel);
+                toast('¡Datos Actualizados!', {type: 'success'});
+                break;
+            case 'delete':
+                onDayDelete(data as string);
+                break;
+            case 'delete-resource':
+                onResourceDelete(data as string);
+                break;
+        }
+        setLoading(false);
+
+    }
+
+    const handleDeniedAction = () => {
+
+    }
+
+
+    const {
+        handleSetActionToConfirm,
+        ConfirmModal,
+    } = useConfirmAction<CommonActionTypes | 'delete-resource', BibleDayModel | string>(handleConfirmedAction, handleDeniedAction)
+
 
     const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
         setSearchTerm(e.target.value);
     };
 
-    const toggleEditForm = (index: number) => {
-        setEditFormVisible(editFormVisible === index ? null : index);
+    const handleAddResource = (dayId: string) => ({target: {value: type}}: any) => {
+        const newResource: BibleDayResourcesModel = {
+            _id: generateCustomID(),
+            url: '',
+            title: '',
+            description: '',
+            language: '',
+            type,
+            updateDate: new Date(),
+            createDate: new Date(),
+        };
+
+        const dayToUpdate = bibleDays.find(day => day._id === dayId);
+        if (dayToUpdate) {
+            dayToUpdate.resources.unshift(newResource);
+        }
+
+        setBibleDays(bibleDays.map(day => day._id === dayId && dayToUpdate ? dayToUpdate : day));
+        // setResourceInputs( );
     };
 
-    const toggleDeleteModal = (index: number) => {
-        setDeleteModalVisible(deleteModalVisible === index ? null : index);
+    const toggleEditMode = (id: string) => {
+        setEditMode(editMode === id ? null : id);
+        if (editMode !== id) {
+            const dayToEdit = bibleDays.find(day => day._id === id);
+            if (dayToEdit) {
+                setEditableFields({title: dayToEdit.title, description: dayToEdit.description});
+            }
+        }
     };
 
-    const handleEditSubmit = (e: React.FormEvent<HTMLFormElement>, index: number) => {
-        e.preventDefault();
-        console.log('Updated data for BibleDay at index:', index);
-        // Toggle visibility of edit form
-        toggleEditForm(index);
+    const handleFieldChange = (e: React.ChangeEvent<HTMLInputElement>, field: string) => {
+        setEditableFields({...editableFields, [field]: e.target.value});
     };
 
-    const handleDeleteConfirm = (index: number) => {
-        console.log('Deleted BibleDay at index:', index);
-        // Hide delete modal
-        toggleDeleteModal(null);
+    const handleEditSubmit = async (id: string) => {
+        setLoading(true);
+        // Here you would typically send the update to your backend
+        const dayToUpdate = bibleDays.find(day => day._id === id);
+        const data: BibleDayModel = {
+            ...(dayToUpdate || {}),
+            ...editableFields,
+        } as any;
+
+        dayToUpdate && await onDaySubmit({
+            ...data,
+            resources: data.resources.map(resource => ({...resource, _id: undefined})),
+        })
+        toggleEditMode(id); // Exit edit mode
+        setLoading(false);
     };
 
-    const handleDeleteResource = (index: number, resourceIndex: number) => {
-        console.log(`Deleted resource ${resourceIndex} of BibleDay at index ${index}`);
+    const handleInputChange = (day: BibleDayModel) => (e: React.ChangeEvent<HTMLInputElement>, resourceId: string) => {
+        const {name, value} = e.target;
+        const dayToUpdate = bibleDays.find(d => d._id === day._id);
+        if (!dayToUpdate) return;
+
+        const updatedResources = dayToUpdate?.resources?.map(resource => resource._id === resourceId ? {
+            ...resource,
+            [name]: value
+        } : resource);
+        setBibleDays(bibleDays.map(d => d._id === day._id ? {
+            ...dayToUpdate,
+            resources: updatedResources || []
+        } : d));
+
     };
+
+    const handleDeleteResource = (resourceId: string) => {
+        handleSetActionToConfirm('delete-resource', resourceId);
+
+    };
+
+    const handleUpdateMedia = async (dayToBeUpdate: BibleDayModel, resourceType: UploableDayResourceTypes, event: React.ChangeEvent<HTMLInputElement>) => {
+        if (resourceType !== 'audio' && resourceType !== 'image') {
+            toast('Invalid resource type');
+            return;
+        }
+
+        const file = event.target.files && event.target.files[0];
+        const tag: IMediaTagTypes = resourceType;
+        if (file && dayToBeUpdate) {
+            await onChangeMediaFile(
+                dayToBeUpdate, tag, event, async (media: IMedia) => {
+                    setBibleDays(bibleDays.map(day => day._id === dayToBeUpdate._id ? {
+                        ...dayToBeUpdate,
+                        resources: dayToBeUpdate.resources.map(resource => resource.type === resourceType ? {
+                            ...resource,
+                            url: media.content
+                        } : resource)
+                    } : day));
+                });
+        } else {
+            toast('No file selected');
+        }
+    }
+
+    const onChangeMediaFile = async (data: BibleDayModel, resourceType: UploableDayResourceTypes, event: any, onLoadedMedia?: (media: IMedia) => Promise<void>) => {
+        // const companyIdString = companies.find(company => company.companyId === companyId)?._id;
+        const tag: IMediaTagTypes = resourceType;
+
+        const uploadCallBack = async (media: IMedia) => {
+            // const companyToUpdate = isEditing[companyIdString];
+            if (data) {
+                const resource = data.resources.find(resource => resource.type === resourceType);
+                const mediaToDelete = resource?.url?.split('/')?.pop() as string;
+                mediaToDelete && await deletePhoto(mediaToDelete);
+                onLoadedMedia && await onLoadedMedia(media);
+                toast(`${tag} actualizado con exito`)
+            }
+
+        };
+
+        await onChangeMediaToUpload(tag, uploadCallBack, `${(data._id || generateCustomID())}-bible-${tag}`)(event)
+    }
+
+    const addNewDay = async (data: BibleDayModel) => {
+        setLoading(true)
+        const position = bibleDays.length + 1;
+        const newDay = {
+            ...data,
+            position,
+            title: `Día ${position}`,
+        }
+        await onDaySubmit(newDay);
+        // TODO: check if use it or not
+        // setBibleDays([...bibleDays, newDay]);
+        setLoading(false)
+    }
 
     return (
-        <div>
+        <div className="bible-days">
+            {!loading ? null : (
+                <>
+                    <div className="loading-sale-container">
+                        <Spinner animation="grow" variant="secondary"/>
+                    </div>
+                </>
+            )}
             <FormGroup>
-                <Input type="text" placeholder="Search" value={searchTerm} onChange={handleSearch} />
+                <Input type="text" placeholder="Search" value={searchTerm} onChange={handleSearch}/>
             </FormGroup>
-            <CreateDayCard onDeleteResource={handleDeleteResource} />
-            <Row xs="1" md="2" lg="3">
+            <Row className="bible-days-grid" lg="12">
+                <CreateDayCard onSubmit={addNewDay} position={bibleDays.length + 1}
+                               uploadResourceFile={onChangeMediaFile}/>
                 {bibleDays
                     .filter(day => day.title.toLowerCase().includes(searchTerm.toLowerCase()))
-                    .map((day, index) => (
-                        <Col key={index} className="mb-4">
-                            <Card>
+                    .map((day) => (
+                        <Col key={day._id} className="mb-4 ">
+                            <Card className="bible-days-grid__item">
                                 <CardBody>
-                                    <CardTitle>{day.title}</CardTitle>
-                                    <CardText>{day.description}</CardText>
-                                    <CardText>{day.url}</CardText>
-                                    <Button color="danger" onClick={() => toggleDeleteModal(index)}>Delete</Button>
-                                    <Button color="primary" onClick={() => toggleEditForm(index)}>{editFormVisible === index ? 'Cancel Update' : 'Edit'}</Button>
-                                    {editFormVisible === index ? <EditDayForm day={day} onSubmit={(e) => handleEditSubmit(e, index)} /> : null}
-                                    <ResourceSection resources={day.resources} index={index} />
+                                    <div className="bible-days-grid__item-actions-top mb-2">
+                                        <b>{day.title}</b>
+                                    </div>
+                                    {editMode === day._id ? (
+                                        <>
+                                            {/*<div className="bible-days-grid__item-actions-top">*/}
+                                            {/*    <Input type="text" value={editableFields.title}*/}
+                                            {/*           onChange={(e) => handleFieldChange(e, 'title')}*/}
+                                            {/*           placeholder="Title"/>*/}
+                                            {/*</div>*/}
+                                            <Input type="text" value={editableFields.description}
+                                                   onChange={(e) => handleFieldChange(e, 'description')}
+                                                   placeholder="Description"/>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <i>{day.description}</i>
+                                        </>
+                                    )}
+                                    {
+                                        editMode === day._id && (
+                                            <Input color="primary" outline
+                                                   type="select"
+                                                   value=""
+                                                   className="w-100 mt-3"
+                                                   onChange={handleAddResource(day._id as string)}>
+                                                <option value="" disabled>Add Resource</option>
+                                                {
+                                                    BibleDayResourceTypesList.filter(item => {
+                                                        const currentResourcesTypes = day.resources.map(resource => resource.type);
+                                                        return !currentResourcesTypes.includes(item);
+                                                    }).filter(item => {
+                                                        const currentResourcesTypes = day.resources.map(resource => resource.type);
+                                                        return !currentResourcesTypes.includes(item);
+                                                    }).map((type) => (
+                                                        <option value={type}>{type}</option>
+                                                    ))
+                                                }
+                                            </Input>
+                                        )
+                                    }
+                                    {/* ResourceSection if needed */}
+                                    <ResourceSection resources={day.resources}
+                                                     day={day}
+                                                     editMode={editMode === day._id}
+                                                     handleInputChange={handleInputChange(day)}
+                                                     handleDeleteResource={handleDeleteResource}
+                                                     uploadResourceFile={handleUpdateMedia}
+                                    />
+                                    <div className="bible-days-grid__item-actions d-flex justify-content-between">
+                                        {
+                                            editMode === day._id ? (<>
+                                                        <Button color="success" outline
+                                                                onClick={() => handleEditSubmit(day._id as string)}>Save</Button>
+                                                        <Button color="secondary" outline
+                                                                onClick={() => toggleEditMode(day._id as string)}>Cancel</Button>
+                                                    </>
+                                                )
+                                                : (
+                                                    <>
+                                                        <Button color="danger" outline
+                                                                onClick={() => handleSetActionToConfirm('delete', day._id as string)}>Delete</Button>
+                                                        <Button color="primary" outline
+                                                                onClick={() => toggleEditMode(day._id as string)}>Edit</Button>
+                                                    </>
+                                                )
+                                        }
+                                    </div>
                                 </CardBody>
                             </Card>
-                            <Modal isOpen={deleteModalVisible === index} toggle={() => toggleDeleteModal(index)}>
-                                <ModalHeader toggle={() => toggleDeleteModal(index)}>Confirm Delete</ModalHeader>
-                                <ModalBody>Are you sure you want to delete this Bible Day?</ModalBody>
-                                <ModalFooter>
-                                    <Button color="danger" onClick={() => handleDeleteConfirm(index)}>Delete</Button>{' '}
-                                    <Button color="secondary" onClick={() => toggleDeleteModal(index)}>Cancel</Button>
-                                </ModalFooter>
-                            </Modal>
                         </Col>
                     ))}
             </Row>
+            <ConfirmModal/>
         </div>
     );
 };
 
-const ResourceSection: React.FC<{ resources: BibleDayResources[]; index: number; }> = ({ resources, index }) => {
-    const [editMode, setEditMode] = useState(false);
-    const [resourceInputs, setResourceInputs] = useState<BibleDayResources[]>(resources);
+export interface IResourceSectionProps {
+    resources: BibleDayResourcesModel[];
+    day: BibleDayModel;
+    editMode: boolean,
+    handleInputChange: (e: React.ChangeEvent<HTMLInputElement>, resourceId: string) => void
+    handleDeleteResource: (resourceId: string) => void,
+    uploadResourceFile: (data: BibleDayModel, resourceType: UploableDayResourceTypes, event: any, onLoadedMedia?: (media: IMedia) => Promise<void>) => void;
+}
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>, resourceIndex: number) => {
-        const { name, value } = e.target;
-        const updatedResources = [...resourceInputs];
-        updatedResources[resourceIndex][name] = value;
-        setResourceInputs(updatedResources);
-    };
+const ResourceSection: React.FC<IResourceSectionProps> = (
+    {
+        resources,
+        day,
+        editMode,
+        handleInputChange,
+        handleDeleteResource,
+        uploadResourceFile,
+    }) => {
 
-    const handleDeleteResource = (resourceIndex: number) => {
-        setResourceInputs(prevResources => prevResources.filter((_, idx) => idx !== resourceIndex));
-    };
+    const handleUploadFile = (type: BibleDayResourceTypes) => (event: any) => {
+        console.log('type => ', type)
+        if (type === 'audio' || type === 'image') {
+            uploadResourceFile(day, type, event);
+        } else {
+            toast('Invalid resource type');
+        }
+    }
 
     return (
-        <div className="resource-section d-flex flex-wrap gap-2">
-            <h6>Resources</h6>
-            {resourceInputs.map((resource, resourceIndex) => (
-                <div key={resourceIndex} className="resource-item d-flex align-items-center">
-                    <CardImg src={getThumbnail(resource.type)} alt={resource.title} style={{ maxWidth: '100px' }} />
-                    <div>
-                        <FormGroup className="mb-0">
-                            <Input type="text" placeholder="Resource Title" value={resource.title} onChange={(e) => handleInputChange(e, resourceIndex)} disabled={!editMode} />
-                        </FormGroup>
-                        <FormGroup className="mb-0">
-                            <Input type="text" placeholder="Resource Description" value={resource.description} onChange={(e) => handleInputChange(e, resourceIndex)} disabled={!editMode} />
-                        </FormGroup>
-                        {editMode && <Button color="danger" className="ml-2" onClick={() => handleDeleteResource(resourceIndex)}>Remove Resource</Button>}
+        <div className="bible-days-resource-section">
+
+            {resources.map((resource) => (
+                <div key={resource._id} className="resource-item">
+                    <FormGroup
+                        className="resource-item__form-group"
+                    >
+                        <Label for={`file-${resource._id}`} className="cursor-pointer">
+                            <CardImg src={getThumbnail(resource)} className="resource-item__thumbnail"
+                                     alt={resource.title}/>
+                        </Label>
+                        <Input placeholder="file" id={`file-${resource._id}`} type="file"
+                               className="invisible position-absolute z-index-0"
+                               onChange={handleUploadFile(resource.type)}
+                        />
+                    </FormGroup>
+
+                    <div className="d-flex gap-2 align-items-center">
+                        <div className="d-flex flex-column justify-content-center">
+                            <FormGroup className="resource-item__form-group">
+                                <Input type="text" className="resource-item__input" placeholder="Resource Title"
+                                       name="title"
+                                       value={resource.title}
+                                       onChange={(e) => handleInputChange(e, resource._id as string)}
+                                       disabled={!editMode}/>
+                            </FormGroup>
+                            <FormGroup className="resource-item__form-group">
+                                <Input type="text" className="resource-item__input" placeholder="Resource Description"
+                                       value={resource.description}
+                                       onChange={(e) => handleInputChange(e, resource._id as string)}
+                                       name="description"
+                                       disabled={!editMode}/>
+                            </FormGroup>
+                            <FormGroup className="resource-item__form-group">
+                                <Input type="text" className="resource-item__input" placeholder="Url"
+                                       value={resource.url}
+                                       name="url"
+                                       onChange={(e) => handleInputChange(e, resource._id as string)}
+                                       disabled={!editMode}/>
+                            </FormGroup>
+                        </div>
+                        {editMode &&
+                            <Button color="danger" className="ml-2" outline
+                                    onClick={() => handleDeleteResource(resource._id as string)}>
+                                <i className="bi bi-trash font-size-sm"/>
+                            </Button>}
                     </div>
                 </div>
             ))}
-            <Button color="primary" className="ml-2" onClick={() => setEditMode(!editMode)}>{editMode ? 'Save' : 'Edit Resources'}</Button>
         </div>
     );
 };
 
-const CreateDayCard: React.FC<{ onDeleteResource: (index: number, resourceIndex: number) => void; }> = ({ onDeleteResource }) => {
-    const [formData, setFormData] = useState<BibleDays>({
-        position: 0,
+
+const CreateDayCard: React.FC<{
+    onSubmit: (data: BibleDayModel) => void;
+    position: number;
+    uploadResourceFile: (data: BibleDayModel, resourceType: UploableDayResourceTypes, event: any, onLoadedMedia?: (media: IMedia) => Promise<void>) => void;
+}> = ({
+          uploadResourceFile,
+          position,
+          onSubmit
+      }) => {
+    const [newDayData, setNewDayData] = useState<BibleDayModel>({
+        position: 1,
         resources: [],
         updateDate: new Date(),
         createDate: new Date(),
         title: '',
         description: '',
-        url: ''
     });
 
-    const [resourceInputs, setResourceInputs] = useState<BibleDayResources[]>([{ url: '', title: '', description: '', language: '', type: 'image', updateDate: new Date(), createDate: new Date() }]);
+    const [resourceInputs, setResourceInputs] = useState<BibleDayResourcesModel[]>([
+        {
+            _id: generateCustomID(), // Generate a unique ID for the initial resource
+            url: '',
+            title: '',
+            description: '',
+            language: '',
+            type: 'image',
+            updateDate: new Date(),
+            createDate: new Date(),
+        },
+    ]);
 
     const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prevState => ({
+        const {name, value} = e.target;
+        setNewDayData((prevState) => ({
             ...prevState,
-            [name]: value
+            [name]: value,
         }));
     };
 
-    const handleResourceInputChange = (e: React.ChangeEvent<HTMLInputElement>, index: number) => {
-        const { name, value } = e.target;
-        const updatedResources = [...resourceInputs];
-        updatedResources[index][name] = value;
+    const handleResourceInputChange = (e: React.ChangeEvent<HTMLInputElement>, resourceId: string) => {
+        const {name, value} = e.target;
+        const updatedResources = resourceInputs.map((resource) =>
+            resource._id === resourceId ? {...resource, [name]: value} : resource
+        );
         setResourceInputs(updatedResources);
     };
 
-    const handleAddResource = () => {
-        setResourceInputs([...resourceInputs, { url: '', title: '', description: '', language: '', type: 'image', updateDate: new Date(), createDate: new Date() }]);
+    const handleAddResource = ({target: {value: type}}: any) => {
+        const newResource = {
+            _id: generateCustomID(), // Generate a unique ID for the new resource
+            url: '',
+            title: '',
+            description: '',
+            language: '',
+            type,
+            updateDate: new Date(),
+            createDate: new Date(),
+        };
+        setResourceInputs([newResource, ...resourceInputs]);
     };
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        console.log(formData); // Send formData to your backend for creation
+        onSubmit({
+            ...newDayData,
+            resources: resourceInputs.map((resource) => ({...resource, _id: undefined})),
+        });
     };
 
+    const handleUploadFile = (type: UploableDayResourceTypes) => (event: any) => {
+        uploadResourceFile(newDayData, type, event);
+    }
+
+    const handleDeleteResource = (resourceId: string) => () => {
+        setResourceInputs((prevResources) => prevResources.filter((resource) => resource._id !== resourceId));
+    }
+
+    React.useEffect(() => {
+        setNewDayData({
+            ...newDayData,
+            resources: resourceInputs,
+        });
+    }, [resourceInputs]);
+
     return (
-        <Col className="mb-4">
-            <Card>
+        <Col>
+            <Card className="bible-days-grid__item">
+
                 <CardBody>
+                    <div className="bible-days-grid__item-actions-top">
+                        {/*<FormGroup>*/}
+                        {/*    <Label for="title">*/}
+                        <b>
+                            Día {position}
+                        </b>
+                        {/*</Label>*/}
+                        {/*<Input type="text" name="title" id="title" value={formData.title}*/}
+                        {/*       onChange={handleInputChange}/>*/}
+                        {/*</FormGroup>*/}
+                    </div>
                     <form onSubmit={handleSubmit}>
-                        <FormGroup>
-                            <Label for="title">Title</Label>
-                            <Input type="text" name="title" id="title" value={formData.title} onChange={handleInputChange} />
-                        </FormGroup>
+                        {/*<FormGroup>*/}
+                        {/*    <Label for="title"><b>*/}
+                        {/*        Día {position}*/}
+                        {/*    </b></Label>*/}
+                        {/*    /!*<Input type="text" name="title" id="title" value={formData.title}*!/*/}
+                        {/*    /!*       onChange={handleInputChange}/>*!/*/}
+                        {/*</FormGroup>*/}
                         <FormGroup>
                             <Label for="description">Description</Label>
-                            <Input type="text" name="description" id="description" value={formData.description} onChange={handleInputChange} />
+                            <Input type="text" name="description" id="description" value={newDayData.description}
+                                   onChange={handleInputChange}/>
                         </FormGroup>
-                        <FormGroup>
-                            <Label for="url">URL</Label>
-                            <Input type="text" name="url" id="url" value={formData.url} onChange={handleInputChange} />
-                        </FormGroup>
-                        <FormGroup>
+                        <Input color="primary" outline
+                               type="select"
+                               value=""
+                               className="w-100 mt-3"
+                               onChange={handleAddResource}>
+                            <option value="" disabled>Add Resource</option>
+                            {
+                                BibleDayResourceTypesList
+                                    .filter(item => {
+                                        const currentResourcesTypes = resourceInputs.map(resource => resource.type);
+                                        return !currentResourcesTypes.includes(item);
+                                    }).map((type) => (
+                                    <option value={type}>{type}</option>
+                                ))
+                            }
+                        </Input>
+                        <FormGroup className="bible-days-resource-section">
                             <Label>Resources</Label>
-                            {resourceInputs.map((resource, index) => (
-                                <div key={index}>
-                                    <FormGroup>
-                                        <Label for={`resource-title-${index}`}>Title</Label>
-                                        <Input type="text" name={`resource-title-${index}`} id={`resource-title-${index}`} value={resource.title} onChange={(e) => handleResourceInputChange(e, index)} />
+                            {resourceInputs.map((resource) => (
+                                <div key={resource._id} className="resource-item">
+                                    <FormGroup
+                                        className="resource-item__form-group"
+                                    >
+                                        <Label for="file">
+                                            <CardImg src={getThumbnail(resource as BibleDayResourcesModel)}
+                                                     className="resource-item__thumbnail"
+                                                     alt={resource.title}/>
+                                        </Label>
+                                        <Input
+                                            onChange={handleUploadFile(resource.type as UploableDayResourceTypes)}
+                                            placeholder="file" id="file" clas type="file"
+                                            className="invisible position-absolute"
+                                        />
                                     </FormGroup>
-                                    <FormGroup>
-                                        <Label for={`resource-description-${index}`}>Description</Label>
-                                        <Input type="text" name={`resource-description-${index}`} id={`resource-description-${index}`} value={resource.description} onChange={(e) => handleResourceInputChange(e, index)} />
-                                    </FormGroup>
-                                    <FormGroup>
-                                        <Label for={`resource-file-${index}`}>File</Label>
-                                        <Input type="file" name={`resource-file-${index}`} id={`resource-file-${index}`} />
-                                    </FormGroup>
+                                    <div className="d-flex flex-column justify-content-center">
+                                        <FormGroup
+                                            className="resource-item__form-group"
+
+                                        >
+                                            <Input type="text"
+                                                   placeholder="title"
+                                                   className="resource-item__input"
+                                                   value={resource.title}
+                                                   name="title"
+                                                   onChange={(e) => handleResourceInputChange(e, resource._id as string)}
+                                            />
+                                        </FormGroup>
+                                        <FormGroup
+                                            className="resource-item__form-group"
+                                        >
+                                            <Input type="text" placeholder="description"
+                                                   className="resource-item__input"
+                                                   value={resource.description}
+                                                   name="description"
+                                                   onChange={(e) => handleResourceInputChange(e, resource._id as string)}
+                                            />
+                                        </FormGroup>
+                                        <FormGroup
+                                            className="resource-item__form-group"
+                                        >
+                                            <Input type="text" placeholder="url"
+                                                   className="resource-item__input"
+                                                   value={resource.url}
+                                                   name="url"
+                                                   onChange={(e) => handleResourceInputChange(e, resource._id as string)}
+                                            />
+                                        </FormGroup>
+                                    </div>
+                                    <Button color="danger" className="ml-2" outline
+                                            onClick={handleDeleteResource(resource._id as string)}>
+                                        <i className="bi bi-trash font-size-sm"/>
+                                    </Button>
                                 </div>
                             ))}
-                            <Button type="button" onClick={handleAddResource}>Add Resource</Button>
                         </FormGroup>
-                        <Button type="submit" color="primary">Create Day</Button>
+                        <div className="bible-days-grid__item-actions">
+                            <Button type="submit" color="primary">Agregar Dia</Button>
+                        </div>
                     </form>
                 </CardBody>
             </Card>
@@ -196,50 +591,22 @@ const CreateDayCard: React.FC<{ onDeleteResource: (index: number, resourceIndex:
     );
 };
 
-const EditDayForm: React.FC<{ day: BibleDays; onSubmit: (e: React.FormEvent<HTMLFormElement>) => void }> = ({ day, onSubmit }) => {
-    const [formData, setFormData] = useState<BibleDays>(day);
 
-    const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-        const { name, value } = e.target;
-        setFormData(prevState => ({
-            ...prevState,
-            [name]: value
-        }));
-    };
-
-    const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
-        e.preventDefault();
-        console.log(formData); // Send updated formData to your backend
-    };
-
-    return (
-        <Col className="mb-4">
-            <Card>
-                <CardBody>
-                    <form onSubmit={handleSubmit}>
-                        <FormGroup>
-                            <Label for="title">Title</Label>
-                            <Input type="text" name="title" id="title" value={formData.title} onChange={handleInputChange} />
-                        </FormGroup>
-                        <FormGroup>
-                            <Label for="description">Description</Label>
-                            <Input type="text" name="description" id="description" value={formData.description} onChange={handleInputChange} />
-                        </FormGroup>
-                        <FormGroup>
-                            <Label for="url">URL</Label>
-                            <Input type="text" name="url" id="url" value={formData.url} onChange={handleInputChange} />
-                        </FormGroup>
-                        <Button type="submit" color="primary">Save</Button>
-                    </form>
-                </CardBody>
-            </Card>
-        </Col>
-    );
-};
-
-const getThumbnail = (type: string) => {
-    // Add logic to return the thumbnail URL based on the resource type
-    return 'thumbnail-url';
+const getThumbnail = (resource: BibleDayResourcesModel) => {
+    const {type, url} = resource;
+    switch (type) {
+        case "audio":
+        case "audio-lecture":
+            return "https://www.iconpacks.net/icons/3/free-musical-notes-icon-10191-thumb.png"
+        case "video":
+            return "https://www.freeiconspng.com/thumbs/video-icon/video-icon-1.png";
+        case "lecture":
+            return "https://www.iconpacks.net/icons/2/free-bible-icon-5014-thumb.png";
+        case "image":
+            return url;
+        default:
+            return "https://media.istockphoto.com/id/1322123064/photo/portrait-of-an-adorable-white-cat-in-sunglasses-and-an-shirt-lies-on-a-fabric-hammock.jpg?s=612x612&w=0&k=20&c=-G6l2c4jNI0y4cenh-t3qxvIQzVCOqOYZNvrRA7ZU5o=";
+    }
 };
 
 export default BibleDaysGrid;

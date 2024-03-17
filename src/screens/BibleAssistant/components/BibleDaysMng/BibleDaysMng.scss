@@ -1,0 +1,60 @@
+.bible-days {
+  width: 100%;
+  .bible-days-grid {
+    padding: 2rem 0;
+    width: 100%;
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: 1rem;
+
+    &__item {
+      position: relative;
+      height: 400px;
+      overflow: auto;
+      &-actions, &-actions-top {
+        position: sticky;
+        bottom: 0;
+        background-color: white;
+        padding: 0.7rem 0;
+        z-index: 9;
+        &-top {
+          bottom: auto;
+          top: 0;
+        }
+      }
+    }
+  }
+
+  .bible-days-resource-section {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 0;
+
+    .resource-item {
+      width: 100%;
+      display: flex;
+      gap: 1rem;
+      justify-content: space-around;
+      align-items: center;
+
+      &__form-group {
+        margin-bottom: 5px !important;
+      }
+
+
+      &__input {
+        font-size: 11px;
+        padding: 3px !important;
+      }
+
+      &__thumbnail {
+        width: 50px !important;
+        height: 50px !important;
+        object-fit: cover;
+      }
+    }
+  }
+}

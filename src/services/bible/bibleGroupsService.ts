@@ -1,21 +1,9 @@
-import {ExpenseModel as DataModel} from "../model/expenseModel";
-import {BibleDays, BibleGroups} from "../model/interfaces/BibleModel";
-
-export const getBibleDays = async () => {
-    try {
-        const response = await fetch(`${process.env.REACT_APP_API}bible/days`);
-        return await response.json() as BibleDays[];
-    } catch (e) {
-        throw e;
-    }
-
-};
-
+import { BibleGroupModel} from "../../model/interfaces/BibleModel";
 
 export const getBibleGroups = async () => {
     try {
         const response = await fetch(`${process.env.REACT_APP_API}bible/groups`);
-        return await response.json() as BibleGroups[];
+        return await response.json() as BibleGroupModel[];
     } catch (e) {
         throw e;
     }
@@ -23,10 +11,11 @@ export const getBibleGroups = async () => {
 };
 
 
-export const updateData = async (data: Partial<DataModel>) => {
+
+export const updateBibleGroup = async (data: Partial<BibleGroupModel>) => {
     const body = JSON.stringify(data);
     try {
-        return await fetch(`${process.env.REACT_APP_API}bible/`, {
+        return await fetch(`${process.env.REACT_APP_API}bible/groups`, {
                 method: 'PUT',
                 headers: {
                     'Accept': 'application/json',
@@ -41,9 +30,9 @@ export const updateData = async (data: Partial<DataModel>) => {
     }
 }
 
-export const deleteData = async (_id: string) => {
+export const deleteBibleGroup = async (_id: string) => {
     try {
-        return await fetch(`${process.env.REACT_APP_API}bible/`, {
+        return await fetch(`${process.env.REACT_APP_API}bible/groups`, {
                 method: 'DELETE',
                 headers: {
                     'Accept': 'application/json',
@@ -58,11 +47,11 @@ export const deleteData = async (_id: string) => {
     }
 }
 
-export const addData = async (data: DataModel) => {
+export const addBibleGroup = async (data: BibleGroupModel) => {
     const body = JSON.stringify(data);
 
     try {
-        return await fetch(`${process.env.REACT_APP_API}bible/`, {
+        return await fetch(`${process.env.REACT_APP_API}bible/groups`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',
