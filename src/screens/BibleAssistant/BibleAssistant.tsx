@@ -1,5 +1,5 @@
 import React, {useState} from "react";
-import {addBibleGroup, deleteBibleGroup} from "../../services/bible/bibleGroupsService";
+import {addBibleGroup, deleteBibleGroup, updateBibleGroup} from "../../services/bible/bibleGroupsService";
 import {
     BibleDayModel,
     BibleGroupModel, BibleStudyActionsModel, BibleStudyInteractionModes,
@@ -32,6 +32,7 @@ import {
     updateBibleStudyAction
 } from "../../services/bible/bibleStudyActionService";
 import {deleteBibleDayResource} from "../../services/bible/bibleDayResourceService";
+import {handleScheduleBibleStudy, handleScheduleWsPromotion} from "../../services/promotions";
 
 const mockDays = [{
     _id: "1",
@@ -218,7 +219,11 @@ export const BibleAssistant = () => {
         setLoading(true);
         toggleBibleGroup();
         if (selectedStudy) {
-            await addGroupToBibleStudy({group, study: selectedStudy});
+            if(group._id) {
+                await updateBibleGroup(group);
+            } else {
+                await addGroupToBibleStudy({group, study: selectedStudy});
+            }
             await fetchData();
         } else {
             toast('No se ha seleccionado un estudio', {type: 'error'});
@@ -302,6 +307,23 @@ export const BibleAssistant = () => {
     }
 
 
+    const [bibleStudyRunning, setBibleStudyRunning] = useState<{ [key: string]: boolean }>({});
+    const runBibleStudy = async (bibleStudy: BibleStudyModel) => {
+        const action = bibleStudyRunning[bibleStudy._id || ''] ? "stop" : "run";
+
+        const response: any = await (
+            await handleScheduleBibleStudy(action, bibleStudy)
+        ).json();
+
+        const status: 'running' | 'stopped' | 'error' = response.status;
+        toast(`Whatsapp Promotion is ${status}`);
+
+        setBibleStudyRunning({
+            ...bibleStudyRunning,
+            [bibleStudy._id || '']: status === 'running'
+        });
+    };
+
     return (
         <div className="w-100 d-flex justify-content-center align-items-center flex-column bible-assistant"
              style={{width: "100dvw"}}>
@@ -316,11 +338,12 @@ export const BibleAssistant = () => {
             <h1>Bible Assistant</h1>
             <div className="d-flex justify-content-around w-100">
                 <div className="d-flex gap-2 align-items-center">
-                    {selectedStudy && <Button onClick={toggleBibleGroup} color="info" outline>Agregar Grupo</Button>}
+                    {selectedStudy && <Button onClick={toggleBibleGroup} color="info" outline>
+                        {selectedGroup ? 'Editar' : 'Agregar'} Grupo</Button>}
                 </div>
                 <div className="d-flex flex-column gap-2">
                     <FormGroup>
-                        <Input placeholder="Tipo"
+                        <Input placeholder="Estudios"
                                onChange={handleSelectStudy}
                                value={selectedStudy?._id}
                                type="select">
@@ -331,9 +354,13 @@ export const BibleAssistant = () => {
                                         <option value={g._id || k}>{g.title}</option>
                                 )
                             }
-
                         </Input>
                     </FormGroup>
+                    {selectedStudy &&
+                        <Button onClick={() => runBibleStudy(selectedStudy)} color="primary" className="my-3" outline>
+                            {bibleStudyRunning[selectedStudy._id || ''] ? 'Stop' : 'Run'}
+                        </Button>
+                    }
                     {selectedStudy &&
                         <FormGroup>
                             <Input placeholder="Tipo"
@@ -400,7 +427,7 @@ export const BibleAssistant = () => {
             <Modal isOpen={bibleGroupModal} toggle={toggleBibleGroup}>
                 <ModalHeader toggle={toggleBibleGroup}>Crea un Nuevo Grupo Biblico</ModalHeader>
                 <ModalBody>
-                    <BibleGroupForm groups={selectedStudy?.groups || []} onSubmit={handleBibleGroupSubmit}/>
+                    <BibleGroupForm groups={selectedStudy?.groups || []} initialData={selectedGroup} onSubmit={handleBibleGroupSubmit}/>
                 </ModalBody>
                 <ModalFooter>
                     <Button color="secondary" onClick={toggleBibleGroup}>Cancel</Button>

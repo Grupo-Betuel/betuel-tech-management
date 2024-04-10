@@ -18,7 +18,7 @@ import {
     BibleDayModel,
     BibleDayResourcesModel,
     BibleDayResourceTypesList,
-    BibleDayResourceTypes, UploableDayResourceTypes, BibleStudyModel, BibleStudyActionsModel
+    BibleDayResourceTypes, UploableDayResourceTypes, BibleStudyModel, BibleStudyActionsModel, AvailableSourceTypes
 } from "../../../../model/interfaces/BibleModel";
 import './BibleDaysMng.scss';
 import {generateCustomID} from "../../../../utils/text.utils";
@@ -42,6 +42,7 @@ const BibleDaysGrid: React.FC<BibleDaysGridProps> = ({study, onDaySubmit, onDayD
     const [editableFields, setEditableFields] = useState<{ [key: string]: any }>({});
     const [bibleDays, setBibleDays] = useState<BibleDayModel[]>(study.days);
     const [loading, setLoading] = useState(false);
+
     React.useEffect(() => {
         setBibleDays(study.days);
     }, [study]);
@@ -155,13 +156,15 @@ const BibleDaysGrid: React.FC<BibleDaysGridProps> = ({study, onDaySubmit, onDayD
     };
 
     const handleUpdateMedia = async (dayToBeUpdate: BibleDayModel, resourceType: UploableDayResourceTypes, event: React.ChangeEvent<HTMLInputElement>) => {
-        if (resourceType !== 'audio' && resourceType !== 'image') {
+
+        if (resourceType && !AvailableSourceTypes.includes(resourceType)) {
             toast('Invalid resource type');
             return;
         }
 
         const file = event.target.files && event.target.files[0];
-        const tag: IMediaTagTypes = resourceType;
+        const mediaType: IMediaTagTypes = resourceType.includes('image') ? 'image' : 'audio';
+        const tag: IMediaTagTypes = mediaType;
         if (file && dayToBeUpdate) {
             await onChangeMediaFile(
                 dayToBeUpdate, tag, event, async (media: IMedia) => {
@@ -178,9 +181,9 @@ const BibleDaysGrid: React.FC<BibleDaysGridProps> = ({study, onDaySubmit, onDayD
         }
     }
 
-    const onChangeMediaFile = async (data: BibleDayModel, resourceType: UploableDayResourceTypes, event: any, onLoadedMedia?: (media: IMedia) => Promise<void>) => {
+    const onChangeMediaFile = async (data: BibleDayModel, resourceType: IMediaTagTypes, event: any, onLoadedMedia?: (media: IMedia) => Promise<void>) => {
         // const companyIdString = companies.find(company => company.companyId === companyId)?._id;
-        const tag: IMediaTagTypes = resourceType;
+        const tag: IMediaTagTypes = resourceType as IMediaTagTypes;
 
         const uploadCallBack = async (media: IMedia) => {
             // const companyToUpdate = isEditing[companyIdString];
@@ -329,12 +332,14 @@ const ResourceSection: React.FC<IResourceSectionProps> = (
         uploadResourceFile,
     }) => {
 
-    const handleUploadFile = (type: BibleDayResourceTypes) => (event: any) => {
+    const handleUploadFile = (type: UploableDayResourceTypes) => (event: any) => {
         console.log('type => ', type)
-        if (type === 'audio' || type === 'image') {
-            uploadResourceFile(day, type, event);
-        } else {
+
+        if (type && !AvailableSourceTypes.includes(type)) {
             toast('Invalid resource type');
+            return;
+        } else {
+            uploadResourceFile(day, type, event);
         }
     }
 
@@ -352,12 +357,12 @@ const ResourceSection: React.FC<IResourceSectionProps> = (
                         </Label>
                         <Input placeholder="file" id={`file-${resource._id}`} type="file"
                                className="invisible position-absolute z-index-0"
-                               onChange={handleUploadFile(resource.type)}
+                               onChange={handleUploadFile(resource.type as UploableDayResourceTypes)}
                         />
                     </FormGroup>
 
-                    <div className="d-flex gap-2 align-items-center">
-                        <div className="d-flex flex-column justify-content-center">
+                    <div className="d-flex gap-2 align-items-center w-100">
+                        <div className="d-flex flex-column justify-content-center w-100">
                             <FormGroup className="resource-item__form-group">
                                 <Input type="text" className="resource-item__input" placeholder="Resource Title"
                                        name="title"
@@ -396,7 +401,7 @@ const ResourceSection: React.FC<IResourceSectionProps> = (
 const CreateDayCard: React.FC<{
     onSubmit: (data: BibleDayModel) => void;
     position: number;
-    uploadResourceFile: (data: BibleDayModel, resourceType: UploableDayResourceTypes, event: any, onLoadedMedia?: (media: IMedia) => Promise<void>) => void;
+    uploadResourceFile: (data: BibleDayModel, resourceType: IMediaTagTypes, event: any, onLoadedMedia?: (media: IMedia) => Promise<void>) => void;
 }> = ({
           uploadResourceFile,
           position,
@@ -463,7 +468,18 @@ const CreateDayCard: React.FC<{
     };
 
     const handleUploadFile = (type: UploableDayResourceTypes) => (event: any) => {
-        uploadResourceFile(newDayData, type, event);
+        const resourceType: IMediaTagTypes = type.includes('image') ? 'image' : 'audio';
+
+        uploadResourceFile(newDayData, resourceType, event,
+            async (media: IMedia) => {
+                const newData = {...newDayData};
+                newData.resources = newData.resources.map(resource => resource.type === type ? {
+                    ...resource,
+                    url: media.content
+                } : resource);
+                setNewDayData({...newData});
+                setResourceInputs(newData.resources);
+            });
     }
 
     const handleDeleteResource = (resourceId: string) => () => {
@@ -536,7 +552,8 @@ const CreateDayCard: React.FC<{
                                         </Label>
                                         <Input
                                             onChange={handleUploadFile(resource.type as UploableDayResourceTypes)}
-                                            placeholder="file" id="file" clas type="file"
+                                            placeholder="file" id="file" type="file"
+                                            name={resource._id}
                                             className="invisible position-absolute"
                                         />
                                     </FormGroup>
@@ -596,13 +613,24 @@ const getThumbnail = (resource: BibleDayResourcesModel) => {
     const {type, url} = resource;
     switch (type) {
         case "audio":
+        case "audio-2":
+        case "audio-3":
+            return "https://cdn4.iconfinder.com/data/icons/web-ui-color/128/Audio-512.png"
         case "audio-lecture":
-            return "https://www.iconpacks.net/icons/3/free-musical-notes-icon-10191-thumb.png"
+        case "audio-lecture-2":
+        case "audio-lecture-3":
+            return "https://t3.ftcdn.net/jpg/04/75/89/42/360_F_475894261_y9xHE0K72sCwiszwg3GXXuoOlieYNTac.jpg"
         case "video":
+        case "video-2":
+        case "video-3":
             return "https://www.freeiconspng.com/thumbs/video-icon/video-icon-1.png";
         case "lecture":
-            return "https://www.iconpacks.net/icons/2/free-bible-icon-5014-thumb.png";
+        case "lecture-2":
+        case "lecture-3":
+            return "https://cdn-icons-png.freepik.com/512/2702/2702154.png";
         case "image":
+        case "image-2":
+        case "image-3":
             return url;
         default:
             return "https://media.istockphoto.com/id/1322123064/photo/portrait-of-an-adorable-white-cat-in-sunglasses-and-an-shirt-lies-on-a-fabric-hammock.jpg?s=612x612&w=0&k=20&c=-G6l2c4jNI0y4cenh-t3qxvIQzVCOqOYZNvrRA7ZU5o=";

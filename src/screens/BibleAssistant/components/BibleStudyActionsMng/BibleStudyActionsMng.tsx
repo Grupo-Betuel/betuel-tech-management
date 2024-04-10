@@ -20,7 +20,6 @@ export const BibleStudyActionsMng = ({onActionSubmit, study, onActionDelete}: IB
     const [newAction, setNewAction] = useState<BibleStudyActionsModel>({
         hour: 0,
         minute: 0,
-        day: 1,
         type: 'resource', // Default value
         resourceType: 'image' // Default value
     });
@@ -59,7 +58,13 @@ export const BibleStudyActionsMng = ({onActionSubmit, study, onActionDelete}: IB
     } = useConfirmAction<CommonActionTypes, BibleStudyActionsModel | string>(handleConfirmedAction, handleDeniedAction)
 
     const handleChange = (e: any, id?: string) => {
-        const {name, value} = e.target;
+        let {name, value, checked, type} = e.target;
+        if (type === 'number') {
+            value = parseInt(value);
+        } else if (type === 'checkbox') {
+            value = checked;
+        }
+
         const updatedActions = actions.map(action => {
             if (action._id === id) {
                 return {...action, [name]: value};
@@ -80,6 +85,18 @@ export const BibleStudyActionsMng = ({onActionSubmit, study, onActionDelete}: IB
         handleSetActionToConfirm('create', {...newAction, _id: undefined});
     };
 
+    const onChangeAction = ({target: { name, value, type, checked }}: any) => {
+        if (type === 'number') {
+            value = parseInt(value);
+        } else if (type === 'checkbox') {
+            value = checked;
+        }
+        setNewAction({
+            ...newAction,
+            [name]: value
+        })
+    }
+
     return (
         <div className="bible-study-actions">
             {!loading ? null : (
@@ -93,10 +110,7 @@ export const BibleStudyActionsMng = ({onActionSubmit, study, onActionDelete}: IB
                 <Card className="bible-days-grid__item">
                     <CardBody>
                         <ActionForm action={newAction}
-                                    onChange={(e: any) => setNewAction({
-                                        ...newAction,
-                                        [e.target.name]: e.target.value
-                                    })}/>
+                                    onChange={onChangeAction}/>
                     </CardBody>
                     <CardFooter>
                         <Button color="primary" onClick={handleAddAction}>Add Action</Button>

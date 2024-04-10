@@ -34,6 +34,16 @@ const ActionForm = ({action, onChange}: IActionFormProps) => {
                 </Input>
             </FormGroup>
             <FormGroup>
+                <Label for={`day_${action._id}`}>Day:</Label>
+                <Input type="select" name="day" id={`day_${action._id}`} value={action.day}
+                       onChange={onChange}>
+                    <option value="">Select Day</option>
+                    {[...Array(7)].map((_, i) => (
+                        <option key={i} value={i}>{i}</option>
+                    ))}
+                </Input>
+            </FormGroup>
+            <FormGroup>
                 <Label for={`date_${action._id}`}>Date:</Label>
                 <Input type="date" name="date" id={`date_${action._id}`} value={action.date ? new Date(action.date).toISOString().split('T')[0] : ''} onChange={onChange}/>
             </FormGroup>
@@ -53,6 +63,11 @@ const ActionForm = ({action, onChange}: IActionFormProps) => {
                         <option key={type} value={type}>{type}</option>
                     ))}
                 </Input>
+            </FormGroup>
+            <FormGroup switch>
+                <Label for={`pinMessage_${action._id}`}>Pin Message</Label>
+                <Input type="switch" name="pinMessage" id={`pinMessage_${action._id}`} checked={!!action.pinMessage}
+                       onChange={onChange} />
             </FormGroup>
         </CardBody>
     );

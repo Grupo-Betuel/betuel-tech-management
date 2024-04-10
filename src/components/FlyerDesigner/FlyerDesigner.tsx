@@ -57,7 +57,7 @@ const blankFlyer: IFlyer = {
             size: {fontSize: 35, width: 'auto', height: 'auto'},
         },
     ],
-    templateImage: 'https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/image-1682611001553.png?generation=1682611002092972&alt=media'
+    templateImage: 'https://storage.googleapis.com/download/storage/v1/b/betuel-tech-photos/o/image-2682611001553.png?generation=1682611002092972&alt=media'
 }
 
 const saveIntervalTime = 1000 * 60;

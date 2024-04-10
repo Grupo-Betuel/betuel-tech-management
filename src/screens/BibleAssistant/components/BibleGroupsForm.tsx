@@ -22,9 +22,15 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, g
             startDate: new Date(),
             whatsappGroupID: '',
             type: '',
-            users: [],
-        }
+        } as BibleGroupModel,
     );
+
+    React.useEffect(() => {
+        if (initialData) {
+            setFormData(initialData);
+        }
+    }, [initialData]);
+
     const [selectedWsGroup, setSelectedWsGroup] = useState<IWsGroup>();
 
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -56,7 +62,6 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, g
         return wsGroups.filter(group => !groups.find(g => g.whatsappGroupID === group.id))
     }, [groups, wsGroups]);
 
-    console.log(wsGroups, 'wsGroups');
 
 
     const handleConfirmedAction = async (actionToConfirm?: BibleAssistantActionTypes, data?: any) => {

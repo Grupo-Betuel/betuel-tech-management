@@ -1,7 +1,51 @@
 import {BaseModel} from "./BaseModel";
-export type BibleDayResourceTypes = 'image' | 'audio' | 'lecture' | 'audio-lecture' | 'video';
-export type UploableDayResourceTypes = Extract<'image' | 'audio', BibleDayResourceTypes>;
-export const BibleDayResourceTypesList: BibleDayResourceTypes[] = ['image', 'audio', 'lecture', 'audio-lecture', 'video'];
+
+export type BibleDayResourceTypes =
+    | 'image'
+    | 'image-2'
+    | 'image-3'
+    | 'audio'
+    | 'audio-2'
+    | 'audio-3'
+    | 'lecture'
+    | 'lecture-2'
+    | 'lecture-3'
+    | 'audio-lecture'
+    | 'audio-lecture-2'
+    | 'audio-lecture-3'
+    | 'video'
+    | 'video-2'
+    | 'video-3'
+
+export type UploableDayResourceTypes = Extract<
+    'image'
+    | 'image-2'
+    | 'image-3'
+    | 'audio'
+    | 'audio-2'
+    | 'audio-3'
+    , BibleDayResourceTypes>;
+export const BibleDayResourceTypesList: BibleDayResourceTypes[] = [
+    'image',
+    'image-2',
+    'image-3',
+    'audio',
+    'audio-2',
+    'audio-3',
+    'lecture',
+    'lecture-2',
+    'lecture-3',
+    'audio-lecture',
+    'audio-lecture-2',
+    'audio-lecture-3',
+    'video',
+    'video-2',
+    'video-3',
+];
+
+export const AvailableSourceTypes: UploableDayResourceTypes[] = ['audio', 'image', 'image-3', 'image-2', 'audio-2', 'audio-3'];
+
+
 export interface BibleDayResourcesModel extends BaseModel {
     url: string;
     title: string;
@@ -27,7 +71,6 @@ export interface BibleGroupModel extends BaseModel {
     title: string;
     description: string;
     startDate: Date;
-
     users: Array<BibleUserModel>; // Assuming the type of users is an array of strings
     whatsappGroupID: string;
     type?: string;
@@ -92,7 +135,8 @@ export type BibleStudyActionTypes = 'resource'
 export interface BibleStudyActionsModel extends BaseModel {
     hour: number;
     minute: number;
-    day: number,
+    pinMessage?: boolean;
+    day?: number,
     date?: Date,
     type: BibleStudyActionTypes,
     resourceType: BibleDayResourceTypes,

@@ -7,6 +7,7 @@ import {
 } from "../model/interfaces/WhatsappModels";
 import {generateProductDescriptionFromParams} from "../utils/promotion.utils";
 import {removeExtraCharactersFromText, removeHTMLChars} from "../utils/text.utils";
+import {BibleStudyModel} from "../model/interfaces/BibleModel";
 
 export const localPromotionsApi = "http://10.0.0.13:5000/api/";
 export const whatsappPhone = "+18298937075";
@@ -153,6 +154,25 @@ export const handleScheduleWsPromotion = async (
                 "Content-Type": "application/json",
             },
             body: JSON.stringify({action}),
+        });
+    } catch (e) {
+        throw e;
+    }
+};
+
+
+export const handleScheduleBibleStudy = async (
+    action: 'run' | 'stop' = 'run',
+    bibleStudy: BibleStudyModel
+) => {
+    try {
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}schedule/bible-assistance`, {
+            method: "POST",
+            headers: {
+                Accept: "application/json",
+                "Content-Type": "application/json",
+            },
+            body: JSON.stringify({action, bibleStudy }),
         });
     } catch (e) {
         throw e;
