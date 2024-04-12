@@ -1,6 +1,6 @@
-import React from 'react';
+import React, {useMemo} from 'react';
 import {Table, Badge, Progress, Button} from 'reactstrap';
-import {BibleGroupModel, BibleUserModel} from "../../../../model/interfaces/BibleModel";
+import {BibleDayModel, BibleGroupModel, BibleUserModel} from "../../../../model/interfaces/BibleModel";
 import "./BibleGroupMng.scss";
 
 interface BibleGroupTableProps {
@@ -36,6 +36,12 @@ const BibleGroupMng: React.FC<BibleGroupTableProps> = ({group, onGroupDelete}) =
         //
     }
 
+    const currentDay = useMemo(() => {
+        const daysAgo = Math.floor((new Date().getTime() - new Date(group?.startDate || new Date()).getTime()) / (1000 * 3600 * 24)) || 1;
+        return daysAgo;
+    }, [group?.startDate]);
+
+
     return (
         <div className="bible-group-mng ">
             <div className="d-flex align-items-center justify-content-between pb-4">
@@ -44,6 +50,7 @@ const BibleGroupMng: React.FC<BibleGroupTableProps> = ({group, onGroupDelete}) =
                     color="danger" outline>
                     Eliminar Grupo
                 </Button>
+                <h2>Día {currentDay}</h2>
                 <Button onClick={handleSyncGroupUsersWithWs}
                         color="info" outline>
                     Sync Group Users

@@ -28,7 +28,7 @@ import BibleStudiesForm from "./components/BibleStudiesForm";
 import {deleteBibleDay, updateBibleDay} from "../../services/bible/bibleDayService";
 import {
     addBibleStudyAction,
-    deleteBibleStudyAction,
+    deleteBibleStudyAction, runBibleStudyAction,
     updateBibleStudyAction
 } from "../../services/bible/bibleStudyActionService";
 import {deleteBibleDayResource} from "../../services/bible/bibleDayResourceService";
@@ -135,11 +135,20 @@ export const BibleAssistant = () => {
     const [bibleGroupModal, setBibleGroupModal] = useState(false);
     const [whatsappModal, setWhatsappModal] = useState(false);
     const [studyFormModal, setStudyFormModal] = useState(false);
+    const [selectedAction, setSelectedAction] = useState<BibleStudyActionsModel>();
+    const [selectedDay, setSelectedDay] = useState<BibleDayModel>();
+
+    const onChangeRunActionSelector = (e: React.ChangeEvent<HTMLInputElement>) => {
+        const day = selectedStudy?.days.find(d => d._id === e.target.value);
+        setSelectedDay(day);
+    }
+    const resetSelectedAction = () => setSelectedAction(undefined);
+
     const {
         fetchWsSeedData,
         seedData: {groups: wsGroups},
         logged: wsIsLogged
-    } = useWhatsapp(whatsappSessionKeys.bibleAssistant);
+    } = useWhatsapp(whatsappSessionKeys.wpadilla);
 
     const [activeTab, setActiveTab] = useState<BibleStudyTabs>('days');
     const handleActiveTab = (tab: BibleStudyTabs) => () => setActiveTab(tab);
@@ -214,6 +223,10 @@ export const BibleAssistant = () => {
         const group = selectedStudy?.groups.find(g => g._id === e.target.value);
         console.log('group =>', group);
         setSelectedGroup(group);
+        //TODO: get current day from group started date
+        const daysAgo = Math.floor((new Date().getTime() - new Date(group?.startDate || new Date()).getTime()) / (1000 * 3600 * 24));
+        const currentDay = selectedStudy?.days.find(d => d.position === daysAgo);
+        setSelectedDay(currentDay);
         setActiveTab('members');
     }
 
@@ -221,7 +234,7 @@ export const BibleAssistant = () => {
         setLoading(true);
         toggleBibleGroup();
         if (selectedStudy) {
-            if(group._id) {
+            if (group._id) {
                 // eslint-disable-next-line no-undef
                 await updateBibleGroup({
                     _id: group._id,
@@ -295,6 +308,10 @@ export const BibleAssistant = () => {
 
     }
 
+    const handleActionSelection = async (action: BibleStudyActionsModel) => {
+        setSelectedAction(action);
+    }
+
     const handleDayDelete = async (id?: string) => {
         if (id) {
             await deleteBibleDay(id);
@@ -332,6 +349,29 @@ export const BibleAssistant = () => {
             [bibleStudy._id || '']: status === 'running'
         });
     };
+
+    const executeSelectedAction = async () => {
+        if(!selectedDay || !selectedAction || !selectedGroup) {
+            toast('¡Selecciona un dia y una accion!', {type: 'error'});
+            return;
+        }
+        const data = {
+            group: {
+                title: selectedGroup.title,
+                _id: selectedGroup._id,
+                whatsappGroupID: selectedGroup.whatsappGroupID,
+                description: selectedGroup.description,
+                polls: selectedGroup.polls,
+                startDate: selectedGroup.startDate,
+            } as BibleGroupModel,
+            action: selectedAction,
+            day: selectedDay
+        }
+        setLoading(true);
+        await runBibleStudyAction(data);
+        setLoading(false);
+        toast('¡Acción ejecutada!', {type: 'success'});
+    }
 
     return (
         <div className="w-100 d-flex justify-content-center align-items-center flex-column bible-assistant"
@@ -429,28 +469,48 @@ export const BibleAssistant = () => {
                     </div>
                     <div className={`w-100 ${activeTab === 'actions' ? 'd-block' : 'd-none'}`}>
                         <BibleStudyActionsMng onActionSubmit={handleActionSubmit} onActionDelete={handleActionDelete}
-                                              study={selectedStudy}/>
+                                              study={selectedStudy}
+                                              onActionRun={handleActionSelection}
+                                              enableExecution={!!selectedGroup}
+                        />
                     </div>
 
                 </div>}
             <Modal isOpen={bibleGroupModal} toggle={toggleBibleGroup}>
                 <ModalHeader toggle={toggleBibleGroup}>Crea un Nuevo Grupo Biblico</ModalHeader>
                 <ModalBody>
-                    <BibleGroupForm groups={selectedStudy?.groups || []} editableGroup={selectedGroup} onSubmit={handleBibleGroupSubmit}/>
+                    <BibleGroupForm groups={selectedStudy?.groups || []} editableGroup={selectedGroup}
+                                    onSubmit={handleBibleGroupSubmit}/>
                 </ModalBody>
                 <ModalFooter>
                     <Button color="secondary" onClick={toggleBibleGroup}>Cancel</Button>
                 </ModalFooter>
             </Modal>
-            <Modal isOpen={!wsIsLogged || whatsappModal} toggle={toggleWhatsappModal}>
-                <ModalHeader toggle={toggleWhatsappModal}>Envia Mensajes</ModalHeader>
-                <ModalBody>
-                    <Messaging whatsappSession={whatsappSessionKeys.bibleAssistant}/>
-                </ModalBody>
-                <ModalFooter>
-                    <Button color="secondary" onClick={toggleWhatsappModal}>Cancel</Button>
-                </ModalFooter>
+            {/*<Modal isOpen={!wsIsLogged || whatsappModal} toggle={toggleWhatsappModal}>*/}
+            {/*    <ModalHeader toggle={toggleWhatsappModal}>Envia Mensajes</ModalHeader>*/}
+            {/*    <ModalBody>*/}
+            {/*        <Messaging whatsappSession={whatsappSessionKeys.bibleAssistant}/>*/}
+            {/*    </ModalBody>*/}
+            {/*    <ModalFooter>*/}
+            {/*        <Button color="secondary" onClick={toggleWhatsappModal}>Cancel</Button>*/}
+            {/*    </ModalFooter>*/}
 
+            {/*</Modal>*/}
+            <Modal isOpen={!!selectedAction} toggle={resetSelectedAction}>
+                <ModalHeader toggle={resetSelectedAction}>Crea un Nuevo Estudio Biblico</ModalHeader>
+                <ModalBody>
+                    <Input type="select" onChange={onChangeRunActionSelector}>
+                        <option value="">Seleccionar Dia</option>
+                        {selectedStudy?.days.map((day) => (
+                            <option value={day._id} key={day._id} selected={selectedDay?._id === day._id}>Dia {day.position}</option>
+                        ))
+                        }
+                    </Input>
+                </ModalBody>
+                <ModalFooter className="d-flex gap-3 justify-content-between">
+                    <Button color="danger" onClick={resetSelectedAction}>Cancelar</Button>
+                    <Button disabled={!selectedDay} color="primary" onClick={executeSelectedAction}>Ejecutar Action</Button>
+                </ModalFooter>
             </Modal>
             <Modal isOpen={studyFormModal} toggle={toggleStudyFormModal}>
                 <ModalHeader toggle={toggleStudyFormModal}>Crea un Nuevo Estudio Biblico</ModalHeader>

@@ -6,7 +6,7 @@ import * as serviceWorker from './serviceWorker';
 import {BrowserRouter as Router} from "react-router-dom";
 import 'bootstrap/dist/css/bootstrap.min.css';
 import 'react-toastify/dist/ReactToastify.css';
-import 'react-rotatable/dist/css/rotatable.min.css';
+// import 'react-rotatable/dist/css/rotatable.min.css';
 
 ReactDOM.render(
     <Router>

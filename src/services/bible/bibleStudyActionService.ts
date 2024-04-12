@@ -1,4 +1,4 @@
-import {BibleStudyActionsModel} from "../../model/interfaces/BibleModel";
+import {BibleDayModel, BibleGroupModel, BibleStudyActionsModel} from "../../model/interfaces/BibleModel";
 
 export const getBibleStudyActions = async () => {
     try {
@@ -51,6 +51,29 @@ export const addBibleStudyAction = async (data: BibleStudyActionsModel) => {
 
     try {
         return await fetch(`${process.env.REACT_APP_API}bible/studies/actions`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            }
+        );
+    } catch (e) {
+        throw e;
+    }
+
+}
+
+export const runBibleStudyAction = async (data: {
+    group: BibleGroupModel,
+    action: BibleStudyActionsModel,
+    day: BibleDayModel
+}) => {
+    const body = JSON.stringify(data);
+
+    try {
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}bible/actions/run`, {
                 method: 'POST',
                 headers: {
                     'Accept': 'application/json',

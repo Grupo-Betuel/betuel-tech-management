@@ -73,6 +73,7 @@ export interface BibleGroupModel extends BaseModel {
     startDate: Date;
     users: Array<BibleUserModel>; // Assuming the type of users is an array of strings
     whatsappGroupID: string;
+    polls: string[];
     type?: string;
     updateDate?: Date;
     createDate?: Date;

@@ -3,8 +3,6 @@ import {Card, CardBody, CardFooter, Button, Spinner} from "reactstrap";
 import ActionForm from "../BibleStudyActionForm";
 import {BibleStudyActionsModel, BibleStudyModel} from "../../../../model/interfaces/BibleModel";
 import "./BibleStudyActions.scss";
-import {BibleAssistantActionTypes} from "../../BibleAssistant";
-import {whatsappSessionKeys} from "../../../../model/interfaces/WhatsappModels";
 import {toast} from "react-toastify";
 import {useConfirmAction} from "../../../../components/hooks/confirmActionHook";
 import {CommonActionTypes} from "../../../../model/common";
@@ -12,10 +10,18 @@ import {CommonActionTypes} from "../../../../model/common";
 export interface IBibleStudyActionsMngProps {
     onActionSubmit: (action: BibleStudyActionsModel) => void;
     onActionDelete: (id?: string) => void;
+    onActionRun: (action: BibleStudyActionsModel) => void;
     study: BibleStudyModel;
+    enableExecution?: boolean;
 }
 
-export const BibleStudyActionsMng = ({onActionSubmit, study, onActionDelete}: IBibleStudyActionsMngProps) => {
+export const BibleStudyActionsMng = ({
+                                         onActionSubmit,
+                                         onActionRun,
+                                         enableExecution,
+                                         study,
+                                         onActionDelete
+                                     }: IBibleStudyActionsMngProps) => {
     const [actions, setActions] = useState<BibleStudyActionsModel[]>(study.actions);
     const [newAction, setNewAction] = useState<BibleStudyActionsModel>({
         hour: 0,
@@ -85,7 +91,7 @@ export const BibleStudyActionsMng = ({onActionSubmit, study, onActionDelete}: IB
         handleSetActionToConfirm('create', {...newAction, _id: undefined});
     };
 
-    const onChangeAction = ({target: { name, value, type, checked }}: any) => {
+    const onChangeAction = ({target: {name, value, type, checked}}: any) => {
         if (type === 'number') {
             value = parseInt(value);
         } else if (type === 'checkbox') {
@@ -121,14 +127,20 @@ export const BibleStudyActionsMng = ({onActionSubmit, study, onActionDelete}: IB
                         <CardBody>
                             <ActionForm action={action} onChange={(e) => handleChange(e, action._id)}/>
                         </CardBody>
-                        <CardFooter className="d-flex justify-content-between">
-                            <Button color="primary" onClick={() => handleSetActionToConfirm('update', action)}>Update</Button>
-                            <Button color="danger" onClick={() => handleSetActionToConfirm('delete', action._id)}>Delete</Button>
+                        <CardFooter className="d-flex justify-content-between flex-wrap">
+                            <Button color="primary"
+                                    onClick={() => handleSetActionToConfirm('update', action)}>Update</Button>
+                            <Button color="danger"
+                                    onClick={() => handleSetActionToConfirm('delete', action._id)}>Delete</Button>
+                            {enableExecution && <div className="w-100 mt-3">
+                                <Button color="primary" outline className="w-100"
+                                        onClick={() => onActionRun(action)}>Ejecutar</Button>
+                            </div>}
                         </CardFooter>
                     </Card>
                 ))}
             </div>
-            <ConfirmModal />
+            <ConfirmModal/>
         </div>
     );
 };
