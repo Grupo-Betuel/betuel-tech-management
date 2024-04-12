@@ -1,9 +1,10 @@
-export type WhatsappSessionTypes = 'wpadilla' | 'betuelgroup' | 'betueltravel';
-export const whatsappSessionList: WhatsappSessionTypes[] = ['betuelgroup', 'betueltravel', 'wpadilla']
+export type WhatsappSessionTypes = 'wpadilla' | 'betuelgroup' | 'betueltravel' | 'bibleAssistant';
+export const whatsappSessionList: WhatsappSessionTypes[] = ['betuelgroup', 'betueltravel', 'wpadilla', 'bibleAssistant']
 export const whatsappSessionKeys: {[K in WhatsappSessionTypes]: WhatsappSessionTypes} = {
     wpadilla: 'wpadilla',
     betuelgroup: 'betuelgroup',
     betueltravel: 'betueltravel',
+    bibleAssistant: 'bibleAssistant',
 }
 
 export interface IAudioFile { content: string, fileName: string }
@@ -18,6 +19,7 @@ export const whatsappSessionNames: {[K in WhatsappSessionTypes & any]: string} =
     betuelgroup: 'Betuel Group',
     betueltravel: 'Betuel Travel',
     wpadilla: 'Williams',
+    bibleAssistant: 'Asistente Biblico',
 }
 
 

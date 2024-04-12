@@ -139,7 +139,8 @@ export const BibleAssistant = () => {
         fetchWsSeedData,
         seedData: {groups: wsGroups},
         logged: wsIsLogged
-    } = useWhatsapp(whatsappSessionKeys.wpadilla);
+    } = useWhatsapp(whatsappSessionKeys.bibleAssistant);
+
     const [activeTab, setActiveTab] = useState<BibleStudyTabs>('days');
     const handleActiveTab = (tab: BibleStudyTabs) => () => setActiveTab(tab);
 
@@ -147,7 +148,7 @@ export const BibleAssistant = () => {
         setLoading(true);
         switch (actionToConfirm) {
             case 'sync-ws-groups':
-                await fetchWsSeedData(whatsappSessionKeys.wpadilla, 'groups')
+                await fetchWsSeedData(whatsappSessionKeys.bibleAssistant, 'groups')
                 toast('¡Datos Actualizados!', {type: 'success'});
                 break;
             case 'delete-group':
@@ -444,7 +445,7 @@ export const BibleAssistant = () => {
             <Modal isOpen={!wsIsLogged || whatsappModal} toggle={toggleWhatsappModal}>
                 <ModalHeader toggle={toggleWhatsappModal}>Envia Mensajes</ModalHeader>
                 <ModalBody>
-                    <Messaging whatsappSession={whatsappSessionKeys.wpadilla}/>
+                    <Messaging whatsappSession={whatsappSessionKeys.bibleAssistant}/>
                 </ModalBody>
                 <ModalFooter>
                     <Button color="secondary" onClick={toggleWhatsappModal}>Cancel</Button>
