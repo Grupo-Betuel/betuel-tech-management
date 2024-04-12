@@ -1,4 +1,4 @@
-import React, {useState} from 'react';
+import React, {useMemo, useState} from 'react';
 import {Button, Form, FormGroup, Input, Label} from 'reactstrap';
 import {BibleGroupModel} from "../../../model/interfaces/BibleModel";
 import useWhatsapp from "../../../components/hooks/UseWhatsapp";
@@ -6,17 +6,18 @@ import {IWsGroup, whatsappSessionKeys} from "../../../model/interfaces/WhatsappM
 import {toast} from "react-toastify";
 import {BibleAssistantActionTypes} from "../BibleAssistant";
 import {useConfirmAction} from "../../../components/hooks/confirmActionHook";
+import {initial} from "lodash";
 
 interface BibleGroupFormProps {
-    initialData?: BibleGroupModel; // Optional initial data for update mode
+    editableGroup?: BibleGroupModel; // Optional initial data for update mode
     groups: BibleGroupModel[];
     onSubmit: (formData: BibleGroupModel) => void; // Function to handle form submission
 }
 
-const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, groups}) => {
+const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit, groups}) => {
     const [loading, setLoading] = useState(false);
     const [formData, setFormData] = useState<BibleGroupModel>(
-        initialData || {
+        editableGroup || {
             title: '',
             description: '',
             startDate: new Date(),
@@ -26,10 +27,10 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, g
     );
 
     React.useEffect(() => {
-        if (initialData) {
-            setFormData(initialData);
+        if (editableGroup) {
+            setFormData(editableGroup);
         }
-    }, [initialData]);
+    }, [editableGroup]);
 
     const [selectedWsGroup, setSelectedWsGroup] = useState<IWsGroup>();
 
@@ -47,7 +48,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, g
         onSubmit({
             ...formData,
             startDate: new Date(formData.startDate),
-            users: (selectedWsGroup?.participants || []) as any,
+            users: editableGroup ? formData.users : (selectedWsGroup?.participants || []) as any,
         });
     };
 
@@ -99,6 +100,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, g
         setSelectedWsGroup(group);
     }
 
+    const disableGroupInfoEdition = useMemo(() => (!!selectedWsGroup || !!editableGroup?.whatsappGroupID), [selectedWsGroup, editableGroup])
 
     return (
         <Form onSubmit={handleSubmit}>
@@ -111,6 +113,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, g
                         name="whatsappGroupID"
                         id="whatsappGroupID"
                         value={selectedWsGroup?.id || ''}
+                        disabled={disableGroupInfoEdition}
                         onChange={onSelectGroup}
                         placeholder="Enter WhatsApp Group ID"
                     >
@@ -134,7 +137,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, g
                     id="title"
                     value={formData.title}
                     onChange={handleChange}
-                    disabled={!!selectedWsGroup}
+                    disabled={disableGroupInfoEdition}
                     placeholder="Enter title"
                 />
             </FormGroup>
@@ -146,7 +149,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({initialData, onSubmit, g
                     id="description"
                     value={formData.description}
                     onChange={handleChange}
-                    disabled={!!selectedWsGroup}
+                    disabled={disableGroupInfoEdition}
                     placeholder="Enter description"
                 />
             </FormGroup>

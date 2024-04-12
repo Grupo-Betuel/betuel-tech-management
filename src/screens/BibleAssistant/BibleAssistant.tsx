@@ -211,6 +211,7 @@ export const BibleAssistant = () => {
 
     const handleSelectGroup = (e: React.ChangeEvent<HTMLInputElement>) => {
         const group = selectedStudy?.groups.find(g => g._id === e.target.value);
+        console.log('group =>', group);
         setSelectedGroup(group);
         setActiveTab('members');
     }
@@ -220,7 +221,14 @@ export const BibleAssistant = () => {
         toggleBibleGroup();
         if (selectedStudy) {
             if(group._id) {
-                await updateBibleGroup(group);
+                // eslint-disable-next-line no-undef
+                await updateBibleGroup({
+                    _id: group._id,
+                    description: group.description,
+                    startDate: group.startDate,
+                    title: group.title,
+                    whatsappGroupID: group.whatsappGroupID,
+                });
             } else {
                 await addGroupToBibleStudy({group, study: selectedStudy});
             }
@@ -427,7 +435,7 @@ export const BibleAssistant = () => {
             <Modal isOpen={bibleGroupModal} toggle={toggleBibleGroup}>
                 <ModalHeader toggle={toggleBibleGroup}>Crea un Nuevo Grupo Biblico</ModalHeader>
                 <ModalBody>
-                    <BibleGroupForm groups={selectedStudy?.groups || []} initialData={selectedGroup} onSubmit={handleBibleGroupSubmit}/>
+                    <BibleGroupForm groups={selectedStudy?.groups || []} editableGroup={selectedGroup} onSubmit={handleBibleGroupSubmit}/>
                 </ModalBody>
                 <ModalFooter>
                     <Button color="secondary" onClick={toggleBibleGroup}>Cancel</Button>

@@ -14,6 +14,8 @@ export const getBibleGroups = async () => {
 
 export const updateBibleGroup = async (data: Partial<BibleGroupModel>) => {
     const body = JSON.stringify(data);
+    console.log(data);
+    // return;
     try {
         return await fetch(`${process.env.REACT_APP_API}bible/groups`, {
                 method: 'PUT',
