@@ -8,7 +8,6 @@ import {
 } from "../../../../model/interfaces/FlyerDesigner.interfaces";
 import {ResizeDirection} from "re-resizable";
 import "./FlyerElement.scss";
-import Rotatable from 'react-rotatable';
 import {Dropdown, DropdownItem, DropdownMenu, DropdownToggle} from "reactstrap";
 
 
