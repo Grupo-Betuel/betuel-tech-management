@@ -1,4 +1,4 @@
-import React, {createContext} from 'react';
+import React, {createContext, useMemo} from 'react';
 import './App.css';
 import {Dashboard, Login} from "./screens";
 import {ToastContainer} from "react-toastify";
@@ -13,6 +13,8 @@ import {Button, Modal, ModalBody, ModalHeader} from "reactstrap";
 import {Schedule} from "./components/Schedule/Schedule";
 import {Navigation} from "./components/Navigation/Navigation";
 import {BibleAssistant} from "./screens/BibleAssistant/BibleAssistant";
+import {parseToken} from "./utils/token";
+import IUser from "./model/interfaces/user";
 
 export interface IAppContext {
     setToken: (token: string) => void;
@@ -23,10 +25,10 @@ export const AppContext = createContext<IAppContext>({
     },
 });
 
-export const privateRoutes: {path: string, element: any, icon: string, inBackground?: boolean }[] = [
+export const privateRoutes: { path: string, element: any, icon: string, inBackground?: boolean }[] = [
     {
         path: "dashboard",
-        element: () => <Dashboard />,
+        element: () => <Dashboard/>,
         icon: 'bi bi-layout-text-window-reverse',
     },
     {
@@ -71,28 +73,51 @@ export const privateRoutes: {path: string, element: any, icon: string, inBackgro
 
 function App() {
     const [token, setToken] = React.useState(localStorage.getItem('authToken'));
+    const authUser: IUser | null = useMemo(() => {
+        if (!token) {
+            return null;
+        }
+        return parseToken(token) as IUser;
+    }, [token]);
 
     return (
         <div className="App">
             <AppContext.Provider value={{setToken}}>
                 {/* eslint-disable-next-line no-undef */}
-                {token && <Navigation/>}
+                {token && <Navigation user={authUser}/>}
                 <Switch>
                     {token ?
                         <>
                             {
-                                privateRoutes.map((route, index) => (
+                                (authUser?.role === 'accountant') ?
                                     <Route
-                                        key={index}
-                                        path={`/${route.path}`}
-                                        component={route.element}
-                                    />
-                                ))
+                                        exact
+                                        path="/accounting"
+                                        component={() => <Accounting/>}
+                                    /> :
+                                    privateRoutes.map((route, index) => {
+                                        return (
+                                            <Route
+                                                exact
+                                                key={index}
+                                                path={`/${route.path}`}
+                                                component={route.element}
+                                                render={() => {
+                                                    if (token) {
+                                                        return route.element
+                                                    }
+                                                    return <Redirect to={{pathname: "/login"}}/>
+                                                }}
+                                            />
+                                        )
+                                    })
+
                             }
                         </> :
                         <Route path="/login" component={() => <Login setToken={setToken}/>}/>
                     }
-                    <Route path="*" component={() => <Redirect to={token ? "/dashboard" : "/login"}/>}/>
+                    <Route component={() => <Redirect
+                        to={{pathname: token ? authUser?.role === 'accountant' ? "/accounting" : "/dashboard" : "/login"}}/>}/>
 
                 </Switch>
 

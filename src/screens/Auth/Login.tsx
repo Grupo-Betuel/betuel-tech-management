@@ -5,6 +5,7 @@ import IUser from "../../model/interfaces/user";
 import { login } from "../../services/auth";
 import { useHistory } from 'react-router';
 import { toast } from "react-toastify";
+import {parseToken} from "../../utils/token";
 
 export interface ILoginProps {
     setToken: any;
@@ -28,6 +29,12 @@ const Login: React.FC<ILoginProps> = ( { setToken }) => {
                 toast("¡Bienvenido!", {type: "default"});
                 localStorage.setItem('authToken', response.token);
                 setToken(response.token)
+                const authUser = parseToken(response.token);
+                if(authUser?.role === 'accountant'){
+                    history.push("/accounting");
+                } else {
+                    history.push("/dashboard");
+                }
             } else {
                 toast(response.message, {type: "error"})
 
@@ -39,7 +46,7 @@ const Login: React.FC<ILoginProps> = ( { setToken }) => {
 
     }
 
-    const isValid = () => user.password && user.password.length > 3 && user.email && user.email.length > 3;
+    const isValid = () => user.password && user.password.length > 3 && user.username && user.username.length > 3;
 
     return (
         <div className="container w-100 h-100 d-flex align-items-center justify-content-center p-5">
@@ -51,13 +58,13 @@ const Login: React.FC<ILoginProps> = ( { setToken }) => {
                         </div> : null}
                 <h1 className="text-center">Betuel Tech Management</h1>
                 <FormGroup>
-                    <Label for="exampleEmail">
+                    <Label for="username">
                         Usuario
                     </Label>
                     <Input
+                        id="username"
                         onChange={onChange}
-                        id="exampleEmail"
-                        name="email"
+                        name="username"
                         placeholder="Usuario"
                     />
                 </FormGroup>

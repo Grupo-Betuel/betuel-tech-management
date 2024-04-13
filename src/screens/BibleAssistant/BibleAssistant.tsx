@@ -148,7 +148,7 @@ export const BibleAssistant = () => {
         fetchWsSeedData,
         seedData: {groups: wsGroups},
         logged: wsIsLogged
-    } = useWhatsapp(whatsappSessionKeys.wpadilla);
+    } = useWhatsapp(whatsappSessionKeys.bibleAssistant);
 
     const [activeTab, setActiveTab] = useState<BibleStudyTabs>('days');
     const handleActiveTab = (tab: BibleStudyTabs) => () => setActiveTab(tab);
@@ -223,9 +223,11 @@ export const BibleAssistant = () => {
         const group = selectedStudy?.groups.find(g => g._id === e.target.value);
         console.log('group =>', group);
         setSelectedGroup(group);
-        //TODO: get current day from group started date
-        const daysAgo = Math.floor((new Date().getTime() - new Date(group?.startDate || new Date()).getTime()) / (1000 * 3600 * 24));
-        const currentDay = selectedStudy?.days.find(d => d.position === daysAgo);
+        const passedDaysFromStartDate = (Math.round(
+            (new Date().getTime() - new Date(group?.startDate || new Date()).getTime()) / (1000 * 60 * 60 * 24),
+        )) + 1;
+
+        const currentDay = selectedStudy?.days.find(d => d.position === passedDaysFromStartDate);
         setSelectedDay(currentDay);
         setActiveTab('members');
     }
@@ -486,16 +488,16 @@ export const BibleAssistant = () => {
                     <Button color="secondary" onClick={toggleBibleGroup}>Cancel</Button>
                 </ModalFooter>
             </Modal>
-            {/*<Modal isOpen={!wsIsLogged || whatsappModal} toggle={toggleWhatsappModal}>*/}
-            {/*    <ModalHeader toggle={toggleWhatsappModal}>Envia Mensajes</ModalHeader>*/}
-            {/*    <ModalBody>*/}
-            {/*        <Messaging whatsappSession={whatsappSessionKeys.bibleAssistant}/>*/}
-            {/*    </ModalBody>*/}
-            {/*    <ModalFooter>*/}
-            {/*        <Button color="secondary" onClick={toggleWhatsappModal}>Cancel</Button>*/}
-            {/*    </ModalFooter>*/}
+            <Modal isOpen={!wsIsLogged || whatsappModal} toggle={toggleWhatsappModal}>
+                <ModalHeader toggle={toggleWhatsappModal}>Envia Mensajes</ModalHeader>
+                <ModalBody>
+                    <Messaging whatsappSession={whatsappSessionKeys.bibleAssistant}/>
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={toggleWhatsappModal}>Cancel</Button>
+                </ModalFooter>
 
-            {/*</Modal>*/}
+            </Modal>
             <Modal isOpen={!!selectedAction} toggle={resetSelectedAction}>
                 <ModalHeader toggle={resetSelectedAction}>Crea un Nuevo Estudio Biblico</ModalHeader>
                 <ModalBody>

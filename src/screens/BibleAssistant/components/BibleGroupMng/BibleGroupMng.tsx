@@ -37,8 +37,10 @@ const BibleGroupMng: React.FC<BibleGroupTableProps> = ({group, onGroupDelete}) =
     }
 
     const currentDay = useMemo(() => {
-        const daysAgo = Math.floor((new Date().getTime() - new Date(group?.startDate || new Date()).getTime()) / (1000 * 3600 * 24)) || 1;
-        return daysAgo;
+        const passedDaysFromStartDate = (Math.round(
+            (new Date().getTime() - new Date(group?.startDate || new Date()).getTime()) / (1000 * 60 * 60 * 24),
+        )) + 1;
+        return passedDaysFromStartDate;
     }, [group?.startDate]);
 
 
