@@ -70,8 +70,10 @@ export interface BibleDayModel extends BaseModel {
 export interface BibleGroupModel extends BaseModel {
     title: string;
     description: string;
+    dueDaysLimit: number;
     startDate: Date;
     users: Array<BibleUserModel>; // Assuming the type of users is an array of strings
+    coordinators: Array<BibleUserModel>; // Assuming the type of users is an array of strings
     whatsappGroupID: string;
     polls: string[];
     type?: string;
@@ -80,6 +82,11 @@ export interface BibleGroupModel extends BaseModel {
     // Add other properties here based on the actual schema
 }
 
+export interface BibleGroupParticipationModel extends BaseModel {
+    day: BibleDayModel;
+    study: string;
+    group: string;
+}
 export interface BibleUserModel extends BaseModel {
     firstName: string;
     lastName: string;
@@ -90,6 +97,8 @@ export interface BibleUserModel extends BaseModel {
     bibleDay: BibleDayModel; // Assuming the type of bibleDay is a string
     updateDate: Date;
     createDate: Date;
+    participations: BibleGroupParticipationModel[];
+
     // Add other properties here based on the actual schema
 }
 

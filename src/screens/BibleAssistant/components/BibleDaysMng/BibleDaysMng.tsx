@@ -18,7 +18,12 @@ import {
     BibleDayModel,
     BibleDayResourcesModel,
     BibleDayResourceTypesList,
-    BibleDayResourceTypes, UploableDayResourceTypes, BibleStudyModel, BibleStudyActionsModel, AvailableSourceTypes
+    BibleDayResourceTypes,
+    UploableDayResourceTypes,
+    BibleStudyModel,
+    BibleStudyActionsModel,
+    AvailableSourceTypes,
+    BibleGroupParticipationModel
 } from "../../../../model/interfaces/BibleModel";
 import './BibleDaysMng.scss';
 import {generateCustomID} from "../../../../utils/text.utils";

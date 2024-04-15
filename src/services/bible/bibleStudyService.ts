@@ -4,11 +4,31 @@ import {
     BibleStudyActionsModel,
     BibleStudyModel
 } from "../../model/interfaces/BibleModel";
+import {ScheduleResponse} from "../../model/schedule";
 
 export const getBibleStudies = async () => {
     try {
         const response = await fetch(`${process.env.REACT_APP_API}bible/studies`);
         return await response.json() as BibleStudyModel[];
+    } catch (e) {
+        throw e;
+    }
+
+};
+
+export const getBibleStudyStatus = async (studyId: string): Promise<ScheduleResponse | any> => {
+    const body = JSON.stringify({studyId});
+    try {
+        return await (await fetch(`${process.env.REACT_APP_PROMOTION_API}schedule/bible-assistance/status`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            }
+        )).json() as Promise<ScheduleResponse>
+
     } catch (e) {
         throw e;
     }

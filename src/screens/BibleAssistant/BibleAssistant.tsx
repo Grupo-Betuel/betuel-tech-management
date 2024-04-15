@@ -1,9 +1,9 @@
-import React, {useState} from "react";
+import React, {useEffect, useState} from "react";
 import {addBibleGroup, deleteBibleGroup, updateBibleGroup} from "../../services/bible/bibleGroupsService";
 import {
     BibleDayModel,
-    BibleGroupModel, BibleStudyActionsModel, BibleStudyInteractionModes,
-    BibleStudyModel
+    BibleGroupModel, BibleGroupParticipationModel, BibleStudyActionsModel, BibleStudyInteractionModes,
+    BibleStudyModel, BibleUserModel
 } from "../../model/interfaces/BibleModel";
 import {Button, FormGroup, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner} from "reactstrap";
 import BibleGroupForm from "./components/BibleGroupsForm";
@@ -20,7 +20,7 @@ import {
     addBibleStudy,
     addDayToBibleStudy,
     addGroupToBibleStudy,
-    getBibleStudies, updateBibleStudy
+    getBibleStudies, getBibleStudyStatus, updateBibleStudy
 } from "../../services/bible/bibleStudyService";
 import {BibleStudyActionsMng} from "./components/BibleStudyActionsMng/BibleStudyActionsMng";
 import {FloatButton} from "../Dashboard/Dashboard";
@@ -33,6 +33,7 @@ import {
 } from "../../services/bible/bibleStudyActionService";
 import {deleteBibleDayResource} from "../../services/bible/bibleDayResourceService";
 import {handleScheduleBibleStudy, handleScheduleWsPromotion} from "../../services/promotions";
+import {updateBibleGroupParticipation} from "../../services/bible/bibleGroupParticipationService";
 
 const mockDays = [{
     _id: "1",
@@ -201,6 +202,8 @@ export const BibleAssistant = () => {
     React.useEffect(() => {
         const study = studies.find(g => g._id === selectedStudy?._id);
         study && setSelectedStudy(study);
+        const updatedGroup = study?.groups.find(g => g._id === selectedGroup?._id);
+        updatedGroup && setSelectedGroup(updatedGroup)
     }, [studies]);
 
     const fetchData = async () => {
@@ -234,7 +237,7 @@ export const BibleAssistant = () => {
 
     const handleBibleGroupSubmit = async (group: BibleGroupModel) => {
         setLoading(true);
-        toggleBibleGroup();
+        setBibleGroupModal(false);
         if (selectedStudy) {
             if (group._id) {
                 // eslint-disable-next-line no-undef
@@ -244,6 +247,8 @@ export const BibleAssistant = () => {
                     startDate: group.startDate,
                     title: group.title,
                     whatsappGroupID: group.whatsappGroupID,
+                    coordinators: group.coordinators,
+                    dueDaysLimit: group.dueDaysLimit,
                 });
             } else {
                 await addGroupToBibleStudy({group, study: selectedStudy});
@@ -255,6 +260,11 @@ export const BibleAssistant = () => {
         setLoading(false);
     }
 
+    const restartStudyScheduling = async () => {
+        if(studySchedulingStatus === 'running' && selectedStudy && selectedStudy._id) {
+            await runBibleStudy(selectedStudy, 'run');
+        }
+    }
     const handleBibleStudySubmit = async (study: BibleStudyModel) => {
         setLoading(true);
         toggleStudyFormModal();
@@ -336,20 +346,22 @@ export const BibleAssistant = () => {
 
 
     const [bibleStudyRunning, setBibleStudyRunning] = useState<{ [key: string]: boolean }>({});
-    const runBibleStudy = async (bibleStudy: BibleStudyModel) => {
-        const action = bibleStudyRunning[bibleStudy._id || ''] ? "stop" : "run";
+    const runBibleStudy = async (bibleStudy: BibleStudyModel, actionType?: 'run' | 'stop') => {
+        setLoading(true);
+        const action = actionType || (studySchedulingStatus === 'running' ? "stop" : "run");
 
         const response: any = await (
             await handleScheduleBibleStudy(action, bibleStudy)
         ).json();
 
         const status: 'running' | 'stopped' | 'error' = response.status;
-        toast(`Whatsapp Promotion is ${status}`);
-
+        toast(`Bible Study Promotion is ${status}`);
+        setStudySchedulingStatus(status);
         setBibleStudyRunning({
             ...bibleStudyRunning,
             [bibleStudy._id || '']: status === 'running'
         });
+        setLoading(false);
     };
 
     const executeSelectedAction = async () => {
@@ -358,14 +370,7 @@ export const BibleAssistant = () => {
             return;
         }
         const data = {
-            group: {
-                title: selectedGroup.title,
-                _id: selectedGroup._id,
-                whatsappGroupID: selectedGroup.whatsappGroupID,
-                description: selectedGroup.description,
-                polls: selectedGroup.polls,
-                startDate: selectedGroup.startDate,
-            } as BibleGroupModel,
+            group: selectedGroup as BibleGroupModel,
             action: selectedAction,
             day: selectedDay
         }
@@ -374,6 +379,44 @@ export const BibleAssistant = () => {
         setLoading(false);
         toast('¡Acción ejecutada!', {type: 'success'});
     }
+
+    const handleBibleGroupParticipation = async (p: BibleGroupParticipationModel) => {
+        setLoading(true);
+        await updateBibleGroupParticipation(p);
+        if(selectedGroup) {
+            setSelectedGroup({
+                ...selectedGroup,
+                users: (selectedGroup?.users || []).map( u => {
+                    if(u.participations.find(part => part._id === p._id)) {
+                        return {
+                            ...u,
+                            participations: u.participations.map(part => part._id === p._id ? p : part)
+                        }
+                    }
+
+                    return u;
+                })
+            })
+        }
+        setLoading(false);
+    }
+
+    const [studySchedulingStatus, setStudySchedulingStatus] = useState<'running' | 'stopped' | 'error'>('stopped');
+    const handleStudySchedulingStatus = async () => {
+        if(selectedStudy?._id) {
+            const { status } = await getBibleStudyStatus(selectedStudy._id);
+            setStudySchedulingStatus(status);
+        }
+    }
+
+    useEffect(() => {
+        handleStudySchedulingStatus()
+    }, [selectedStudy?._id])
+
+    useEffect(() => {
+        restartStudyScheduling();
+    }, [selectedStudy])
+
 
     return (
         <div className="w-100 d-flex justify-content-center align-items-center flex-column bible-assistant"
@@ -409,7 +452,7 @@ export const BibleAssistant = () => {
                     </FormGroup>
                     {selectedStudy &&
                         <Button onClick={() => runBibleStudy(selectedStudy)} color="primary" className="my-3" outline>
-                            {bibleStudyRunning[selectedStudy._id || ''] ? 'Stop' : 'Run'}
+                            {studySchedulingStatus === 'running' ? 'Stop' : 'Run'}
                         </Button>
                     }
                     {selectedStudy &&
@@ -459,6 +502,9 @@ export const BibleAssistant = () => {
                     <div className={`w-100 ${activeTab === 'members' ? 'd-block' : 'd-none'}`}>
                         {selectedGroup &&
                             <BibleGroupMng
+                                handleParticipations={handleBibleGroupParticipation}
+                                study={selectedStudy as BibleStudyModel}
+                                addCoordinator={handleBibleGroupSubmit}
                                 group={selectedGroup as BibleGroupModel}
                                 onGroupDelete={(group: BibleGroupModel) => handleSetActionToConfirm('delete-group', group)}
                             />}

@@ -23,6 +23,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
             startDate: new Date(),
             whatsappGroupID: '',
             type: '',
+            dueDaysLimit: 7,
         } as BibleGroupModel,
     );
 
@@ -58,11 +59,11 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
         logged: wsIsLogged
     } = useWhatsapp(whatsappSessionKeys.wpadilla);
 
+    console.log('groups ', wsGroups);
 
     const selectableGroups = React.useMemo(() => {
         return wsGroups.filter(group => !groups.find(g => g.whatsappGroupID === group.id))
     }, [groups, wsGroups]);
-
 
 
     const handleConfirmedAction = async (actionToConfirm?: BibleAssistantActionTypes, data?: any) => {
@@ -87,7 +88,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
     } = useConfirmAction<BibleAssistantActionTypes, any>(handleConfirmedAction, handleDeniedAction)
 
 
-    const onSelectGroup = ({ target: { value: groupId }}: React.ChangeEvent<HTMLInputElement>) => {
+    const onSelectGroup = ({target: {value: groupId}}: React.ChangeEvent<HTMLInputElement>) => {
         const group = wsGroups.find((group) => group.id === groupId);
 
         setFormData((prevData) => ({
@@ -126,7 +127,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
                     </Input>
                 </div>
                 <Button outline color="info" onClick={() => handleSetActionToConfirm('sync-ws-groups')}>
-                    <i className="bi bi-arrow-clockwise" />
+                    <i className="bi bi-arrow-clockwise"/>
                 </Button>
             </FormGroup>
             <FormGroup>
@@ -162,6 +163,19 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
                     value={new Date(formData.startDate).toISOString().split('T')[0]}
                     onChange={handleChange}
                 />
+            </FormGroup>
+            <FormGroup>
+                <Label for="dueDays">Maximo Retraso</Label>
+                <div className="d-flex justify-content-between gap-4 align-items-center">
+                    <Input
+                        type="number"
+                        name="dueDays"
+                        id="dueDays"
+                        value={formData.dueDaysLimit}
+                        onChange={handleChange}
+                    />
+                    <span>Días</span>
+                </div>
             </FormGroup>
             {/*<FormGroup>*/}
             {/*    <Label for="type">Type</Label>*/}
