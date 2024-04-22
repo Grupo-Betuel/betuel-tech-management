@@ -57,7 +57,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
         fetchWsSeedData,
         seedData: {groups: wsGroups},
         logged: wsIsLogged
-    } = useWhatsapp(whatsappSessionKeys.wpadilla);
+    } = useWhatsapp(whatsappSessionKeys.bibleAssistant);
 
     console.log('groups ', wsGroups);
 
