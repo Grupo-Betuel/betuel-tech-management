@@ -1,4 +1,4 @@
-import { BibleGroupParticipationModel } from "../../model/interfaces/BibleModel";
+import { BibleGroupParticipationModel } from "../../models/interfaces/BibleModel";
 
 export const getBibleGroupParticipations = async () => {
     try {

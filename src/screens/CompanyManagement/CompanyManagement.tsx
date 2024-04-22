@@ -4,7 +4,7 @@ import {
     Input,
     Spinner
 } from "reactstrap";
-import {CompanyModel} from "../../model/companyModel";
+import {CompanyModel} from "../../models/companyModel";
 import {addCompany, deleteCompany, getCompanies, updateCompanies} from "../../services/companies";
 import "./CompanyManagement.scss"
 import {toast} from "react-toastify";
@@ -19,7 +19,7 @@ import {
     getAllCategories,
     updateCategories
 } from "../../services/categoryService";
-import {ICategory} from "../../model/CategoryModel";
+import {ICategory} from "../../models/CategoryModel";
 import {CategoryList} from "./components/CategoryList/CategoryList";
 export type CompanyMngTabsTypes = 'company' | 'category';
 

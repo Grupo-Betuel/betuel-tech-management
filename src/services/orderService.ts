@@ -1,7 +1,7 @@
 import {deletePhoto} from "./gcloud";
-import {CompanyTypes} from "../model/common";
-import {IOrder, IUpdateOrderBotRequest} from "../model/ordersModels";
-import {CurrencyData} from "../model/interfaces/rateModels";
+import {CompanyTypes} from "../models/common";
+import {IOrder, IUpdateOrderBotRequest} from "../models/ordersModels";
+import {CurrencyData} from "../models/interfaces/rateModels";
 
 export const getOrders = async () => {
     try {

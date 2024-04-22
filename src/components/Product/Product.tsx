@@ -1,8 +1,8 @@
 import React, { ChangeEvent } from 'react';
 import "./Product.scss";
-import { IProductData } from "../../model/products";
+import { IProductData } from "../../models/products";
 import { Button } from "reactstrap";
-import { ISale } from "../../model/interfaces/SalesModel";
+import { ISale } from "../../models/interfaces/SalesModel";
 
 export interface IProduct extends IProductData {
     salesQuantity?: number;

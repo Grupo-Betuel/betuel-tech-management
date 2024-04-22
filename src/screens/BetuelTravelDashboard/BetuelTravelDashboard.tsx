@@ -8,7 +8,7 @@ import {
     IHotelListItem, IQuoteDetails,
     IRate,
     ZoneData
-} from "../../model/interfaces/rateModels";
+} from "../../models/interfaces/rateModels";
 import {
     getRoomsCategories,
     getHotelsWithRates,

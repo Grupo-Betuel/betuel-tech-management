@@ -6,7 +6,7 @@ import {
     BibleDayResourceTypesList,
     BibleStudyActionsModel,
     bibleStudyActionTypesList
-} from "../../../model/interfaces/BibleModel";
+} from "../../../models/interfaces/BibleModel";
 
 export interface IActionFormProps {
     action: BibleStudyActionsModel;

@@ -1,4 +1,4 @@
-import { BibleGroupModel} from "../../model/interfaces/BibleModel";
+import { BibleGroupModel} from "../../models/interfaces/BibleModel";
 
 export const getBibleGroups = async () => {
     try {

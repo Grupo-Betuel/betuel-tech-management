@@ -5,7 +5,7 @@ import {
     FlyerElementModel,
     IFlyerElementPosition,
     ImageTypes
-} from "../../../../model/interfaces/FlyerDesigner.interfaces";
+} from "../../../../models/interfaces/FlyerDesigner.interfaces";
 import {ResizeDirection} from "re-resizable";
 import "./FlyerElement.scss";
 import {Dropdown, DropdownItem, DropdownMenu, DropdownToggle} from "reactstrap";

@@ -1,4 +1,4 @@
-import {IClient} from "../../model/interfaces/ClientModel";
+import {IClient} from "../../models/interfaces/ClientModel";
 import React, {ChangeEvent, useState} from "react";
 import styled from "styled-components";
 import {
@@ -25,9 +25,9 @@ import {
     whatsappSessionList,
     whatsappSessionNames,
     WhatsappSessionTypes
-} from "../../model/interfaces/WhatsappModels";
+} from "../../models/interfaces/WhatsappModels";
 import {Multiselect} from "multiselect-react-dropdown";
-import {IProductData} from "../../model/products";
+import {IProductData} from "../../models/products";
 import {Product} from "../index";
 import "./Messaging.scss";
 import {cancelWhatsappMessaging} from "../../services/promotions";

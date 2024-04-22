@@ -1,6 +1,6 @@
 import React from "react";
 import {useHistory, useLocation, useParams} from "react-router";
-import {IOrder} from "../../../model/ordersModels";
+import {IOrder} from "../../../models/ordersModels";
 import {getOrderById, updateOrder} from "../../../services/orderService";
 import {
     Button,
@@ -15,7 +15,7 @@ import {
     Spinner
 } from "reactstrap";
 import "./OrderDetail.scss";
-import {ISale} from "../../../model/interfaces/SalesModel";
+import {ISale} from "../../../models/interfaces/SalesModel";
 import {toast} from "react-toastify";
 import {getWhatsappNumberURl} from "../../../services/promotions";
 

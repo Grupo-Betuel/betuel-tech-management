@@ -9,6 +9,11 @@
   ],
   "rules": {
     "import/extensions": 0,
-    "import/no-unresolved": 0
+    "import/no-unresolved": 0,
+    "no-unused-vars": "off",
+    "no-undef": "off",
+    "no-extra-boolean-cast": "off",
+    "no-empty": "off",
+    "no-useless-catch": "off"
   }
 }

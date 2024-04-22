@@ -1,6 +1,6 @@
 import React from "react";
 import "./Accounting.scss";
-import {ExpenseModel} from "../../model/expenseModel";
+import {ExpenseModel} from "../../models/expenseModel";
 import {
     Button, FormGroup, Input, Label,
     Modal,
@@ -15,7 +15,7 @@ import {ExpenseForm} from "../../components/ExpenseForm/ExpenseForm";
 import {addExpense, getExpenses, updateExpense} from "../../services/expensesService";
 import {DownloadTableExcel} from 'react-export-table-to-excel';
 import {useConfirmAction} from "../../components/hooks/confirmActionHook";
-import {CommonActionTypes} from "../../model/common";
+import {CommonActionTypes} from "../../models/common";
 import {deleteExpense} from "../../services/expensesService";
 import {IDateMonth, months, years} from "../../utils/date.utils";
 import {generateCustomID} from "../../utils/text.utils";

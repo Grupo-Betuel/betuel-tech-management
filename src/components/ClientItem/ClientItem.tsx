@@ -1,8 +1,8 @@
 import {FormGroup, Input, Label} from "reactstrap";
 import React, {useEffect} from "react";
 import styled from "styled-components";
-import {clientStageList, IClient} from "../../model/interfaces/ClientModel";
-import {IMessenger} from "../../model/messengerModels";
+import {clientStageList, IClient} from "../../models/interfaces/ClientModel";
+import {IMessenger} from "../../models/messengerModels";
 
 const ClientWrapper: any = styled.div`
   display: grid;

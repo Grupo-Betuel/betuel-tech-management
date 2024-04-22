@@ -11,19 +11,19 @@ import {
     ModalHeader, Spinner,
 } from "reactstrap";
 import React, {KeyboardEvent, useEffect, useState} from "react";
-import {IProductData, IProductParam, ProductParamTypes} from "../../model/products";
+import {IProductData, IProductParam, ProductParamTypes} from "../../models/products";
 import "./ProductModalForm.scss";
 import {addProduct, deleteProductParam, updateProducts} from "../../services/products";
 import {ECommerceTypes, getWhatsappMessageURL} from "../../services/promotions";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
 import {PromotionOption} from "../../screens/Dashboard/Dashboard";
-import {CompanyTypes} from "../../model/common";
+import {CompanyTypes} from "../../models/common";
 import FlyerDesigner from "../FlyerDesigner/FlyerDesigner";
-import {IFlyer} from "../../model/interfaces/FlyerDesigner.interfaces";
+import {IFlyer} from "../../models/interfaces/FlyerDesigner.interfaces";
 import {toast} from "react-toastify";
 import {Multiselect} from "multiselect-react-dropdown";
-import {ICategory} from "../../model/CategoryModel";
+import {ICategory} from "../../models/CategoryModel";
 import {addCategory, getCategories, updateCategories} from "../../services/categoryService";
 import {extractNumbersFromText, removeHTMLChars} from "../../utils/text.utils";
 

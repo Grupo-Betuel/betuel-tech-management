@@ -1,4 +1,4 @@
-import {CompanyTypes} from "../model/common";
+import {CompanyTypes} from "../models/common";
 
 export const getCategories = async (companyId: string) => {
     try {

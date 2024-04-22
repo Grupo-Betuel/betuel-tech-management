@@ -1,5 +1,5 @@
 import React from "react";
-import {FlyerElementModel, FlyerElementTypes} from "../../../../model/interfaces/FlyerDesigner.interfaces";
+import {FlyerElementModel, FlyerElementTypes} from "../../../../models/interfaces/FlyerDesigner.interfaces";
 import {FlyerElement} from "../FlyerElement/FlyerElement";
 import "./FlyerDesignerTextStyles.scss";
 

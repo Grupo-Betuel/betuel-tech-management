@@ -6,7 +6,7 @@ import {
     BibleStudyModel,
     BibleUserModel,
     BibleGroupParticipationModel
-} from "../../../../model/interfaces/BibleModel";
+} from "../../../../models/interfaces/BibleModel";
 import "./BibleGroupMng.scss";
 import {updateBibleGroup} from "../../../../services/bible/bibleGroupsService";
 import {toast} from "react-toastify";

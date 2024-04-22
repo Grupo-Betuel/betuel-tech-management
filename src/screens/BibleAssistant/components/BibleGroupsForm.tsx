@@ -1,8 +1,8 @@
 import React, {useMemo, useState} from 'react';
 import {Button, Form, FormGroup, Input, Label} from 'reactstrap';
-import {BibleGroupModel} from "../../../model/interfaces/BibleModel";
+import {BibleGroupModel} from "../../../models/interfaces/BibleModel";
 import useWhatsapp from "../../../components/hooks/UseWhatsapp";
-import {IWsGroup, whatsappSessionKeys} from "../../../model/interfaces/WhatsappModels";
+import {IWsGroup, whatsappSessionKeys} from "../../../models/interfaces/WhatsappModels";
 import {toast} from "react-toastify";
 import {BibleAssistantActionTypes} from "../BibleAssistant";
 import {useConfirmAction} from "../../../components/hooks/confirmActionHook";
@@ -62,7 +62,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
     console.log('groups ', wsGroups);
 
     const selectableGroups = React.useMemo(() => {
-        return wsGroups.filter(group => !groups.find(g => g.whatsappGroupID === group.id))
+        return wsGroups?.filter(group => !groups.find(g => g.whatsappGroupID === group.id)) || [];
     }, [groups, wsGroups]);
 
 

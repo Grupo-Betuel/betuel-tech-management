@@ -12,10 +12,10 @@ import {
 } from "reactstrap";
 import TableComponent, {IAction, IHeader} from "../Table/Table";
 import React, {useEffect} from "react";
-import {ISale} from "../../model/interfaces/SalesModel";
+import {ISale} from "../../models/interfaces/SalesModel";
 import {addSales, deleteSale, updateSales} from "../../services/sales";
 import {toast} from "react-toastify";
-import {IProductParam} from "../../model/products";
+import {IProductParam} from "../../models/products";
 import "./CreateSaleModal.scss";
 
 export interface ICreateSaleModal {

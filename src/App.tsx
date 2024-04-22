@@ -9,12 +9,11 @@ import {OrderDetail} from "./screens/OrdersManagement/components/OrderDetail";
 import {CompanyManagement} from "./screens/CompanyManagement/CompanyManagement";
 import {CreateMessenger} from "./components/CreateMessenger/CreateMessenger";
 import {Accounting} from "./screens/Accounting/Accounting";
-import {Button, Modal, ModalBody, ModalHeader} from "reactstrap";
-import {Schedule} from "./components/Schedule/Schedule";
 import {Navigation} from "./components/Navigation/Navigation";
 import {BibleAssistant} from "./screens/BibleAssistant/BibleAssistant";
-import {parseToken} from "./utils/token";
-import IUser from "./model/interfaces/user";
+import {getAuthUser} from "./utils/token";
+import IUser from "./models/interfaces/user";
+import Excursions from "./screens/BetuelTravel/Excursions/Excursions";
 
 export interface IAppContext {
     setToken: (token: string) => void;
@@ -57,6 +56,11 @@ export const privateRoutes: { path: string, element: any, icon: string, inBackgr
         icon: 'book',
     },
     {
+        path: "excursions",
+        element: () => <Excursions/>,
+        icon: 'car',
+    },
+    {
         path: "register-messenger",
         element: () => <CreateMessenger/>,
         icon: 'box-arrow-right',
@@ -68,8 +72,10 @@ export const privateRoutes: { path: string, element: any, icon: string, inBackgr
         icon: 'building',
         inBackground: true,
     },
-
 ];
+
+console.log('app=>');
+
 
 function App() {
     const [token, setToken] = React.useState(localStorage.getItem('authToken'));
@@ -77,11 +83,12 @@ function App() {
         if (!token) {
             return null;
         }
-        return parseToken(token) as IUser;
+        return getAuthUser() as IUser;
     }, [token]);
 
     return (
         <div className="App">
+            <h1>hola mundo</h1>
             <AppContext.Provider value={{setToken}}>
                 {/* eslint-disable-next-line no-undef */}
                 {token && <Navigation user={authUser}/>}

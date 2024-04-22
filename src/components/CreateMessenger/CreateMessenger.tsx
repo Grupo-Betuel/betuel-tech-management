@@ -12,7 +12,7 @@ import {
     Spinner
 } from "reactstrap";
 import React, {useState} from "react";
-import {IMessenger} from "../../model/messengerModels";
+import {IMessenger} from "../../models/messengerModels";
 import {toast} from "react-toastify";
 import {addMessenger} from "../../services/messengerService";
 import InputMask from "react-input-mask";

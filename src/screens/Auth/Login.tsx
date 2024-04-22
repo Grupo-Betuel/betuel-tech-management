@@ -1,11 +1,10 @@
 import React, { ChangeEvent } from 'react';
 import { Form, FormGroup, Label, Input, Button, Spinner } from 'reactstrap';
 import "./Login.scss";
-import IUser from "../../model/interfaces/user";
+import IUser from "../../models/interfaces/user";
 import { login } from "../../services/auth";
 import { useHistory } from 'react-router';
 import { toast } from "react-toastify";
-import {parseToken} from "../../utils/token";
 
 export interface ILoginProps {
     setToken: any;
@@ -28,9 +27,9 @@ const Login: React.FC<ILoginProps> = ( { setToken }) => {
             if (!!response.token) {
                 toast("¡Bienvenido!", {type: "default"});
                 localStorage.setItem('authToken', response.token);
+                localStorage.setItem('authUser', JSON.stringify(response.user));
                 setToken(response.token)
-                const authUser = parseToken(response.token);
-                if(authUser?.role === 'accountant'){
+                if(response.user?.role === 'accountant'){
                     history.push("/accounting");
                 } else {
                     history.push("/dashboard");

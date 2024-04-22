@@ -1,4 +1,4 @@
-import { IClient } from "../../model/interfaces/ClientModel";
+import { IClient } from "../../models/interfaces/ClientModel";
 import React from "react";
 import QRCode from 'qrcode';
 import {
@@ -17,8 +17,8 @@ import {
     IWsUser,
     WhatsappSeedTypes,
     WhatsappSessionTypes
-} from "../../model/interfaces/WhatsappModels";
-import { WhatsappEvents } from "../../model/socket-events";
+} from "../../models/interfaces/WhatsappModels";
+import { WhatsappEvents } from "../../models/socket-events";
 import {localStorageImpl} from "../../utils/localStorage.utils";
 
 export const QrCanvas = styled.canvas`

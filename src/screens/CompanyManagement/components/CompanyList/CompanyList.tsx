@@ -12,7 +12,7 @@ import {
     ModalHeader
 } from "reactstrap";
 import React, {KeyboardEvent, useState} from "react";
-import {CompanyModel} from "../../../../model/companyModel";
+import {CompanyModel} from "../../../../models/companyModel";
 import {toast} from "react-toastify";
 import {IMedia, IMediaTagTypes} from "../../../../components/GCloudMediaHandler/GCloudMediaHandler";
 import YouTubeVideo from "../YoutubeVideo/YoutubeVideo";

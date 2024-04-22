@@ -1,7 +1,7 @@
 import React from "react";
 import "./FlyerDesignerImageSelector.scss";
 import {GCloudMediaHandler, IMedia, IMediaTagTypes} from "../../../GCloudMediaHandler/GCloudMediaHandler";
-import {ImageTypes} from "../../../../model/interfaces/FlyerDesigner.interfaces";
+import {ImageTypes} from "../../../../models/interfaces/FlyerDesigner.interfaces";
 
 export interface IFlyerDesignerImageSelectorProps {
     onClickMedia: (media: IMedia) => void;

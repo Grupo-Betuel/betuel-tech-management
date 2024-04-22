@@ -14,7 +14,7 @@ import {
 import React, {useMemo, useState} from "react";
 import {toast} from "react-toastify";
 import "./ClientMng.scss";
-import {clientStageList, IClient} from "../../../../model/interfaces/ClientModel";
+import {clientStageList, IClient} from "../../../../models/interfaces/ClientModel";
 
 export interface IClientsMngProps {
     clients: IClient[];

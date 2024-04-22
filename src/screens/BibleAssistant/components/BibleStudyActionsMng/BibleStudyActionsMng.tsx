@@ -1,11 +1,11 @@
 import React, {useState} from "react";
 import {Card, CardBody, CardFooter, Button, Spinner} from "reactstrap";
 import ActionForm from "../BibleStudyActionForm";
-import {BibleStudyActionsModel, BibleStudyModel} from "../../../../model/interfaces/BibleModel";
+import {BibleStudyActionsModel, BibleStudyModel} from "../../../../models/interfaces/BibleModel";
 import "./BibleStudyActions.scss";
 import {toast} from "react-toastify";
 import {useConfirmAction} from "../../../../components/hooks/confirmActionHook";
-import {CommonActionTypes} from "../../../../model/common";
+import {CommonActionTypes} from "../../../../models/common";
 
 export interface IBibleStudyActionsMngProps {
     onActionSubmit: (action: BibleStudyActionsModel) => void;

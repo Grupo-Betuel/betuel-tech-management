@@ -24,14 +24,14 @@ import {
     BibleStudyActionsModel,
     AvailableSourceTypes,
     BibleGroupParticipationModel
-} from "../../../../model/interfaces/BibleModel";
+} from "../../../../models/interfaces/BibleModel";
 import './BibleDaysMng.scss';
 import {generateCustomID} from "../../../../utils/text.utils";
 import {IMedia, IMediaTagTypes} from "../../../../components/GCloudMediaHandler/GCloudMediaHandler";
 import {deletePhoto} from "../../../../services/gcloud";
 import {toast} from "react-toastify";
 import {onChangeMediaToUpload} from "../../../../utils/gcloud.utils";
-import {CommonActionTypes} from "../../../../model/common";
+import {CommonActionTypes} from "../../../../models/common";
 import {useConfirmAction} from "../../../../components/hooks/confirmActionHook";
 
 interface BibleDaysGridProps {

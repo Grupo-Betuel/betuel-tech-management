@@ -1,7 +1,7 @@
 import React from "react";
 import {FormGroup, Input, PopoverBody, PopoverHeader, UncontrolledPopover} from "reactstrap";
 import {InputProps} from "reactstrap/types/lib/Input";
-import {FlyerElementModel, FlyerElementTypes} from "../../../../model/interfaces/FlyerDesigner.interfaces";
+import {FlyerElementModel, FlyerElementTypes} from "../../../../models/interfaces/FlyerDesigner.interfaces";
 import _ from "lodash";
 import {ColorResult, SketchPicker} from "react-color";
 import {UncontrolledTooltip} from 'reactstrap';

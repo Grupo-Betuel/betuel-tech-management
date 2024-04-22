@@ -1,6 +1,6 @@
 import React from "react";
 import "./FlyerDesignerTemplateSelector.scss";
-import {FlyerTemplateModel} from "../../../../model/flyerTemplateModel";
+import {FlyerTemplateModel} from "../../../../models/flyerTemplateModel";
 import {Button, Input, Modal, ModalBody, ModalFooter, ModalHeader} from "reactstrap";
 
 export interface IFlyerDesignerTemplateSelectorProps {

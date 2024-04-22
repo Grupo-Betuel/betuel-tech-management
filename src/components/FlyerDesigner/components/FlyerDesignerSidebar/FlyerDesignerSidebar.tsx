@@ -4,11 +4,11 @@ import {
     FlyerElementModel,
     FlyerElementTypes,
     ImageTypes
-} from "../../../../model/interfaces/FlyerDesigner.interfaces";
+} from "../../../../models/interfaces/FlyerDesigner.interfaces";
 import {FlyerDesignerTextStyles} from "../FlyerDesignerTextStyles./FlyerDesignerTextStyles";
 import {IMedia} from "../../../GCloudMediaHandler/GCloudMediaHandler";
 import {FlyerDesignerImageSelector} from "../FlyerDesignerImageSelector/FlyerDesignerImageSelector";
-import {FlyerTemplateModel} from "../../../../model/flyerTemplateModel";
+import {FlyerTemplateModel} from "../../../../models/flyerTemplateModel";
 import {FlyerDesignerTemplateSelector} from "../FlyerDesignerTemplateSelector/FlyerDesignerTemplateSelector";
 
 export interface IFlyerDesignerSidebarProps {

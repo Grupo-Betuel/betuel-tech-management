@@ -1,4 +1,4 @@
-import {BibleDayModel} from "../../model/interfaces/BibleModel";
+import {BibleDayModel} from "../../models/interfaces/BibleModel";
 
 export const getBibleDays = async () => {
     try {

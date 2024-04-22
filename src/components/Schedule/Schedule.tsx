@@ -1,6 +1,6 @@
 import {Button, FormGroup, Input} from "reactstrap";
 import React from "react";
-import {ILaborDay, ILaborDayData, LaborDayTypes} from "../../model/interfaces/LaborDayModel";
+import {ILaborDay, ILaborDayData, LaborDayTypes} from "../../models/interfaces/LaborDayModel";
 import {getLaborDays, updateLaborDays} from "../../services/laborDaysService";
 import {toast} from "react-toastify";
 import "./Schedule.scss"

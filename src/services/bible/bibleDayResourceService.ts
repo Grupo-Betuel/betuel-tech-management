@@ -1,4 +1,4 @@
-import {BibleDayResourcesModel} from "../../model/interfaces/BibleModel";
+import {BibleDayResourcesModel} from "../../models/interfaces/BibleModel";
 
 export const getBibleDayResources = async () => {
     try {

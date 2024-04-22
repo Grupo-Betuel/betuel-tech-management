@@ -1,4 +1,4 @@
-import {ExpenseModel} from "../model/expenseModel";
+import {ExpenseModel} from "../models/expenseModel";
 
 export const getExpenses = async () => {
     try {

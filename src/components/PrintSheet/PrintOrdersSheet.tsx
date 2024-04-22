@@ -5,7 +5,7 @@ import DraggableGrid, {DraggableGridItem} from "../DraggableGrid/DraggableGrid";
 import {Button, Spinner} from "reactstrap";
 import {toPng} from "html-to-image";
 import {betuelDanceShippingCardLayout, EmptyGridItem} from "../FlyerDesigner/constants/shipping-card-layouts";
-import {IOrder} from "../../model/ordersModels";
+import {IOrder} from "../../models/ordersModels";
 import {ShippingCard} from "../ShippingCard/ShippingCard";
 import {passOrderToShippingLayout} from "../../utils/order.utils";
 import {extractNumbersFromText, generateCustomID} from "../../utils/text.utils";

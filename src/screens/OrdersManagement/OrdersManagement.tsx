@@ -10,7 +10,7 @@ import {
 import {
     IOrder, UpdateOrderBotActionTypes,
     OrderStatusTypes
-} from "../../model/ordersModels";
+} from "../../models/ordersModels";
 import "./OrdersManagement.scss";
 import {
     Button,
@@ -23,10 +23,10 @@ import {
 } from "reactstrap";
 import {useSocket} from "../../components/hooks/useSocket";
 import {onSocketOnce} from "../../utils/socket.io";
-import {OrderEvents} from "../../model/socket-events";
+import {OrderEvents} from "../../models/socket-events";
 import {useHistory} from "react-router";
 import {toast} from "react-toastify";
-import {IMessenger, MessengerStatusTypes} from "../../model/messengerModels";
+import {IMessenger, MessengerStatusTypes} from "../../models/messengerModels";
 import {
     addMessenger,
     deleteMessenger,
@@ -44,7 +44,7 @@ import {ShippingCard} from "../../components/ShippingCard/ShippingCard";
 import {DraggableGridItem} from "../../components/DraggableGrid/DraggableGrid";
 import {betuelDanceShippingCardLayout} from "../../components/FlyerDesigner/constants/shipping-card-layouts";
 import {cancelWhatsappMessaging} from "../../services/promotions";
-import {IClient} from "../../model/interfaces/ClientModel";
+import {IClient} from "../../models/interfaces/ClientModel";
 
 const items: DraggableGridItem[] = [
     { id: '1', content: <ShippingCard layout={betuelDanceShippingCardLayout}/>, x: 0, y: 0, w:2, h:2 },

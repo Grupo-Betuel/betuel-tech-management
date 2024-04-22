@@ -1,6 +1,6 @@
 import React, {useState} from 'react';
 import {Button, Form, FormGroup, Input, Label} from 'reactstrap';
-import {bibleStudyInteractionModeList, BibleStudyModel} from "../../../model/interfaces/BibleModel";
+import {bibleStudyInteractionModeList, BibleStudyModel} from "../../../models/interfaces/BibleModel";
 interface BibleStudyFormProps {
     onSubmit: (formData: BibleStudyModel) => void; // Function to handle form submission
     study?: BibleStudyModel; // Optional study to edit

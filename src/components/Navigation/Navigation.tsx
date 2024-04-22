@@ -3,7 +3,7 @@ import {FloatButton} from "../../screens/Dashboard/Dashboard";
 import {useHistory} from "react-router";
 import {AppContext, privateRoutes} from "../../App";
 import "./Navigation.scss";
-import IUser from "../../model/interfaces/user";
+import IUser from "../../models/interfaces/user";
 
 export const Navigation = ({user}: { user: IUser | null }) => {
     const history = useHistory();

@@ -15,13 +15,13 @@ import {
     MessengerActions,
     messengerStatusList,
     MessengerStatusTypes
-} from "../../../../model/messengerModels";
+} from "../../../../models/messengerModels";
 import React, {useCallback, useMemo, useState} from "react";
 import {messengerStatusCardColor} from "../../OrdersManagement";
 import {toast} from "react-toastify";
 import "./MessengerMng.scss";
 import {addMessenger} from "../../../../services/messengerService";
-import {IOrder} from "../../../../model/ordersModels";
+import {IOrder} from "../../../../models/ordersModels";
 import {OrderActionTypes} from "../OrderList";
 import {useConfirmAction} from "../../../../components/hooks/confirmActionHook";
 

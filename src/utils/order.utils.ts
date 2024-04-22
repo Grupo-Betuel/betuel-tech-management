@@ -1,6 +1,6 @@
-import {IOrder} from "../model/ordersModels";
+import {IOrder} from "../models/ordersModels";
 import {IShippingCardLayout} from "../components/ShippingCard/ShippingCard";
-import {ISale} from "../model/interfaces/SalesModel";
+import {ISale} from "../models/interfaces/SalesModel";
 import {formatPhoneNumber} from "./text.utils";
 
 export const passOrderToShippingLayout = (order: IOrder, layoutData: IShippingCardLayout): IShippingCardLayout  => {

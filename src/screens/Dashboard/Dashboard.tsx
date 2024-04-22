@@ -20,9 +20,9 @@ import DixyBabyLogo from "../../assets/images/dixybaby.jpeg";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
 import "./Dashboard.scss";
-import {IProductData, IProductParam} from "../../model/products";
+import {IProductData, IProductParam} from "../../models/products";
 import {getRecordedDates, getSales} from "../../services/sales";
-import {ISale} from "../../model/interfaces/SalesModel";
+import {ISale} from "../../models/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
 import ProductModalForm from "../../components/ProductModalForm/ProductModalForm";
@@ -36,22 +36,22 @@ import {IProduct} from "../../components/Product/Product";
 import {toast} from "react-toastify";
 import {useHistory} from "react-router";
 import ClientModalForm from "../../components/ClientModalForm/ClientModalForm";
-import {ecommerceMessages, errorMessages} from "../../model/messages";
+import {ecommerceMessages, errorMessages} from "../../models/messages";
 import {
     CONNECTED_EVENT, DEV_SOCKET_URL,
     onSocketOnce,
     PROD_SOCKET_URL,
 } from "../../utils/socket.io";
 import * as io from "socket.io-client";
-import {EcommerceEvents, ScheduleEvents} from "../../model/socket-events";
-import {CompanyTypes, ECommerceResponse} from "../../model/common";
-import {ScheduleResponse} from "../../model/schedule";
-import {whatsappSessionNames} from "../../model/interfaces/WhatsappModels";
+import {EcommerceEvents, ScheduleEvents} from "../../models/socket-events";
+import {CompanyTypes, ECommerceResponse} from "../../models/common";
+import {ScheduleResponse} from "../../models/schedule";
+import {whatsappSessionNames} from "../../models/interfaces/WhatsappModels";
 import BetuelTravelDashboard from "../BetuelTravelDashboard/BetuelTravelDashboard";
 import useWhatsapp from "../../components/hooks/UseWhatsapp";
 import {getCompanies} from "../../services/companies";
-import {CompanyModel} from "../../model/companyModel";
-import {ILaborDay, ILaborDayData, LaborDayTypes} from "../../model/interfaces/LaborDayModel";
+import {CompanyModel} from "../../models/companyModel";
+import {ILaborDay, ILaborDayData, LaborDayTypes} from "../../models/interfaces/LaborDayModel";
 import {getLaborDays, updateLaborDays} from "../../services/laborDaysService";
 import {Schedule} from "../../components/Schedule/Schedule";
 import {Navigation} from "../../components/Navigation/Navigation";

@@ -1,5 +1,7 @@
-import jwt from 'jsonwebtoken';
-export const parseToken = (token: string) => {
-    return jwt.decode(token, {json: true});
+// import jwt from 'jsonwebtoken';
+import IUser from "../models/interfaces/user";
 
+export const getAuthUser = (): IUser | boolean => {
+    const authuser = localStorage.getItem('authUser');
+    return authuser && JSON.parse(authuser);
 };

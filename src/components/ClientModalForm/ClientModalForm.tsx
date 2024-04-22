@@ -10,11 +10,11 @@ import React, { useEffect } from 'react';
 import './ClientModalForm.scss';
 import { ECommerceTypes, startWhatsappServices } from '../../services/promotions';
 import ClientList from "../ClientList/ClientList";
-import { IClient } from "../../model/interfaces/ClientModel";
+import { IClient } from "../../models/interfaces/ClientModel";
 import { Messaging } from "../index";
-import { WhatsappSessionTypes } from "../../model/interfaces/WhatsappModels";
+import { WhatsappSessionTypes } from "../../models/interfaces/WhatsappModels";
 import {IProduct} from "../Product/Product";
-import {IProductData} from "../../model/products";
+import {IProductData} from "../../models/products";
 
 export interface IClientFormProps {
     toggle: () => any;

@@ -8,7 +8,7 @@ import {
     FlyerElementModel,
     IFlyerElementPosition,
     FlyerElementTypes, ImageTypes
-} from "../../model/interfaces/FlyerDesigner.interfaces";
+} from "../../models/interfaces/FlyerDesigner.interfaces";
 import "./FlyerDesigner.scss";
 import {ResizeDirection} from "re-resizable";
 import {
@@ -26,7 +26,7 @@ import {
     updateFlyerTemplate
 } from "../../services/flyerTemplateService";
 import {toast} from "react-toastify";
-import {FlyerTemplateModel} from "../../model/flyerTemplateModel";
+import {FlyerTemplateModel} from "../../models/flyerTemplateModel";
 import {Loading} from "../Loading/Loading";
 import {passFlyerContentToFlyerValue, passFlyerValueToFlyerContent} from "../../utils/flyer.utils";
 import {removeExtraCharactersFromText, removeHTMLChars} from "../../utils/text.utils";
@@ -34,7 +34,7 @@ import {FlyerAction} from "./components/FlyerAction/FlyerAction";
 import {FlyerActionsElements} from "./constants/flyer-actions-elements";
 import {FlyerDesignerSidebar} from "./components/FlyerDesignerSidebar/FlyerDesignerSidebar";
 import {FlyerElement} from "./components/FlyerElement/FlyerElement";
-import {IProductData} from "../../model/products";
+import {IProductData} from "../../models/products";
 
 export interface IFlyerDesignerProps {
     onChangeFlyer?: (flyer: IFlyer) => void;

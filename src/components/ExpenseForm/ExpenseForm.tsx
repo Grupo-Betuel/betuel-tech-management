@@ -1,18 +1,18 @@
 import {Button, Form, FormGroup, Input, Label, Spinner, UncontrolledTooltip} from "reactstrap";
 import React from "react";
-import {ExpenseModel, ExpenseTypes} from "../../model/expenseModel";
+import {ExpenseModel, ExpenseTypes} from "../../models/expenseModel";
 import {Multiselect} from "multiselect-react-dropdown";
-import {orderPaymentTypeList} from "../../model/ordersModels";
-import {CommerceModel} from "../../model/commerceModels";
+import {orderPaymentTypeList} from "../../models/ordersModels";
+import {CommerceModel} from "../../models/commerceModels";
 import {addCommerce, getCommerces, updateCommerce} from "../../services/commercesService";
 import {toast} from "react-toastify";
 import {IMedia, IMediaTagTypes} from "../GCloudMediaHandler/GCloudMediaHandler";
-import {ICategory} from "../../model/CategoryModel";
+import {ICategory} from "../../models/CategoryModel";
 import {deletePhoto} from "../../services/gcloud";
 import {updateCompanies} from "../../services/companies";
 import {updateCategories} from "../../services/categoryService";
 import {onChangeMediaToUpload} from "../../utils/gcloud.utils";
-import {CompanyModel} from "../../model/companyModel";
+import {CompanyModel} from "../../models/companyModel";
 import {generateCustomID} from "../../utils/text.utils";
 import exp from "constants";
 

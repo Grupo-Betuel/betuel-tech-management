@@ -6,7 +6,7 @@ import {
     IHotelListItem,
     IRate,
     ZoneData
-} from "../model/interfaces/rateModels";
+} from "../models/interfaces/rateModels";
 
 export const getHotelsWithRates = async (): Promise<IHotel[]> => {
     try {

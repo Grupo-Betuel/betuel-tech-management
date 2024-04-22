@@ -4,14 +4,14 @@ import {
     BibleDayModel,
     BibleGroupModel, BibleGroupParticipationModel, BibleStudyActionsModel, BibleStudyInteractionModes,
     BibleStudyModel, BibleUserModel
-} from "../../model/interfaces/BibleModel";
+} from "../../models/interfaces/BibleModel";
 import {Button, FormGroup, Input, Modal, ModalBody, ModalFooter, ModalHeader, Spinner} from "reactstrap";
 import BibleGroupForm from "./components/BibleGroupsForm";
 import BibleGroupMng from "./components/BibleGroupMng/BibleGroupMng";
 import "./BibleAssistant.scss";
 import BibleDaysMng from "./components/BibleDaysMng/BibleDaysMng";
 import {Messaging} from "../../components";
-import {whatsappSessionKeys} from "../../model/interfaces/WhatsappModels";
+import {whatsappSessionKeys} from "../../models/interfaces/WhatsappModels";
 import {useConfirmAction} from "../../components/hooks/confirmActionHook";
 import {toast} from "react-toastify";
 import useWhatsapp from "../../components/hooks/UseWhatsapp";

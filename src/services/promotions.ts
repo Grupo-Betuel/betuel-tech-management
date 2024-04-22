@@ -1,13 +1,13 @@
 import {IProduct} from "../components/Product/Product";
-import {IClient} from "../model/interfaces/ClientModel";
+import {IClient} from "../models/interfaces/ClientModel";
 import {
     IWhatsappMessage,
     IWsUser, WhatsappSeedTypes,
     WhatsappSessionTypes,
-} from "../model/interfaces/WhatsappModels";
+} from "../models/interfaces/WhatsappModels";
 import {generateProductDescriptionFromParams} from "../utils/promotion.utils";
 import {removeExtraCharactersFromText, removeHTMLChars} from "../utils/text.utils";
-import {BibleStudyModel} from "../model/interfaces/BibleModel";
+import {BibleStudyModel} from "../models/interfaces/BibleModel";
 
 export const localPromotionsApi = "http://10.0.0.13:5000/api/";
 export const whatsappPhone = "+18298937075";

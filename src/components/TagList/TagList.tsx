@@ -3,7 +3,7 @@ import styled from "styled-components";
 import { Modal, ModalBody, Button, Spinner } from "reactstrap";
 import { toast } from "react-toastify";
 import { addTag, deleteTag, getTags } from "../../services/tags";
-import { ITag } from "../../model/interfaces/TagModel";
+import { ITag } from "../../models/interfaces/TagModel";
 import { TagContainer, TagItem, TagNameInput } from "../Tag/Tag";
 
 export interface ITagList {

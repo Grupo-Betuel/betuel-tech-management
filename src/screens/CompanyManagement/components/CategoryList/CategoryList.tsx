@@ -14,8 +14,8 @@ import {
 import React, {KeyboardEvent, useMemo, useState} from "react";
 import {toast} from "react-toastify";
 import {IMedia, IMediaTagTypes} from "../../../../components/GCloudMediaHandler/GCloudMediaHandler";
-import {ICategory} from "../../../../model/CategoryModel";
-import {CompanyModel} from "../../../../model/companyModel";
+import {ICategory} from "../../../../models/CategoryModel";
+import {CompanyModel} from "../../../../models/companyModel";
 import "./CategoryList.scss"
 import YouTubeVideo from "../YoutubeVideo/YoutubeVideo";
 export interface ICategoryListProps {

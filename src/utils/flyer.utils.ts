@@ -1,4 +1,4 @@
-import {IFlyer} from "../model/interfaces/FlyerDesigner.interfaces";
+import {IFlyer} from "../models/interfaces/FlyerDesigner.interfaces";
 
 export const passFlyerValueToFlyerContent = (flyer: IFlyer): IFlyer => {
     if(!flyer.value) return flyer;

@@ -1,4 +1,4 @@
-import {IMessenger} from "../model/messengerModels";
+import {IMessenger} from "../models/messengerModels";
 
 export const getMessengers = async () => {
     try {

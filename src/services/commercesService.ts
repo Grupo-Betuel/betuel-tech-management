@@ -1,4 +1,4 @@
-import {CommerceModel} from "../model/commerceModels";
+import {CommerceModel} from "../models/commerceModels";
 
 export const getCommerces = async () => {
     try {

@@ -3,8 +3,8 @@ import {
     BibleGroupModel,
     BibleStudyActionsModel,
     BibleStudyModel
-} from "../../model/interfaces/BibleModel";
-import {ScheduleResponse} from "../../model/schedule";
+} from "../../models/interfaces/BibleModel";
+import {ScheduleResponse} from "../../models/schedule";
 
 export const getBibleStudies = async () => {
     try {

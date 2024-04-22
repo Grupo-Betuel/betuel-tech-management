@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useRef } from "react";
 import { ClientItem, TagList } from "..";
-import { IClient } from "../../model/interfaces/ClientModel";
+import { IClient } from "../../models/interfaces/ClientModel";
 import {
     Spinner,
     Modal,
@@ -15,7 +15,7 @@ import {
 import { toast } from "react-toastify";
 import { addClient, addTagsToClients, deleteClient, getClients, updateClients } from "../../services/clients";
 import "./ClientList.scss"
-import { ITag } from "../../model/interfaces/TagModel";
+import { ITag } from "../../models/interfaces/TagModel";
 
 export interface IClientList {
     onSelectClient?: (data: IClient[]) => any;

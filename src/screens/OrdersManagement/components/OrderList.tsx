@@ -16,13 +16,13 @@ import {
     orderPaymentTypeList,
     orderStatusList,
     orderTypeList
-} from "../../../model/ordersModels";
-import {IMessenger} from "../../../model/messengerModels";
+} from "../../../models/ordersModels";
+import {IMessenger} from "../../../models/messengerModels";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
 import {orderStatusCardColor} from "../OrdersManagement";
 import {useHistory} from "react-router";
 import {IMedia, IMediaTagTypes} from "../../../components/GCloudMediaHandler/GCloudMediaHandler";
-import {CompanyModel} from "../../../model/companyModel";
+import {CompanyModel} from "../../../models/companyModel";
 import {onChangeMediaToUpload} from "../../../utils/gcloud.utils";
 import {deletePhoto} from "../../../services/gcloud";
 import {toast} from "react-toastify";
