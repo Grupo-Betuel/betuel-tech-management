@@ -540,18 +540,6 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                     />
                                 </PromotionOption>
                             </div> : null}
-
-                    <div className="d-flex justify-content-between">
-                        {
-                            editProduct ?
-                                <Button color="success" className="mb-3 d-flex align-items-center" outline
-                                        onClick={sendWhatsappMessage}>
-                                        <span className="me-2">
-                                            Pedir por Whatsapp
-                                        </span>
-                                    <i className="bi bi-whatsapp"/>
-                                </Button> : null}
-                    </div>
                     {portfolioMode && <pre className="mt-3">{product.description}</pre>}
                     {!portfolioMode && <>
                         <FormGroup>
