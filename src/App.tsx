@@ -88,7 +88,6 @@ function App() {
 
     return (
         <div className="App">
-            <h1>hola mundo</h1>
             <AppContext.Provider value={{setToken}}>
                 {/* eslint-disable-next-line no-undef */}
                 {token && <Navigation user={authUser}/>}
