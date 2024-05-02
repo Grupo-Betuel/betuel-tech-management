@@ -369,10 +369,12 @@ export const BibleAssistant = () => {
             toast('¡Selecciona un dia y una accion!', {type: 'error'});
             return;
         }
+
         const data = {
             group: selectedGroup as BibleGroupModel,
             action: selectedAction,
-            day: selectedDay
+            day: selectedDay,
+            studyId: selectedStudy?._id,
         }
         setLoading(true);
         await runBibleStudyAction(data);
