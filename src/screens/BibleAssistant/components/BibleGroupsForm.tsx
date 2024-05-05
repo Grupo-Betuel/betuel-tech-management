@@ -1,6 +1,6 @@
 import React, {useMemo, useState} from 'react';
-import {Button, Form, FormGroup, Input, Label} from 'reactstrap';
-import {BibleGroupModel} from "../../../models/interfaces/BibleModel";
+import {Button, Form, FormGroup, Input, Label, Spinner} from 'reactstrap';
+import {BibleGroupModel, BibleUserModel} from "../../../models/interfaces/BibleModel";
 import useWhatsapp from "../../../components/hooks/UseWhatsapp";
 import {IWsGroup, whatsappSessionKeys} from "../../../models/interfaces/WhatsappModels";
 import {toast} from "react-toastify";
@@ -46,20 +46,28 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault();
-        onSubmit({
+        const data = {
             ...formData,
             startDate: new Date(formData.startDate),
             users: editableGroup ? formData.users : (selectedWsGroup?.participants || []) as any,
-        });
+        };
+        // console.log('data =>', data)
+        onSubmit(data);
     };
 
     const {
         fetchWsSeedData,
         seedData: {groups: wsGroups},
-        logged: wsIsLogged
+        logged: wsIsLogged,
+        fetchGroupParticipants,
+        loading: wsLoading,
     } = useWhatsapp(whatsappSessionKeys.bibleAssistant);
 
-    console.log('groups ', wsGroups);
+
+    React.useEffect(() => {
+        setSelectedWsGroup(wsGroups?.find(group => group.id === formData.whatsappGroupID));
+    }, [wsGroups])
+
 
     const selectableGroups = React.useMemo(() => {
         return wsGroups?.filter(group => !groups.find(g => g.whatsappGroupID === group.id)) || [];
@@ -70,7 +78,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
         setLoading(true);
         switch (actionToConfirm) {
             case 'sync-ws-groups':
-                await fetchWsSeedData(whatsappSessionKeys.wpadilla, 'groups')
+                await fetchWsSeedData(whatsappSessionKeys.bibleAssistant, 'groups')
                 toast('¡Datos Actualizados!', {type: 'success'});
                 break;
         }
@@ -88,23 +96,37 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
     } = useConfirmAction<BibleAssistantActionTypes, any>(handleConfirmedAction, handleDeniedAction)
 
 
-    const onSelectGroup = ({target: {value: groupId}}: React.ChangeEvent<HTMLInputElement>) => {
+    const onSelectGroup = async ({target: {value: groupId}}: React.ChangeEvent<HTMLInputElement>) => {
+        setLoading(true);
         const group = wsGroups.find((group) => group.id === groupId);
+        const participants = await fetchGroupParticipants(groupId);
+        if (group) {
+            group.participants = participants;
+        }
 
         setFormData((prevData) => ({
             ...prevData,
+            users: participants as BibleUserModel[],
             whatsappGroupID: groupId,
             description: group?.description || '',
             title: group?.subject || '',
         }));
-
         setSelectedWsGroup(group);
+        setLoading(false);
     }
 
     const disableGroupInfoEdition = useMemo(() => (!!selectedWsGroup || !!editableGroup?.whatsappGroupID), [selectedWsGroup, editableGroup])
 
     return (
+
         <Form onSubmit={handleSubmit}>
+            {!loading && !wsLoading ? null : (
+                <>
+                    <div className="loading-sale-container">
+                        <Spinner animation="grow" variant="secondary"/>
+                    </div>
+                </>
+            )}
             <FormGroup className="d-flex align-items-end gap-2">
                 <div className="w-100">
                     <Label for="whatsappGroupID">WhatsApp Group ID</Label>

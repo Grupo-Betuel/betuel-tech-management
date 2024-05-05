@@ -86,6 +86,7 @@ export interface BibleGroupParticipationModel extends BaseModel {
     day: BibleDayModel;
     study: string;
     group: string;
+    status: 'active' | 'inactive' | 'one-days' | 'three-days';
 }
 export interface BibleUserModel extends BaseModel {
     firstName: string;

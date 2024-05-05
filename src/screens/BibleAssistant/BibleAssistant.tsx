@@ -224,7 +224,6 @@ export const BibleAssistant = () => {
 
     const handleSelectGroup = (e: React.ChangeEvent<HTMLInputElement>) => {
         const group = selectedStudy?.groups.find(g => g._id === e.target.value);
-        console.log('group =>', group);
         setSelectedGroup(group);
         const passedDaysFromStartDate = (Math.round(
             (new Date().getTime() - new Date(group?.startDate || new Date()).getTime()) / (1000 * 60 * 60 * 24),

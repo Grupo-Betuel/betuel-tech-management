@@ -246,6 +246,28 @@ export const getWhatsappSeedData = async (
 };
 
 
+export const getGroupChatParticipants = async (
+    sessionId: WhatsappSessionTypes,
+    groupChatId: string
+) => {
+    try {
+        // /group/participants/:sessionId/:groupChatId
+        return await fetch(
+            `${process.env.REACT_APP_PROMOTION_API}whatsapp/group/participants/${sessionId}/${groupChatId}`,
+            {
+                method: "GET",
+                headers: {
+                    Accept: "application/json",
+                    "Content-Type": "application/json",
+                },
+            }
+        );
+    } catch (e) {
+        throw e;
+    }
+};
+
+
 export const cancelWhatsappMessaging = async (
  cancelId:string
 ) => {

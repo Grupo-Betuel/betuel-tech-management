@@ -77,7 +77,7 @@ const Messaging: React.FC<IMessaging> = (
         selectedProducts,
         setSelectedProducts,
         whatsappSession
-    } = { selectedProducts: [], contacts: [] }
+    } = {selectedProducts: [], contacts: []}
 ) => {
     const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSession || whatsappSessionKeys.betuelgroup)
     const [message, setMessage] = useState<string>('')
@@ -109,6 +109,7 @@ const Messaging: React.FC<IMessaging> = (
         restartWhatsapp,
         stopMessaging,
         stopMessagingId,
+        fetchGroupParticipants,
     } = useWhatsapp(selectedSession);
 
 
@@ -239,12 +240,30 @@ const Messaging: React.FC<IMessaging> = (
         setLabeledUsers(labeled);
     }
 
+    const [groupSelectedList, setGroupSelectedList] = React.useState<IWsGroup[]>([]);
 
-    const handleGroupSelection = (selectedList: IWsGroup[]) => {
-        let grouped: IWsUser[] = [];
-        selectedList.forEach(group => grouped = [...grouped, ...group.participants]);
-        setGroupedUsers(grouped);
+    const handleGroupSelection = async (selectedList: IWsGroup[], selectedItem: IWsGroup) => {
+        if (!selectedItem.id) {
+            toast('No se puede obtener los participantes de este grupo', {type: 'error'});
+            return;
+        }
+        await fetchGroupParticipants(selectedItem.id);
+        setGroupSelectedList(selectedList);
     }
+
+
+
+
+    React.useEffect(() => {
+        let grouped: IWsUser[] = [];
+        groupSelectedList.map((g) => {
+            return seedData.groups.find((group) => group.id === g.id)?.participants.map((user) => {
+                grouped.push(user);
+            });
+        });
+
+        setGroupedUsers(grouped);
+    }, [groupSelectedList, seedData.groups])
 
 
     const handleUserExcluding = (isRemove: boolean) => (users: IWsUser[], currentUser: IWsUser) => {
@@ -289,6 +308,20 @@ const Messaging: React.FC<IMessaging> = (
                 toast('¡Datos Actualizados!', {type: 'success'});
                 setFetchingSeed(undefined);
             });
+
+            if(actionToConfirm === 'users') {
+                // ([]);
+            }
+
+
+            if(actionToConfirm === 'groups') {
+                setGroupedUsers([]);
+            }
+
+            if(actionToConfirm === 'labels') {
+                setLabeledUsers([]);
+            }
+
         } else if (actionToConfirm === 'cancel-messaging') {
             stopMessaging();
         }
@@ -458,7 +491,7 @@ const Messaging: React.FC<IMessaging> = (
                         />
                     </div>
                     <div className="mt-3 mb-5">
-                      {audio?.fileName && <span className="text-success">Audio: {audio?.fileName}</span>}
+                        {audio?.fileName && <span className="text-success">Audio: {audio?.fileName}</span>}
                         <label className="btn btn-outline-info w-100" htmlFor="audioFile">
                             Subir Audio
                         </label>
