@@ -14,6 +14,7 @@ import {BibleAssistant} from "./screens/BibleAssistant/BibleAssistant";
 import {getAuthUser} from "./utils/token";
 import IUser from "./models/interfaces/user";
 import Excursions from "./screens/BetuelTravel/Excursions/Excursions";
+import {BibleUserUpdate} from "./screens/BibleAssistant/BibleUserUpdate";
 
 export interface IAppContext {
     setToken: (token: string) => void;
@@ -120,10 +121,13 @@ function App() {
 
                             }
                         </> :
-                        <Route path="/login" component={() => <Login setToken={setToken}/>}/>
+                        <>
+                            <Route path="/login" component={() => <Login setToken={setToken}/>}/>
+                            <Route path="/bible-assistant/fill-user-data/:phone" component={() => <BibleUserUpdate />}/>
+                        </>
                     }
-                    <Route component={() => <Redirect
-                        to={{pathname: token ? authUser?.role === 'accountant' ? "/accounting" : "/dashboard" : "/login"}}/>}/>
+                    {/*<Route component={() => <Redirect*/}
+                    {/*    to={{pathname: token ? authUser?.role === 'accountant' ? "/accounting" : "/dashboard" : "/login"}}/>}/>*/}
 
                 </Switch>
 

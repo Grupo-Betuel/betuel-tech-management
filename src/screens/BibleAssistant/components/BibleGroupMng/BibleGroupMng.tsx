@@ -1,5 +1,5 @@
 import React, {useCallback, useMemo} from 'react';
-import {Table, Badge, Progress, Button, Spinner, Input} from 'reactstrap';
+import {Table, Badge, Progress, Button, Spinner, Input, Modal, ModalBody, ModalFooter, ModalHeader} from 'reactstrap';
 import {
     BibleDayModel,
     BibleGroupModel,
@@ -10,6 +10,8 @@ import {
 import "./BibleGroupMng.scss";
 import {updateBibleGroup} from "../../../../services/bible/bibleGroupsService";
 import {toast} from "react-toastify";
+import BibleUserForm from "../BibleUserForm";
+import {updateBibleUser} from "../../../../services/bible/bibleUsersService";
 
 interface BibleGroupMngProps {
     study: BibleStudyModel;
@@ -34,9 +36,9 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                 return 'success';
             case 'inactive':
                 return 'secondary';
-            case 'three-days':
+            case 'one-day':
                 return 'warning';
-            case 'seven-days':
+            case 'three-days':
                 return 'danger';
             default:
                 return 'primary';
@@ -106,9 +108,15 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
         await handleParticipations(newParticipation);
     }
 
+    const [editUser, setEditUser] = React.useState<BibleUserModel | null>(null);
+
+    const handleEditUser = async (user: BibleUserModel) => {
+        await updateBibleUser(user);
+        setEditUser(null);
+    }
 
     return (
-        <div className="bible-group-mng ">
+        <div className="bible-group-mng">
             <div className="d-flex align-items-center justify-content-between pb-4">
                 <Button
                     onClick={handleDeleteGroup}
@@ -142,7 +150,8 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                             <td>{user.lastName}</td>
                             <td>{user.phone}</td>
                             <td>
-                                <Badge color={getStatusBadgeColor(user.status)}>{user.status}</Badge>
+                                {participation?.status && <Badge
+                                    color={getStatusBadgeColor(participation?.status)}>{participation?.status}</Badge>}
                                 {isCoordinator(user) && <Badge color="primary">Coordinador</Badge>}
                             </td>
                             <td>
@@ -160,13 +169,17 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                                 </div>
                             </td>
                             <td>
-                                <div className="d-flex justify-content-between gap-2">
+                                <div className="d-flex justify-content-between gap-3">
                                     {group.coordinators?.length <= 3 &&
                                         <Button className="cursor-pointer" color="info" outline
                                                 onClick={handleCoordinator(user)}>
                                             Coordinador
                                         </Button>
                                     }
+                                    <Button className="cursor-pointer" color="info" outline
+                                            onClick={() => setEditUser(user)}>
+                                        Editar
+                                    </Button>
                                 </div>
                             </td>
                         </tr>
@@ -174,6 +187,20 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                 })}
                 </tbody>
             </Table>
+            <Modal isOpen={!!editUser} toggle={() => setEditUser(null)}>
+                <ModalHeader>
+                    <div className="d-flex align-items-center justify-content-between w-100">
+                        <h5 className="modal-title">Editar Usuario</h5>
+                        <button type="button" className="btn-close" onClick={() => setEditUser(null)}/>
+                    </div>
+                </ModalHeader>
+                <ModalBody>
+                    {editUser && <BibleUserForm bibleUser={editUser} onSubmit={handleEditUser}/>}
+                </ModalBody>
+                <ModalFooter>
+                    <Button color="secondary" onClick={() => setEditUser(null)}>Cerrar</Button>
+                </ModalFooter>
+            </Modal>
         </div>
     );
 };
