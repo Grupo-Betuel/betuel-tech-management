@@ -1,5 +1,10 @@
 import React, {useEffect, useState} from "react";
-import {addBibleGroup, deleteBibleGroup, updateBibleGroup} from "../../services/bible/bibleGroupsService";
+import {
+    addBibleGroup,
+    deleteBibleGroup,
+    syncBibleGroup,
+    updateBibleGroup
+} from "../../services/bible/bibleGroupsService";
 import {
     BibleDayModel,
     BibleGroupModel, BibleGroupParticipationModel, BibleStudyActionsModel, BibleStudyInteractionModes,
@@ -410,6 +415,16 @@ export const BibleAssistant = () => {
         }
     }
 
+
+    const handleBibleGroupSync = async () => {
+        if(!selectedGroup?.whatsappGroupID) {
+            toast('¡Selecciona un grupo con whatsappGroupID!', {type: 'error'})
+            return;
+        }
+        setLoading(true);
+        await syncBibleGroup(selectedGroup?.whatsappGroupID);
+        setLoading(false);
+    }
     useEffect(() => {
         handleStudySchedulingStatus()
     }, [selectedStudy?._id])
@@ -417,6 +432,8 @@ export const BibleAssistant = () => {
     useEffect(() => {
         restartStudyScheduling();
     }, [selectedStudy])
+
+
 
 
     return (
@@ -507,6 +524,7 @@ export const BibleAssistant = () => {
                                 study={selectedStudy as BibleStudyModel}
                                 addCoordinator={handleBibleGroupSubmit}
                                 group={selectedGroup as BibleGroupModel}
+                                onGroupSync={handleBibleGroupSync}
                                 onGroupDelete={(group: BibleGroupModel) => handleSetActionToConfirm('delete-group', group)}
                             />}
                     </div>

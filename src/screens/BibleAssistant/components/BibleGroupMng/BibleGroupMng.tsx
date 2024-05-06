@@ -17,6 +17,7 @@ interface BibleGroupMngProps {
     onGroupDelete: (group: BibleGroupModel) => void;
     addCoordinator: (group: BibleGroupModel) => void;
     handleParticipations: (p: BibleGroupParticipationModel) => void;
+    onGroupSync: (whatsappGroupID: string) => void;
 }
 
 const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
@@ -24,7 +25,8 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                                                          handleParticipations,
                                                          study,
                                                          onGroupDelete,
-                                                         addCoordinator
+                                                         addCoordinator,
+                                                         onGroupSync
                                                      }) => {
     const getStatusBadgeColor = (status: string) => {
         switch (status) {
@@ -61,8 +63,8 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
         onGroupDelete(group);
     }
 
-    const handleSyncGroupUsersWithWs = () => {
-        //
+    const handleSyncGroupUsersWithWs = async () => {
+        onGroupSync(group.whatsappGroupID);
     }
 
     const currentDay = useMemo(() => {

@@ -65,3 +65,24 @@ export const addBibleGroup = async (data: BibleGroupModel) => {
     }
 
 }
+
+
+
+export const syncBibleGroup = async (whatsappGroupID: string) => {
+    const body = JSON.stringify({ whatsappGroupID });
+
+    try {
+        return await fetch(`${process.env.REACT_APP_PROMOTION_API}whatsapp/sync-bible-group`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body,
+            }
+        );
+    } catch (e) {
+        throw e;
+    }
+
+}
