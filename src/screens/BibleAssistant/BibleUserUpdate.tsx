@@ -31,7 +31,6 @@ export const BibleUserUpdate = () => {
         setIsSuccess(true);
     }
 
-
     return (
         <div className="flex justify-center align-items-center w-100 h-[100dvh] p-4 font-medium">
             {

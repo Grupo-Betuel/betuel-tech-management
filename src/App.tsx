@@ -126,8 +126,8 @@ function App() {
                             <Route path="/bible-assistant/fill-user-data/:phone" component={() => <BibleUserUpdate />}/>
                         </>
                     }
-                    {/*<Route component={() => <Redirect*/}
-                    {/*    to={{pathname: token ? authUser?.role === 'accountant' ? "/accounting" : "/dashboard" : "/login"}}/>}/>*/}
+                    <Route component={() => <Redirect
+                        to={{pathname: token ? authUser?.role === 'accountant' ? "/accounting" : "/dashboard" : "/login"}}/>}/>
 
                 </Switch>
 
