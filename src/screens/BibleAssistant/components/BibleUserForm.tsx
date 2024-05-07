@@ -72,7 +72,7 @@ const BibleUserForm: React.FC<BibleUserFormProps> = ({bibleUser, onSubmit}) => {
                 />
             </FormGroup>
             <Button type="submit" color="primary">
-                Submit
+                Enviar
             </Button>
         </Form>
     );
