@@ -55,6 +55,7 @@ import {ILaborDay, ILaborDayData, LaborDayTypes} from "../../models/interfaces/L
 import {getLaborDays, updateLaborDays} from "../../services/laborDaysService";
 import {Schedule} from "../../components/Schedule/Schedule";
 import {Navigation} from "../../components/Navigation/Navigation";
+import InputMask from "react-input-mask";
 
 // export const accountLogos: { [N in ]} ;
 
@@ -771,6 +772,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
 
 
+    const [isFocused, setIsFocused] = useState(false);
 
 
     return (
