@@ -432,6 +432,10 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             setParamsOpen([...paramsOpen, id]);
         }
     }
+
+    useEffect(() => {
+        console.log('params open', paramsOpen)
+    }, [paramsOpen])
     const [enableFlyer, setEnableFlyer] = React.useState(false);
 
     const toggleFlyer = () => {
@@ -461,8 +465,6 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         setProduct({...product, tags: newTags});
     }
 
-
-    const AppAccordion = Accordion as any;
     return (
 
         <Modal
@@ -641,7 +643,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                 const paramId = (param._id || index).toString();
                                 const relatedParam = `related-${paramId}`;
                                 return <>
-                                    <AppAccordion
+                                    <Accordion
                                         flush
                                         open={paramsOpen}
                                         toggle={toggleParamsOpen}>
@@ -695,7 +697,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
 
                                                     {!!param.relatedParams?.length &&
-                                                        <AppAccordion
+                                                        <Accordion
                                                             flush
                                                             open={paramsOpen}
                                                             toggle={toggleParamsOpen}
@@ -756,12 +758,12 @@ const ProductModalForm: React.FC<IProductFormProps> = (
 
                                                                 </AccordionBody>
                                                             </AccordionItem>
-                                                        </AppAccordion>
+                                                        </Accordion>
                                                     }
                                                 </div>
                                             </AccordionBody>
                                         </AccordionItem>
-                                    </AppAccordion>
+                                    </Accordion>
                                 </>
                             }
                         )}
