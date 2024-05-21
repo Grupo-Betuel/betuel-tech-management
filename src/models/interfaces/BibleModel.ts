@@ -115,6 +115,7 @@ export const bibleStudyActionTypesList: BibleStudyActionTypes[] = [
     'motivate',
     'open-groups',
     'close-groups',
+    'remember-poll',
     'poll',
     'summarize'
 ]
@@ -141,6 +142,7 @@ export type BibleStudyActionTypes = 'resource'
     | 'open-groups'
     | 'close-groups'
     | 'poll'
+    | 'remember-poll'
     | 'summarize';
 
 export interface BibleStudyActionsModel extends BaseModel {

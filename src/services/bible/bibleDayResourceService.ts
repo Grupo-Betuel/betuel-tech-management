@@ -64,3 +64,4 @@ export const addBibleDayResource = async (data: BibleDayResourcesModel) => {
     }
 
 }
+

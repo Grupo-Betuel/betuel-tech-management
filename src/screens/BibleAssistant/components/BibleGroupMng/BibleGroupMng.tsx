@@ -12,6 +12,7 @@ import {updateBibleGroup} from "../../../../services/bible/bibleGroupsService";
 import {toast} from "react-toastify";
 import BibleUserForm from "../BibleUserForm";
 import {updateBibleUser} from "../../../../services/bible/bibleUsersService";
+import {daysBetweenDates} from "../../../../utils/date.utils";
 
 interface BibleGroupMngProps {
     study: BibleStudyModel;
@@ -70,10 +71,7 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
     }
 
     const currentDay = useMemo(() => {
-        const passedDaysFromStartDate = (Math.floor(
-            (new Date().getTime() - new Date(group?.startDate || new Date()).getTime()) / (1000 * 60 * 60 * 24),
-        )) + 1;
-        return passedDaysFromStartDate;
+        return daysBetweenDates(group?.startDate as Date, new Date());
     }, [group?.startDate]);
 
 
