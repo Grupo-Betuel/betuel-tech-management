@@ -117,7 +117,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes, autologin = true) 
         const localData = JSON.parse(localStorageImpl.getItem(`${whatsappSeedStorePrefix}${whatsappSessionId}`) || '{}');
 
         if (!data.error) {
-            localData.groups = localData.groups.map((group: any) => {
+            localData.groups = (localData.groups || []).map((group: any) => {
                 if (group.id === groupChatId) {
                     group.participants = data.participants;
                 }

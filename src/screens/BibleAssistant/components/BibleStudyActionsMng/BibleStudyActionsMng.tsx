@@ -15,13 +15,14 @@ export interface IBibleStudyActionsMngProps {
     enableExecution?: boolean;
 }
 
-export const BibleStudyActionsMng = ({
-                                         onActionSubmit,
-                                         onActionRun,
-                                         enableExecution,
-                                         study,
-                                         onActionDelete
-                                     }: IBibleStudyActionsMngProps) => {
+export const BibleStudyActionsMng = (
+    {
+        onActionSubmit,
+        onActionRun,
+        enableExecution,
+        study,
+        onActionDelete
+    }: IBibleStudyActionsMngProps) => {
     const [actions, setActions] = useState<BibleStudyActionsModel[]>(study.actions);
     const [newAction, setNewAction] = useState<BibleStudyActionsModel>({
         hour: 0,
