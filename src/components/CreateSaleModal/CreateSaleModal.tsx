@@ -84,7 +84,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
     const [addingSale, setAddingSale] = React.useState(false);
     const [productSales, setProductSales] = React.useState<ISale[]>([]);
     const [productSalesActive, setProductSalesActive] = React.useState(false);
-    const [editSale, setEditSale] = React.useState<Partial<ISale>>(null as any);
+    const [editSale, setEditSale] = React.useState<Partial<ISale> | null>(null);
     const [sale, setSale] = React.useState<Partial<ISale>>(selectedSale);
     const [selectedSales, setSelectedSales] = React.useState<ISale[]>([]);
     const [useCommission, setUseCommission] = React.useState(false);
@@ -161,6 +161,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
     const toggleModal = () => {
         setUseCommission(false);
         setProductSalesActive(false);
+        setEditSale(null);
         toggleAddSale();
     };
 
@@ -338,7 +339,7 @@ const CreateSaleModal: React.FC<ICreateSaleModal> = (
                                         <AccordionItem>
                                             <AccordionHeader targetId={paramId}>
                                                 <Label className="d-flex gap-3 align-items-center">
-                                                    <b>{param.type.toUpperCase()}: {param.label?.toUpperCase()}</b>
+                                                    <b>{param.type?.toUpperCase()}: {param.label?.toUpperCase()}</b>
                                                     {
                                                         param.type === 'color' ?
                                                         <div className="color-value-param"

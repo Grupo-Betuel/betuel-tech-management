@@ -366,6 +366,9 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const toggleAddSale = () => {
         setActiveAddSaleModal(!activeAddSaleModal);
+        if(!activeAddSaleModal) {
+            setEditSale({} as any)
+        }
     };
 
     const toggleConfirmation = () =>
