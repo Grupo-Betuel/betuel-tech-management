@@ -1,14 +1,28 @@
 export enum WhatsappEvents {
-    ON_LOADING = 'ws-loading',
-    ON_QR = 'ws-qr',
-    ON_READY = 'ws-ready',
-    ON_AUTH_SUCCESS = 'ws-auth-success',
-    ON_AUTH_FAILED = 'ws-auth-failure',
+    ON_LOADING = 'loading',
+    ON_QR = 'qr',
+    ON_READY = 'ready',
+    ON_AUTH_SUCCESS = 'auth_success',
+    ON_AUTH_FAILED = 'auth_fail',
     ON_LOGOUT = 'ws-logged-out',
-    ON_END_MESSAGE = 'ws-messages-end',
-    ON_SENT_MESSAGE = 'ws-message-sent',
+    ON_END_MESSAGE = 'end_messages',
+    ON_SENT_MESSAGE = 'sent_message',
+    ON_START_MESSAGE = 'start_messages',
     EMIT_CURRENT_MESSAGE = 'ws-messages-current',
     ON_FAILED_MESSAGE = 'ws-messages-failed',
+}
+
+export enum WhatsappClientEventTypes {
+    LOADING = 'loading',
+    AUTH_SUCCESS = 'auth_success',
+    AUTH_FAIL = 'auth_fail',
+    READY = 'ready',
+    QR = 'qr',
+    DISCONNECTED = 'disconnected',
+    VOTE = 'vote',
+    GROUP_LEAVE = 'group_leave',
+    GROUP_JOIN = 'group_join',
+    MESSAGE = 'message',
 }
 
 export enum EcommerceEvents {

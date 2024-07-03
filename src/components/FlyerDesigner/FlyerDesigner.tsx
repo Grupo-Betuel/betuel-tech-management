@@ -1,5 +1,5 @@
 import {Position, ResizableDelta, Rnd} from "react-rnd";
-import React, { useEffect, useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {toPng} from "html-to-image";
 import {dataURItoBlob} from "../../utils/blob";
 import {gcloudPublicURL, getGCloudImages, uploadGCloudImage} from "../../services/gcloud";
@@ -223,9 +223,10 @@ const FlyerDesigner = (
         const photoName = `${productURLName}-${Date.now()}.png`;
         setImageToChangeType(undefined);
         setSelectedElement({} as FlyerElementModel);
-        console.log(productImageWrapper.current);
-        await toPng(productImageWrapper.current, {cacheBust: true,})
+
+        toPng(productImageWrapper.current, {cacheBust: true,})
             .then(async (dataUrl: string) => {
+
                 if (downloadImage) {
                     const a = document.createElement('a') as any;
                     a.href = portfolioMode ? 'product.image' : dataUrl;
@@ -240,18 +241,19 @@ const FlyerDesigner = (
                 setHideChangeProductPhotoIcon(false);
             })
             .catch((err: any) => {
-                console.log(err)
+                console.log("error =>", err)
             })
+
         return {photoName, photoUrl: gcloudPublicURL + photoName};
     }
     const saveFlyer = (downloadImage?: boolean) => async () => {
         const flyerWithValue = passFlyerContentToFlyerValue(flyer);
         // check external validation beforeSaving
         if (validToSave && !validToSave(flyerWithValue)) return;
-
         if (productImageWrapper.current === null) {
             return
         }
+
         setLoading(true)
         const {photoUrl} = await processFlyerImage(downloadImage)
         setLoading(false)

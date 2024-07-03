@@ -75,8 +75,8 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes, autologin = true) 
         return startWhatsapp(true, sessionId).then(res => {
             const {status} = res;
             toast(`Whatsapp is ${status}`);
-            setLogged(status === 'logged')
-            setLoading(status !== 'logged')
+            setLogged(status === 'connected')
+            setLoading(status !== 'connected')
         });
     }
 
@@ -145,6 +145,7 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes, autologin = true) 
             generateQr('init');
             socket.on(CONNECTED_EVENT, () => {
                 onSocketOnce(socket, WhatsappEvents.ON_LOADING, ({loading}) => {
+                    console.log('loading!!', loading)
                     setLoading(loading)
                 })
                 // generating qr code
@@ -154,18 +155,23 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes, autologin = true) 
                 });
 
                 onSocketOnce(socket, WhatsappEvents.ON_AUTH_SUCCESS, ({sessionId}) => {
+                    console.log('auth success', sessionId);
                     setLogged(true)
                     setLoading(false)
                 });
 
                 onSocketOnce(socket, WhatsappEvents.ON_AUTH_FAILED, async () => {
+                    console.log('auth success');
+
                     setLogged(false)
                     setLoading(false);
                 });
 
                 onSocketOnce(socket, WhatsappEvents.ON_READY, () => {
+                    console.log('auth success');
                     toast('¡Whatsapp listo para usar!');
                     setLoading(false);
+                    setLogged(true)
                 });
 
                 onSocketOnce(socket, WhatsappEvents.ON_LOGOUT, () => {
@@ -182,8 +188,12 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes, autologin = true) 
 
     const handleWhatsappMessaging = (sent: (contact: IClient) => any, end: (contacts: IClient[]) => any) => {
         if (socket) {
+            onSocketOnce(socket, WhatsappEvents.ON_START_MESSAGE, () => setLoading(true));
             onSocketOnce(socket, WhatsappEvents.ON_SENT_MESSAGE, sent);
-            onSocketOnce(socket, WhatsappEvents.ON_END_MESSAGE, end);
+            onSocketOnce(socket, WhatsappEvents.ON_END_MESSAGE, (res) => {
+                end(res);
+                setLoading(false);
+            });
         }
     }
 

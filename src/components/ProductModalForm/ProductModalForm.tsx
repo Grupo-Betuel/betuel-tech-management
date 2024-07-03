@@ -178,6 +178,8 @@ const ProductModalForm: React.FC<IProductFormProps> = (
         if (name === 'cost') {
             priceData = calculatePrice(Number(value));
         }
+
+        console.log('priceData', priceData, finalValue, name, value)
         const newProduct = {
             ...product,
             ...priceData,

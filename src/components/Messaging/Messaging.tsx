@@ -1,5 +1,5 @@
 import {IClient} from "../../models/interfaces/ClientModel";
-import React, {ChangeEvent, useState} from "react";
+import React, {ChangeEvent, useMemo, useState} from "react";
 import styled from "styled-components";
 import {
     Button,
@@ -140,8 +140,9 @@ const Messaging: React.FC<IMessaging> = (
         selectedProducts && setSelectedProducts && setSelectedProducts(selectedProducts?.filter((product: IProductData) => product._id !== id))
     }
 
-    const onMessageSent = (contact: IClient) => {
-        toast(`Mensaje enviado a ${contact.firstName}`);
+    const onMessageSent = (data: any) => {
+        console.log('sent', data);
+        toast(`Mensaje enviado a ${data?.recipient?.firstName}`);
     }
 
     const onMessageEnd = (contacts: IClient[]) => {
@@ -252,8 +253,6 @@ const Messaging: React.FC<IMessaging> = (
     }
 
 
-
-
     React.useEffect(() => {
         let grouped: IWsUser[] = [];
         groupSelectedList.map((g) => {
@@ -309,16 +308,16 @@ const Messaging: React.FC<IMessaging> = (
                 setFetchingSeed(undefined);
             });
 
-            if(actionToConfirm === 'users') {
+            if (actionToConfirm === 'users') {
                 // ([]);
             }
 
 
-            if(actionToConfirm === 'groups') {
+            if (actionToConfirm === 'groups') {
                 setGroupedUsers([]);
             }
 
-            if(actionToConfirm === 'labels') {
+            if (actionToConfirm === 'labels') {
                 setLabeledUsers([]);
             }
 
@@ -332,6 +331,11 @@ const Messaging: React.FC<IMessaging> = (
     const handleActionToConfirm = (value?: SessionActionsTypes) => () => {
         setActionToConfirm(value);
     }
+
+    const usersData = useMemo(() => (seedData.users || []).map(item => ({
+        ...item,
+        fullName: `${item.firstName || item.phone} ${item.lastName || ''}`,
+    })), [seedData.users])
 
     return (
         <MessagingContainer className="position-relative">
@@ -377,7 +381,7 @@ const Messaging: React.FC<IMessaging> = (
                         className="w-100"
                         onSelect={handleUserSelection(false)}
                         onRemove={handleUserSelection(true)}
-                        options={seedData.users || []} // Options to display in the dropdown
+                        options={usersData} // Options to display in the dropdown
                         displayValue="fullName" // Property name to display in the dropdown options
                     />
                     <Button disabled={fetchingSeed === 'users'} onClick={handleActionToConfirm('users')} color="info"
