@@ -118,7 +118,7 @@ export const closeWhatsappServices = async (
                 Accept: "application/json",
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({sessionId}),
+            body: JSON.stringify({sessionId, destroy: true}),
         });
     } catch (e) {
         throw e;
