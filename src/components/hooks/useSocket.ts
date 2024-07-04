@@ -12,7 +12,7 @@ export const useSocket = () => {
 
     React.useEffect(() => {
         if(!socket) {
-            setSocket(io.connect(DEV_SOCKET_URL));
+            setSocket(io.connect(PROD_SOCKET_URL));
         }
         return () => {
             socket?.disconnect()
