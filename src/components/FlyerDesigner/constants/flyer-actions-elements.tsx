@@ -309,7 +309,7 @@ export const FlyerActionsElements: FlyerActionElement[] = [
         ],
         toggle: <i className="bi bi-bezier2 "/>,
         popoverHeader: 'Transformar',
-        elementTypes: ['text'],
+        elementTypes: ['text', 'image'],
     },
 
 ]

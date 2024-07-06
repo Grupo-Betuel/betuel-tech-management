@@ -207,6 +207,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
             flyerOptions: JSON.stringify(flyer),
             _id: editProduct?._id,
         }
+
         const body = JSON.stringify(productData);
 
         if (editProduct) {
