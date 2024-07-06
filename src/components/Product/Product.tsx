@@ -1,8 +1,8 @@
-import React, { ChangeEvent } from 'react';
+import React, {ChangeEvent} from 'react';
 import "./Product.scss";
-import { IProductData } from "../../models/products";
-import { Button } from "reactstrap";
-import { ISale } from "../../models/interfaces/SalesModel";
+import {IProductData} from "../../models/products";
+import {Button} from "reactstrap";
+import {ISale} from "../../models/interfaces/SalesModel";
 
 export interface IProduct extends IProductData {
     salesQuantity?: number;
@@ -22,18 +22,20 @@ export interface ISaleOptions {
     inputShipping: boolean;
 }
 
-const Product: React.FunctionComponent<IProduct> = ({
-                                                        portfolioMode,
-                                                        salesQuantity,
-                                                        onSelect,
-                                                        enableSelection,
-                                                        moneyGenerated,
-                                                        loadSale,
-                                                        loadProductDetails,
-                                                        selected,
-                                                        onRemoveProduct,
-                                                        ...product
-                                                    }) => {
+const Product: React.FunctionComponent<IProduct> = (
+    {
+        portfolioMode,
+        salesQuantity,
+        onSelect,
+        enableSelection,
+        moneyGenerated,
+        loadSale,
+        loadProductDetails,
+        selected,
+        onRemoveProduct,
+        ...product
+    }
+) => {
 
     const {image} = product;
     const defaultSaleOptions: ISaleOptions = {enableShipping: false, commission: false, inputShipping: false};
@@ -124,7 +126,7 @@ const Product: React.FunctionComponent<IProduct> = ({
                     >
                     </div>
                     <div className={`add-sale-container ${enableProductOptions ? 'no-opacity' : ''}`}
-                         onClick={portfolioMode ?  handleLoadProduct : handleSelectProduct}>
+                         onClick={portfolioMode ? handleLoadProduct : handleSelectProduct}>
                         {/*<b className="reset-sale" onClick={resetSaleOptions}>X</b>*/}
                         {
                             <>
@@ -146,12 +148,13 @@ const Product: React.FunctionComponent<IProduct> = ({
                 {
                     !portfolioMode &&
                     <div className="card-title">
-                      <div className="title">
-                        <h4>Disponible: {product.stock}</h4>
-                        <h4>Precio: {product.price.toLocaleString()}</h4>
-                        <h4>Ventas: {salesQuantity}</h4>
-                        <h4>Ingresos: RD$ {moneyGenerated && moneyGenerated.toLocaleString('en-US')}</h4>
-                      </div>
+                        <div className="title">
+                            <h4>Precio: {product.price.toLocaleString()}</h4>
+                            <h4>Disponible: {product.stock}</h4>
+                            <h4>Ventas: {salesQuantity}</h4>
+                            <h4>Ganancia: RD$ {(product.price - product.cost).toLocaleString('en-US')}</h4>
+                            <h4>Ingresos: RD$ {moneyGenerated && moneyGenerated.toLocaleString('en-US')}</h4>
+                        </div>
                     </div>}
             </div>
         </div>
