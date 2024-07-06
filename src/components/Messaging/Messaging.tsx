@@ -141,7 +141,6 @@ const Messaging: React.FC<IMessaging> = (
     }
 
     const onMessageSent = (data: any) => {
-        console.log('sent', data);
         toast(`Mensaje enviado a ${data?.recipient?.firstName}`);
     }
 

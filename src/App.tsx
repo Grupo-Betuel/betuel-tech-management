@@ -75,7 +75,6 @@ export const privateRoutes: { path: string, element: any, icon: string, inBackgr
     },
 ];
 
-console.log('app=>');
 
 
 function App() {
