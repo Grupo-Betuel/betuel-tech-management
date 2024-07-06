@@ -15,6 +15,7 @@ import {getAuthUser} from "./utils/token";
 import IUser from "./models/interfaces/user";
 import Excursions from "./screens/BetuelTravel/Excursions/Excursions";
 import {BibleUserUpdate} from "./screens/BibleAssistant/BibleUserUpdate";
+import useDisableScrollOnNumberInput from "./components/hooks/useDisableScrollOnNumberInput";
 
 export interface IAppContext {
     setToken: (token: string) => void;
@@ -85,6 +86,8 @@ function App() {
         }
         return getAuthUser() as IUser;
     }, [token]);
+
+    useDisableScrollOnNumberInput();
 
     return (
         <div className="App">
