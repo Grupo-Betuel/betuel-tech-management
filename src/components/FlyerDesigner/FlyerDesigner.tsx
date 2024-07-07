@@ -234,7 +234,7 @@ const FlyerDesigner = (
                     a.click();
                 } else {
                     const blob = dataURItoBlob(dataUrl)
-                    const file = new File([blob], photoName);
+                    const file = new File([blob], photoName, {type: 'image/png'});
                     await uploadGCloudImage(file, 'flyer');
                 }
 
