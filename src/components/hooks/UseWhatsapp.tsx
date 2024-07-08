@@ -129,11 +129,6 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes, autologin = true) 
             setSeedData({...seedData, ...localData});
         }
 
-
-        console.log('group participants =>',
-            data,
-            JSON.parse(localStorageImpl.getItem(`${whatsappSeedStorePrefix}${whatsappSessionId}`) || '{}')
-        );
         setLoading(false);
 
         return data.participants as IWsUser[];
@@ -198,7 +193,28 @@ const useWhatsapp = (whatsappSessionId: WhatsappSessionTypes, autologin = true) 
     }
 
     const sendMessage = async (sessionId: WhatsappSessionTypes, contacts: (IClient | IWsUser)[], message: IWhatsappMessage | IWhatsappMessage[]) => {
-        const {stopMessagesId} = await sendWhatsappMessage(sessionId, contacts, message);
+        const formData = new FormData();
+        const messages = Array.isArray(message) ? message : [message];
+
+        messages.forEach((message, index) => {
+
+            if (message.media) {
+                const {content, type, name} = message.media;
+                if (content instanceof Blob) {
+                    formData.append('media', content, name);
+                    message.media = {
+                        ...message.media,
+                        content: index.toString(),
+                    }
+                }
+            }
+        });
+
+        formData.append('messages', JSON.stringify(messages));
+        formData.append('contacts', JSON.stringify(contacts));
+        formData.append('sessionId', sessionId);
+
+        const {stopMessagesId} = await sendWhatsappMessage(sessionId, formData);
         setStopMessagingId(stopMessagesId);
     }
 

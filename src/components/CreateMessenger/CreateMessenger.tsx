@@ -75,7 +75,7 @@ export const CreateMessenger = () => {
             setLoading(false);
         }
 
-        await onChangeMediaToUpload('messenger', creatMessengerWithPhoto, photoName)({ target: { files: photoFiles}} as any);
+        await onChangeMediaToUpload('messenger', creatMessengerWithPhoto, photoName)({target: {files: photoFiles}} as any);
     }
 
     const addNewMessenger = async (messenger: IMessenger) => {
@@ -97,12 +97,18 @@ export const CreateMessenger = () => {
 
     const handleNewMessenger = async () => {
         if (validMessenger(messengerToCreate)) {
-            if(photoFiles) {
+            if (photoFiles) {
                 await uploadWithPhoto();
             } else {
                 await addNewMessenger(messengerToCreate);
             }
-            await sendWhatsappMessage('betuelgroup', [messengerToCreate], { text: 'Hola @firstName Dios te bendiga 🙌 te damos la bienvenida a Grupo betuel 🤗, por esta via nos comunicaremos contigo para hacer envios 📦✅, estamos a tus ordenes 🫡🧑‍💻'});
+            const form = new FormData();
+            const message = {text: 'Hola @firstName Dios te bendiga 🙌 te damos la bienvenida a Grupo betuel 🤗, por esta via nos comunicaremos contigo para hacer envios 📦✅, estamos a tus ordenes 🫡🧑‍💻'}
+            form.append('messages', JSON.stringify([message]));
+            form.append('contacts', JSON.stringify([messengerToCreate]));
+
+            await sendWhatsappMessage('betuelgroup', form);
+
             setMessengerToCreate({} as any);
             setPhone('');
             setPhotoFiles(undefined);

@@ -338,7 +338,6 @@ const ResourceSection: React.FC<IResourceSectionProps> = (
     }) => {
 
     const handleUploadFile = (type: UploableDayResourceTypes) => (event: any) => {
-        console.log('type => ', type)
 
         if (type && !AvailableSourceTypes.includes(type)) {
             toast('Invalid resource type');

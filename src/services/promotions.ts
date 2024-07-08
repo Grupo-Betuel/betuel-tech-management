@@ -8,6 +8,7 @@ import {
 import {generateProductDescriptionFromParams} from "../utils/promotion.utils";
 import {removeExtraCharactersFromText, removeHTMLChars} from "../utils/text.utils";
 import {BibleStudyModel} from "../models/interfaces/BibleModel";
+import axios from "axios";
 
 export const localPromotionsApi = "http://10.0.0.13:5000/api/";
 export const whatsappPhone = "+18298937075";
@@ -35,7 +36,7 @@ export const ecommerceNames: { [N in ECommerceTypes | string]: string } = {
 export const getWhatsappMessageURL = (message: string) =>
     `https://wa.me/${whatsappPhone}?text=${encodeURI(message)}`;
 
-export const getWhatsappNumberURl = (phone: string, message?: string) =>     `https://wa.me/${phone}?text=${encodeURI(message || '')}`;
+export const getWhatsappNumberURl = (phone: string, message?: string) => `https://wa.me/${phone}?text=${encodeURI(message || '')}`;
 
 export const promoteProduct = async (
     products: IProduct[],
@@ -46,15 +47,17 @@ export const promoteProduct = async (
 
     // manipulating descripttion
     // const productsData = products.map((product) => ({
-        // ...product,
-        // description: `${product.description}${product.productParams.length ? '\n\n' + generateProductDescriptionFromParams(product.productParams) : ''}`,
+    // ...product,
+    // description: `${product.description}${product.productParams.length ? '\n\n' + generateProductDescriptionFromParams(product.productParams) : ''}`,
     // }));
 
-    const body = JSON.stringify({data: products.map(item => ({
+    const body = JSON.stringify({
+        data: products.map(item => ({
             ...item,
             name: removeExtraCharactersFromText(removeHTMLChars(item.name)),
             description: removeExtraCharactersFromText(removeHTMLChars(item.description)),
-        })), sessionKey, type});
+        })), sessionKey, type
+    });
 
     try {
         // `${eCommerce !== 'facebook' ? process.env.REACT_APP_PROMOTION_API : localPromotionsApi}${eCommerce}`
@@ -172,7 +175,7 @@ export const handleScheduleBibleStudy = async (
                 Accept: "application/json",
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({action, bibleStudy }),
+            body: JSON.stringify({action, bibleStudy}),
         });
     } catch (e) {
         throw e;
@@ -200,26 +203,18 @@ export const getScheduleStatus = async (
 
 export const sendWhatsappMessage = async (
     sessionId: WhatsappSessionTypes,
-    contacts: (IClient | IWsUser)[],
-    message: IWhatsappMessage | IWhatsappMessage[]
+    form: FormData,
 ) => {
     try {
-        return await (await fetch(
+        return (await axios.post(
             `${process.env.REACT_APP_PROMOTION_API}whatsapp/message`,
+            form,
             {
-                method: "POST",
                 headers: {
-                    Accept: "application/json",
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({
-                    sessionId,
-                    message,
-                    contacts: contacts.filter((item) => !!item),
-                    delay: 10,
-                }),
+                    'Content-Type': 'multipart/form-data',
+                }
             }
-        )).json();
+        )).data;
     } catch (e) {
         throw e;
     }
@@ -227,7 +222,7 @@ export const sendWhatsappMessage = async (
 
 export const getWhatsappSeedData = async (
     sessionId: WhatsappSessionTypes,
-    seedType:WhatsappSeedTypes  = "all"
+    seedType: WhatsappSeedTypes = "all"
 ) => {
     try {
         return await fetch(
@@ -269,7 +264,7 @@ export const getGroupChatParticipants = async (
 
 
 export const cancelWhatsappMessaging = async (
- cancelId:string
+    cancelId: string
 ) => {
     try {
         return await fetch(

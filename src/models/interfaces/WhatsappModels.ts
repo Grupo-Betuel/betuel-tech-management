@@ -10,7 +10,8 @@ export const whatsappSessionKeys: { [K in WhatsappSessionTypes]: WhatsappSession
 }
 
 export interface IAudioFile {
-    content: string,
+    content: string | ArrayBuffer | Buffer | null,
+    mimetype: string,
     fileName: string
 }
 
@@ -78,8 +79,9 @@ export type WhatsappSeedTypes = 'users' | 'groups' | 'labels' | 'all';
 
 
 export interface IMessageMedia {
-    content: Buffer | string | Readable | Blob;
-    name?: string;
+    content: Buffer | string | Blob | ArrayBuffer | null;
     type: 'audio' | 'image' | 'video';
     caption?: string;
+    name?: string;
+    mimetype?: string;
 }

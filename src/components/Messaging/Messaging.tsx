@@ -18,7 +18,7 @@ import {toast} from "react-toastify";
 import useWhatsapp, {whatsappSeedStorePrefix} from "../hooks/UseWhatsapp";
 import {TagContainer, TagItem} from "../Tag/Tag";
 import {
-    IAudioFile, IWhatsappMessage,
+    IAudioFile, IMessageMedia, IWhatsappMessage,
     IWsGroup,
     IWsLabel, IWsUser, WhatsappSeedTypes,
     whatsappSessionKeys,
@@ -32,6 +32,7 @@ import {Product} from "../index";
 import "./Messaging.scss";
 import {cancelWhatsappMessaging} from "../../services/promotions";
 import {Readable} from "stream";
+import {Buffer} from "buffer";
 
 export interface IMessaging {
     contacts?: IClient[],
@@ -83,7 +84,7 @@ const Messaging: React.FC<IMessaging> = (
     const [selectedSession, setSelectedSession] = useState<WhatsappSessionTypes>(whatsappSession || whatsappSessionKeys.betuelgroup)
     const [message, setMessage] = useState<string>('')
     const [onlySendImagesIds, setOnlySendImagesIds] = useState<string[]>([]);
-    const [photo, setPhoto] = useState<any>()
+    const [photo, setPhoto] = useState<IMessageMedia>()
     const [audio, setAudio] = useState<IAudioFile>()
     const [labeledUsers, setLabeledUsers] = React.useState<IWsUser[]>([]);
     const [groupedUsers, setGroupedUsers] = React.useState<IWsUser[]>([]);
@@ -185,8 +186,9 @@ const Messaging: React.FC<IMessaging> = (
 
         const audioMessage: IWhatsappMessage | undefined = audio && audio.content ? {
             media: {
-                content: audio.content,
-                type: "audio"
+                content: new Blob([audio.content], {type: audio.mimetype}),
+                type: "audio",
+                name: audio.fileName,
             },
         } : undefined;
 
@@ -196,7 +198,6 @@ const Messaging: React.FC<IMessaging> = (
                 messages.push(audioMessage);
             }
 
-
             await Promise.all(selectedProducts.map(async product => {
                 const prefixText = message ? `${message} \n` : '';
                 let text = `${prefixText}${product.description || ''}`;
@@ -205,30 +206,31 @@ const Messaging: React.FC<IMessaging> = (
                     text = message;
                 }
 
+                const media: IWhatsappMessage = {
+                    text,
+                    media: {
+                        content: product.image,
+                        type: 'image'
+                    }
+                };
 
-                parseUrlToBase64(product.image, async (image: Blob) => {
-                    const media: IWhatsappMessage = {
-                        text,
-                        media: {
-                            content: image,
-                            type: 'image'
-                        }
-                    };
+                messages.push(media);
 
-                    messages.push(media);
-                });
+                // parseUrlToBase64(product.image, async (image: Blob) => {
+                //
+                // });
             }));
 
-            await sendMessage(sessionId, whatsappUsers, messages)
 
         } else {
 
-            if (photo) {
+            if (photo && photo?.content) {
                 messages.push({
                     text: message,
                     media: {
-                        content: photo,
-                        type: 'image'
+                        content: new Blob([photo.content], {type: photo.mimetype}),
+                        type: 'image',
+                        name: photo.name || 'image.png',
                     }
                 });
             } else {
@@ -239,8 +241,11 @@ const Messaging: React.FC<IMessaging> = (
                 messages.push(audioMessage);
             }
 
-            await sendMessage(sessionId, whatsappUsers, messages);
         }
+
+
+        await sendMessage(sessionId, whatsappUsers, messages);
+
     }
 
     const onChangeMessage = (e: any) => {
@@ -253,12 +258,17 @@ const Messaging: React.FC<IMessaging> = (
         const {files} = event.target;
         if (FileReader && files.length) {
             const fr = new FileReader();
-
+            const file = files[0];
             fr.onload = async () => {
-                setPhoto(fr.result);
+                setPhoto({
+                    content: fr.result,
+                    name: file.name,
+                    type: 'image',
+                    mimetype: file.type
+                });
             }
 
-            fr.readAsDataURL(files[0]);
+            fr.readAsArrayBuffer(file);
         }
     }
 
@@ -269,10 +279,10 @@ const Messaging: React.FC<IMessaging> = (
             const file = files[0];
 
             fr.onload = async () => {
-                setAudio({content: fr.result as any, fileName: file.name});
+                setAudio({content: fr.result, fileName: file.name, mimetype: file.type});
                 toast('Audio cargado con exito', {type: 'success'});
             }
-            fr.readAsDataURL(file);
+            fr.readAsArrayBuffer(file);
         }
     }
 
@@ -520,7 +530,8 @@ const Messaging: React.FC<IMessaging> = (
                     />
                     {!!photo &&
                         <ImageWrapper>
-                            <img src={photo} alt=""/>
+                            {/*<img src={photo.content} alt=""/>*/}
+                            {photo.name}
                         </ImageWrapper>}
 
                     <div className="mt-3 mb-5">

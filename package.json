@@ -21,6 +21,7 @@
     "@types/socket.io-client": "^3.0.0",
     "@types/styled-components": "^5.1.15",
     "async-lz-string": "^1.0.3",
+    "axios": "^1.7.2",
     "base64-string": "^1.1.2",
     "base64zip": "^1.0.0",
     "bootstrap": "^5.1.3",
