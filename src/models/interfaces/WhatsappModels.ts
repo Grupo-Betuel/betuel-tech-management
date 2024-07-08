@@ -1,20 +1,44 @@
+import {Readable} from "stream";
+
 export type WhatsappSessionTypes = 'wpadilla' | 'betuelgroup' | 'betueltravel' | 'bibleAssistant';
 export const whatsappSessionList: WhatsappSessionTypes[] = ['betuelgroup', 'betueltravel', 'wpadilla', 'bibleAssistant']
-export const whatsappSessionKeys: {[K in WhatsappSessionTypes]: WhatsappSessionTypes} = {
+export const whatsappSessionKeys: { [K in WhatsappSessionTypes]: WhatsappSessionTypes } = {
     wpadilla: 'wpadilla',
     betuelgroup: 'betuelgroup',
     betueltravel: 'betueltravel',
     bibleAssistant: 'bibleAssistant',
 }
 
-export interface IAudioFile { content: string, fileName: string }
-export interface IWhatsappMessage {
-    text?: string;
-    photo?: Blob;
-    audio?: IAudioFile;
+export interface IAudioFile {
+    content: string,
+    fileName: string
 }
 
-export const whatsappSessionNames: {[K in WhatsappSessionTypes & any]: string} = {
+// export interface IWhatsappMessage {
+//     text?: string;
+//     photo?: Blob;
+//     audio?: IAudioFile;
+// }
+
+
+export type ICallbackMessage<T> = (recipient: IWsUser) => T;
+
+export type IWhatsappMessage<Metadata = any, IMessageOptions = any> =
+    ICleanSendWhatsappMessageData<Metadata, IMessageOptions>
+export interface IExtraSendWhatsappMessageData<Metadata = any, IMessageOptions = any> {
+    options?: any;
+    metadata?: Metadata;
+}
+
+export interface ICleanSendWhatsappMessageData<T, R> extends IExtraSendWhatsappMessageData<T, R> {
+    text?: string;
+    media?: IMessageMedia;
+    // poll?: IPollMessage;
+    // list?: IListMessage;
+    // buttons?: IListMessage;
+}
+
+export const whatsappSessionNames: { [K in WhatsappSessionTypes & any]: string } = {
     betueldance: 'Betuel Dance Shop',
     betuelgroup: 'Betuel Group',
     betueltravel: 'Betuel Travel',
@@ -51,3 +75,11 @@ export interface ISeed {
 }
 
 export type WhatsappSeedTypes = 'users' | 'groups' | 'labels' | 'all';
+
+
+export interface IMessageMedia {
+    content: Buffer | string | Readable | Blob;
+    name?: string;
+    type: 'audio' | 'image' | 'video';
+    caption?: string;
+}

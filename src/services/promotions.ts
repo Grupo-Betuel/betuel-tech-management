@@ -201,7 +201,7 @@ export const getScheduleStatus = async (
 export const sendWhatsappMessage = async (
     sessionId: WhatsappSessionTypes,
     contacts: (IClient | IWsUser)[],
-    message: IWhatsappMessage
+    message: IWhatsappMessage | IWhatsappMessage[]
 ) => {
     try {
         return await (await fetch(

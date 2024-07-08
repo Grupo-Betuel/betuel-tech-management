@@ -18,7 +18,7 @@ import {toast} from "react-toastify";
 import useWhatsapp, {whatsappSeedStorePrefix} from "../hooks/UseWhatsapp";
 import {TagContainer, TagItem} from "../Tag/Tag";
 import {
-    IAudioFile,
+    IAudioFile, IWhatsappMessage,
     IWsGroup,
     IWsLabel, IWsUser, WhatsappSeedTypes,
     whatsappSessionKeys,
@@ -31,6 +31,7 @@ import {IProductData} from "../../models/products";
 import {Product} from "../index";
 import "./Messaging.scss";
 import {cancelWhatsappMessaging} from "../../services/promotions";
+import {Readable} from "stream";
 
 export interface IMessaging {
     contacts?: IClient[],
@@ -180,8 +181,22 @@ const Messaging: React.FC<IMessaging> = (
 
     const handleSendMessage = (sessionId: WhatsappSessionTypes) => async () => {
         const whatsappUsers = getWhatsappUsers();
+        const messages: IWhatsappMessage[] = [];
+
+        const audioMessage: IWhatsappMessage | undefined = audio && audio.content ? {
+            media: {
+                content: audio.content,
+                type: "audio"
+            },
+        } : undefined;
+
 
         if (selectedProducts && selectedProducts.length) {
+            if (audioMessage) {
+                messages.push(audioMessage);
+            }
+
+
             await Promise.all(selectedProducts.map(async product => {
                 const prefixText = message ? `${message} \n` : '';
                 let text = `${prefixText}${product.description || ''}`;
@@ -190,12 +205,41 @@ const Messaging: React.FC<IMessaging> = (
                     text = message;
                 }
 
+
                 parseUrlToBase64(product.image, async (image: Blob) => {
-                    await sendMessage(sessionId, whatsappUsers, {text, photo: image, audio})
+                    const media: IWhatsappMessage = {
+                        text,
+                        media: {
+                            content: image,
+                            type: 'image'
+                        }
+                    };
+
+                    messages.push(media);
                 });
             }));
+
+            await sendMessage(sessionId, whatsappUsers, messages)
+
         } else {
-            sendMessage(sessionId, whatsappUsers, {text: message, photo, audio});
+
+            if (photo) {
+                messages.push({
+                    text: message,
+                    media: {
+                        content: photo,
+                        type: 'image'
+                    }
+                });
+            } else {
+                messages.push({text: message});
+            }
+
+            if (audioMessage) {
+                messages.push(audioMessage);
+            }
+
+            await sendMessage(sessionId, whatsappUsers, messages);
         }
     }
 
@@ -206,7 +250,6 @@ const Messaging: React.FC<IMessaging> = (
 
     /* onSelectPhoto, select the photo to set it in order  we can send it*/
     const onSelectPhoto = async (event: any) => {
-
         const {files} = event.target;
         if (FileReader && files.length) {
             const fr = new FileReader();
