@@ -99,8 +99,18 @@ export const OrderList = (
         if (type === 'number') value = Number(value);
         if (name === 'messenger') {
             const messenger = messengers.find((m) => m._id === value);
+            const oldMessenger = order.messenger;
+
+            if (oldMessenger) {
+                oldMessenger.status = oldMessenger.status === 'on-trip-to-office' ? 'available' : oldMessenger.status;
+                oldMessenger.currentOrders = (oldMessenger.currentOrders || []).filter((orderId) => orderId !== order._id);
+                if (oldMessenger.quotingOrder === order._id) {
+                    oldMessenger.quotingOrder = null;
+                }
+                updateMessenger(JSON.stringify(oldMessenger));
+            }
+
             if (messenger) {
-                const oldMessenger = order.messenger;
 
                 value = messenger;
                 messenger.status = 'on-trip-to-office';
@@ -110,16 +120,8 @@ export const OrderList = (
                 }
 
                 updateMessenger(JSON.stringify(messenger));
-
-                if (oldMessenger) {
-                    oldMessenger.status = oldMessenger.status === 'on-trip-to-office' ? 'available' : oldMessenger.status;
-                    oldMessenger.currentOrders = (oldMessenger.currentOrders || []).filter((orderId) => orderId !== order._id);
-                    if (oldMessenger.quotingOrder === order._id) {
-                        oldMessenger.quotingOrder = null;
-                    }
-                    updateMessenger(JSON.stringify(oldMessenger));
-                }
             }
+
         }
         const newOrders = orders.map((o) => {
             if (o._id === order._id) {
