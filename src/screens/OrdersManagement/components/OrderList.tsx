@@ -15,7 +15,7 @@ import {
     ITransferReceipt, UpdateOrderBotActionTypes, IUpdateOrderBotRequest,
     orderPaymentTypeList,
     orderStatusList,
-    orderTypeList
+    orderTypeList, HandleOrderTypes
 } from "../../../models/ordersModels";
 import {IMessenger} from "../../../models/messengerModels";
 import React, {useCallback, useEffect, useMemo, useState} from "react";
@@ -27,6 +27,7 @@ import {onChangeMediaToUpload} from "../../../utils/gcloud.utils";
 import {deletePhoto} from "../../../services/gcloud";
 import {toast} from "react-toastify";
 import {getWhatsappNumberURl} from "../../../services/promotions";
+import {updateMessenger} from "../../../services/messengerService";
 
 export type OrderActionTypes =
     'request-messengers'
@@ -44,7 +45,7 @@ export interface IOrderListProps {
     originalOrders: { [N in string]: IOrder };
     updateOrder: (order: IOrder, action?: UpdateOrderBotActionTypes) => Promise<void>;
     onDeleteOrder: (order: IOrder) => void;
-    sendOrderToBot: (order: IOrder) => Promise<void>;
+    sendOrderToBot: (order: IOrder, type?: HandleOrderTypes) => Promise<void>;
     requestMessengers: (order: IOrder) => Promise<void>;
     sendOrderResume: (order: IOrder) => Promise<void>;
     updateOrderLocation: (order: IOrder, link: string) => Promise<void>;
@@ -72,6 +73,7 @@ export const OrderList = (
     }: IOrderListProps) => {
     const history = useHistory();
     const [actionToConfirm, setActionToConfirm] = React.useState<OrderActionTypes>();
+    const [handleOrderType, setHandleOrderType] = React.useState<HandleOrderTypes>();
     const [actionDataToConfirm, setActionDataToConfirm] = React.useState<IOrder>();
     const [ordersLocation, setOrdersLocation] = React.useState<{ [N in string]: string }>({});
 
@@ -98,7 +100,25 @@ export const OrderList = (
         if (name === 'messenger') {
             const messenger = messengers.find((m) => m._id === value);
             if (messenger) {
+                const oldMessenger = order.messenger;
+
                 value = messenger;
+                messenger.status = 'on-trip-to-office';
+                messenger.currentOrders = [...(messenger.currentOrders || []), order._id];
+                if (messenger.quotingOrder === order._id) {
+                    messenger.quotingOrder = null;
+                }
+
+                updateMessenger(JSON.stringify(messenger));
+
+                if (oldMessenger) {
+                    oldMessenger.status = oldMessenger.status === 'on-trip-to-office' ? 'available' : oldMessenger.status;
+                    oldMessenger.currentOrders = (oldMessenger.currentOrders || []).filter((orderId) => orderId !== order._id);
+                    if (oldMessenger.quotingOrder === order._id) {
+                        oldMessenger.quotingOrder = null;
+                    }
+                    updateMessenger(JSON.stringify(oldMessenger));
+                }
             }
         }
         const newOrders = orders.map((o) => {
@@ -146,7 +166,7 @@ export const OrderList = (
     }
 
     const handleOrderBot = async (order: IOrder) => {
-        sendOrderToBot(order);
+        sendOrderToBot(order, handleOrderType);
     }
 
     const handleOrderResume = async (order: IOrder) => {
@@ -160,6 +180,7 @@ export const OrderList = (
     const resetActionToConfirm = () => {
         setActionDataToConfirm(undefined)
         setActionToConfirm(undefined)
+        setHandleOrderType(undefined)
     };
 
     const onChangeOrderLocation = (order: IOrder) => ({
@@ -207,10 +228,11 @@ export const OrderList = (
         }
     }
 
-    const sendActionToConfirm = (action: OrderActionTypes, order: IOrder) => async (ev: any) => {
+    const sendActionToConfirm = (action: OrderActionTypes, order: IOrder, handleOrderType?: HandleOrderTypes) => async (ev: any) => {
         avoidPropagation(ev);
         setActionDataToConfirm(order);
         setActionToConfirm(action);
+        setHandleOrderType(handleOrderType);
     }
 
     const orderIsPending = (order: IOrder) => order.status === 'pending' || order.status === 'personal-assistance' || order.status === 'pending-info' || order.status === 'confirmed';
@@ -471,9 +493,16 @@ export const OrderList = (
                                         {orderIsBeingRequested ?
                                             <div className="d-flex align-items-center justify-content-center gap-2">
                                                 <span>Detener Solicitud de Mensajeros</span>
-                                                <Spinner animation="grow" color="white"  size="sm" variant="secondary"/>
+                                                <Spinner animation="grow" color="white" size="sm" variant="secondary"/>
                                             </div> : 'Solicitar Mensajeros'}
                                     </Button>}
+
+                                {['completed', 'delivered', 'delivering', 'canceled'].indexOf(order.status) === -1 && order?.messenger &&
+                                    <Button color="warning" className="text-nowrap w-100 align-self-start"
+                                            onClick={sendActionToConfirm('handle-order', order, 'notify-messenger-coming-to-client')}>
+                                        Mensajero en camino
+                                    </Button>}
+
                                 {order.type && order.paymentType && !order.finished &&
                                     <Button color="success" className="text-nowrap w-100 align-self-start"
                                             onClick={sendActionToConfirm('handle-order', {
@@ -482,6 +511,8 @@ export const OrderList = (
                                             })}>
                                         Finalizar Orden
                                     </Button>}
+
+
                             </CardBody>
                         </Card>)
                 })}

@@ -94,3 +94,4 @@ export const wsPromotionTypeList: { type: WhatsappProductPromotionTypes, label: 
     {type: 'best-seller', label: 'Mas vendidos'},
     {type: 'full-stock', label: 'Stock completo'},
 ]
+

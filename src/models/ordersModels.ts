@@ -129,3 +129,5 @@ export interface IUpdateOrderBotRequest {
   order: IOrder;
   action: UpdateOrderBotActionTypes;
 }
+
+export type HandleOrderTypes = 'update' | 'create' | 'push' | 'changed-sales' | 'delete' | 'notify-messenger-coming-to-client';

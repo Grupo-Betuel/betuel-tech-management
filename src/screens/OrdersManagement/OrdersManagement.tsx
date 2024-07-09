@@ -9,7 +9,7 @@ import {
 } from "../../services/orderService";
 import {
     IOrder, UpdateOrderBotActionTypes,
-    OrderStatusTypes
+    OrderStatusTypes, HandleOrderTypes
 } from "../../models/ordersModels";
 import "./OrdersManagement.scss";
 import {
@@ -256,9 +256,9 @@ export const OrdersManagement = () => {
         toast('Orden actualizada');
     }
 
-    const handleOrderBot = async (order: IOrder) => {
+    const handleOrderBot = async (order: IOrder, type?: HandleOrderTypes) => {
         setLoading(true);
-        await handleOrderWithBot(JSON.stringify({order, type: 'push'}));
+        await handleOrderWithBot(JSON.stringify({order, type: type || 'push'}));
         setLoading(false);
         toast('El bot se ejecuto correctamente');
     }
@@ -413,7 +413,10 @@ export const OrdersManagement = () => {
                 </>
             )}
             <div className="d-flex align-items-center justify-content-between gap-3 p-3">
-                <h1>Ultimas Ordenes</h1>
+                <h1>
+                    <i className="bi bi-arrow-clockwise text-blue-400 cursor-pointer"
+                       onClick={handleGetOrders}
+                    /> Ultimas Ordenes</h1>
                 <Button onClick={goToDashboard} color="primary">Dashboard</Button>
                 <Button onClick={handleRefreshBotOrders} color="primary">Syncronizar las ordenes del BOT</Button>
                 {!!selectedOrders.length && <Button color="warning" className="text-white d-flex align-items-center gap-2" onClick={togglePrintModal}>
