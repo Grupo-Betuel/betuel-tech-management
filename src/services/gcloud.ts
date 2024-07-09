@@ -53,7 +53,7 @@ const compressImage = async (file: File): Promise<File> => {
         return compressedFile;
     } catch (error) {
         console.error("Error compressing the image:", error);
-        throw error;
+        return file;
     }
 };
 

@@ -10,7 +10,7 @@ export const uploadMedia = async (media: IMedia, selectedTag: IMediaTagTypes, me
     const mediaNameClean = removeExtraCharactersFromText(removeHTMLChars(mediaNameText)).replace(/ /g, '-').toLowerCase();
     const mediaName = `${mediaNameClean}-${Date.now()}.${type}`;
 
-    const file = new File([blob], mediaName);
+    const file = new File([blob], mediaName, {type: blob.type});
     const responseImage = await uploadGCloudImage(file, selectedTag, media.type);
     const url = `${gcloudPublicURL}${mediaName}`;
     media.content = url;
