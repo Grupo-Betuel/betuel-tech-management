@@ -1,4 +1,4 @@
-import React, { useCallback, useEffect, useRef } from "react";
+import React, {useCallback, useEffect, useMemo, useRef} from "react";
 import { ClientItem, TagList } from "..";
 import { IClient } from "../../models/interfaces/ClientModel";
 import {
@@ -16,6 +16,7 @@ import { toast } from "react-toastify";
 import { addClient, addTagsToClients, deleteClient, getClients, updateClients } from "../../services/clients";
 import "./ClientList.scss"
 import { ITag } from "../../models/interfaces/TagModel";
+import {OrderFromTypes} from "../../models/ordersModels";
 
 export interface IClientList {
     onSelectClient?: (data: IClient[]) => any;
@@ -262,9 +263,12 @@ const ClientList: React.FC<IClientList> = ({onSelectClient}) => {
         })
     }
 
+
+
     return (
         <>
             <Input type="text" onChange={onSearchClient} placeholder="Buscar Client" className="mb-3"/>
+
             <TagList
                 onUpdateTags={loadTags}
                 onSelectTag={onSelectTag}

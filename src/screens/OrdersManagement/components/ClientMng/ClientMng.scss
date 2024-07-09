@@ -1,8 +1,9 @@
+.clients-mng {
+  padding: 0 2rem;
+}
 .clients-mng-grid {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
   gap: 1.5rem;
-  padding: 2rem;
   width: 100dvw;
-
 }
