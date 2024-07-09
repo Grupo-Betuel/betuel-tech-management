@@ -2,7 +2,7 @@ import {IProduct} from "../components/Product/Product";
 import {IClient} from "../models/interfaces/ClientModel";
 import {
     IWhatsappMessage,
-    IWsUser, WhatsappSeedTypes,
+    IWsUser, WhatsappProductPromotionTypes, WhatsappSeedTypes,
     WhatsappSessionTypes,
 } from "../models/interfaces/WhatsappModels";
 import {generateProductDescriptionFromParams} from "../utils/promotion.utils";
@@ -147,7 +147,8 @@ export const handleSchedulePromotion = async (
 };
 
 export const handleScheduleWsPromotion = async (
-    action: 'run' | 'stop' = 'run'
+    action: 'run' | 'stop' = 'run',
+    type?: WhatsappProductPromotionTypes
 ) => {
     try {
         return await fetch(`${process.env.REACT_APP_PROMOTION_API}schedule/whatsapp-promotion`, {
@@ -156,7 +157,7 @@ export const handleScheduleWsPromotion = async (
                 Accept: "application/json",
                 "Content-Type": "application/json",
             },
-            body: JSON.stringify({action}),
+            body: JSON.stringify({action, type}),
         });
     } catch (e) {
         throw e;

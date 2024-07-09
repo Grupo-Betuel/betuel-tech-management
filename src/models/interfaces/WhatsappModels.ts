@@ -85,3 +85,12 @@ export interface IMessageMedia {
     name?: string;
     mimetype?: string;
 }
+
+export type WhatsappProductPromotionTypes = 'offer' | 'new' | 'best-seller' | 'full-stock';
+
+export const wsPromotionTypeList: { type: WhatsappProductPromotionTypes, label: string }[] = [
+    {type: 'offer', label: 'Ofertas'},
+    {type: 'new', label: 'Nuevos'},
+    {type: 'best-seller', label: 'Mas vendidos'},
+    {type: 'full-stock', label: 'Stock completo'},
+]

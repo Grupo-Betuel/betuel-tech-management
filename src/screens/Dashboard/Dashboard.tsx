@@ -46,7 +46,11 @@ import * as io from "socket.io-client";
 import {EcommerceEvents, ScheduleEvents} from "../../models/socket-events";
 import {CompanyTypes, ECommerceResponse} from "../../models/common";
 import {ScheduleResponse} from "../../models/schedule";
-import {whatsappSessionNames} from "../../models/interfaces/WhatsappModels";
+import {
+    WhatsappProductPromotionTypes,
+    whatsappSessionNames,
+    wsPromotionTypeList
+} from "../../models/interfaces/WhatsappModels";
 import BetuelTravelDashboard from "../BetuelTravelDashboard/BetuelTravelDashboard";
 import useWhatsapp from "../../components/hooks/UseWhatsapp";
 import {getCompanies} from "../../services/companies";
@@ -366,7 +370,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const toggleAddSale = () => {
         setActiveAddSaleModal(!activeAddSaleModal);
-        if(!activeAddSaleModal) {
+        if (!activeAddSaleModal) {
             setEditSale({} as any)
         }
     };
@@ -590,11 +594,11 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         }));
     };
 
-    const runWhatsappPromotion = async () => {
+    const runWhatsappPromotion = (type?: WhatsappProductPromotionTypes) => async () => {
         const action = whatsappPromotionIsRunning ? "stop" : "run";
 
         const response: any = await (
-            await handleScheduleWsPromotion(action)
+            await handleScheduleWsPromotion(action, type)
         ).json();
 
         const status: 'running' | 'stopped' | 'error' = response.status;
@@ -751,8 +755,10 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     }
 
     const [igDropdown, setIgDropdown] = React.useState(false);
+    const [wsPromoDropdown, setWsPromoDropdown] = React.useState(false);
 
     const toggleIgDropdown = () => setIgDropdown((prevState) => !prevState);
+    const toggleWsPromoDropdown = () => setWsPromoDropdown((prevState) => !prevState);
 
     const onFilterProducts = (e: React.ChangeEvent<any>) => {
         const value = e.target.value;
@@ -770,9 +776,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
     }
 
     const toggleSchedule = () => setScheduleIsOpen(!scheduleIsOpen);
-
-
-
 
 
     const [isFocused, setIsFocused] = useState(false);
@@ -873,9 +876,10 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                             </div>
 
                             <div className="d-flex align-items-center">
-                                <Button onClick={toggleSchedule} color="primary" className="d-flex align-items-center gap-2" outline>
+                                <Button onClick={toggleSchedule} color="primary"
+                                        className="d-flex align-items-center gap-2" outline>
                                     <span>Horario</span>
-                                    <i className="bi bi-calendar-week" />
+                                    <i className="bi bi-calendar-week"/>
                                 </Button>
                             </div>
                             <div
@@ -892,8 +896,28 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                         variant="secondary"
                                         size="sm"
                                     />
-                                    <i className="bi bi-whatsapp cursor-pointer promotion-icon text-primary"
-                                       onClick={runWhatsappPromotion}/>
+                                    <Dropdown isOpen={wsPromoDropdown} toggle={toggleWsPromoDropdown}>
+                                        <DropdownToggle
+                                            tag="span"
+                                        >
+                                            <i className="bi bi-whatsapp cursor-pointer promotion-icon text-primary"
+                                            />
+                                        </DropdownToggle>
+                                        <DropdownMenu>
+                                            <DropdownItem
+                                                onClick={runWhatsappPromotion()}>
+                                                Iniciar
+                                            </DropdownItem>
+
+                                            {wsPromotionTypeList.map(({type, label}) =>
+                                                <DropdownItem
+                                                    onClick={runWhatsappPromotion(type)}>
+                                                    {label}
+                                                </DropdownItem>)
+                                            }
+                                        </DropdownMenu>
+                                    </Dropdown>
+
                                 </PromotionOption>
                                 <PromotionOption
                                     loading={promotionLoading[selectedCompanyId]}
