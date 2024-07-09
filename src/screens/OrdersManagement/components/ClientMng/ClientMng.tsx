@@ -148,6 +148,9 @@ export const ClientMng = ({
                             <a href={`https://wa.me/${client.phone}`}
                                target="_blank">Contactar via WS</a>
                         </CardText>
+                        <CardText>
+                            {client.from}
+                        </CardText>
                     </CardBody>
                     <ListGroup flush>
                         <ListGroupItem className="d-flex gap-2 align-items-center">
