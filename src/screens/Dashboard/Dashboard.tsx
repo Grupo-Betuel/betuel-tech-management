@@ -598,7 +598,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
         const action = whatsappPromotionIsRunning ? "stop" : "run";
 
         const response: any = await (
-            await handleScheduleWsPromotion(action, type)
+            await handleScheduleWsPromotion(!!type ? 'run' :action, type)
         ).json();
 
         const status: 'running' | 'stopped' | 'error' = response.status;

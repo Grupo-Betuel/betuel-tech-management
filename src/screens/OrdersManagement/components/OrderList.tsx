@@ -500,7 +500,7 @@ export const OrderList = (
                                     </Button>}
 
                                 {['completed', 'delivered', 'delivering', 'canceled'].indexOf(order.status) === -1 && order?.messenger &&
-                                    <Button color="warning" className="text-nowrap w-100 align-self-start"
+                                    <Button color="warning" outline={true} className="text-nowrap w-100 align-self-start"
                                             onClick={sendActionToConfirm('handle-order', order, 'notify-messenger-coming-to-client')}>
                                         Mensajero en camino
                                     </Button>}
