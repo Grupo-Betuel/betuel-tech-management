@@ -906,7 +906,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                         <DropdownMenu>
                                             <DropdownItem
                                                 onClick={runWhatsappPromotion()}>
-                                                Iniciar
+                                                {whatsappPromotionIsRunning ? 'Detener' : 'Iniciar'}
                                             </DropdownItem>
 
                                             {wsPromotionTypeList.map(({type, label}) =>
