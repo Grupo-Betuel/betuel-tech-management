@@ -51,6 +51,7 @@ export const whatsappSessionNames: { [K in WhatsappSessionTypes & any]: string }
 export interface IWsUser {
     firstName: string;
     lastName: string;
+    fullName: string;
     phone: string;
 }
 
@@ -64,9 +65,9 @@ export interface IWsGroup {
 
 export interface IWsLabel {
     id: string;
-    name: string;
+    title: string;
     hexColor: string;
-    users: IWsUser[];
+    recipients: IWsUser[];
 }
 
 export interface ISeed {

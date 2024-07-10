@@ -289,8 +289,12 @@ const Messaging: React.FC<IMessaging> = (
 
     const handleLabelSelection = (selectedList: IWsLabel[]) => {
         let labeled: IWsUser[] = [];
-        selectedList.forEach(label => labeled = [...labeled, ...label.users]);
-        setLabeledUsers(labeled);
+        selectedList.forEach(label => labeled = [...labeled, ...label.recipients]);
+        setLabeledUsers(labeled.map(item => ({
+                ...item,
+                fullName: `${item.firstName || item.phone} ${item.lastName || ''}`,
+            })
+        ));
     }
 
     const [groupSelectedList, setGroupSelectedList] = React.useState<IWsGroup[]>([]);
@@ -309,7 +313,10 @@ const Messaging: React.FC<IMessaging> = (
         let grouped: IWsUser[] = [];
         groupSelectedList.map((g) => {
             return seedData.groups.find((group) => group.id === g.id)?.participants.map((user) => {
-                grouped.push(user);
+                grouped.push({
+                    ...user,
+                    fullName: `${user.firstName || user.phone} ${user.lastName || ''}`,
+                });
             });
         });
 
@@ -471,10 +478,10 @@ const Messaging: React.FC<IMessaging> = (
                             placeholder="Etiquetas"
                             options={seedData.labels && seedData.labels.map(item => ({
                                 ...item,
-                                name: item.name || "example",
+                                name: item.title || "example",
                                 id: Number(item.id)
                             })) || []} // Options to display in the dropdown
-                            displayValue="name" // Property name to display in the dropdown options
+                            displayValue="title" // Property name to display in the dropdown options
                             onSelect={handleLabelSelection}
                             onRemove={handleLabelSelection}
                             isObject={true}
