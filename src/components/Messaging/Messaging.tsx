@@ -447,7 +447,7 @@ const Messaging: React.FC<IMessaging> = (
                             loading={fetchingSeed === 'groups'}
                             placeholder="Grupos"
                             options={seedData.groups || []} // Options to 2display in the dropdown
-                            displayValue="subject" // Property name to display in the dropdown options
+                            displayValue="title" // Property name to display in the dropdown options
                             onSelect={handleGroupSelection}
                             onRemove={handleGroupSelection}
                         />

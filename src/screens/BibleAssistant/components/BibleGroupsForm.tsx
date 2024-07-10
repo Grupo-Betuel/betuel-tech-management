@@ -109,7 +109,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
             users: participants as BibleUserModel[],
             whatsappGroupID: groupId,
             description: group?.description || '',
-            title: group?.subject || '',
+            title: group?.title || '',
         }));
         setSelectedWsGroup(group);
         setLoading(false);
@@ -143,7 +143,7 @@ const BibleGroupForm: React.FC<BibleGroupFormProps> = ({editableGroup, onSubmit,
                         <option value="">Select Group</option>
                         {selectableGroups.map((group) => (
                             <option key={group.id} value={group.id}>
-                                {group.subject}
+                                {group.title}
                             </option>
                         ))}
                     </Input>

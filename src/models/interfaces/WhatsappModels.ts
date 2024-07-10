@@ -55,7 +55,7 @@ export interface IWsUser {
 }
 
 export interface IWsGroup {
-    subject: string;
+    title: string;
     participants: IWsUser[];
     id?: string;
     description?: string;
