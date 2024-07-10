@@ -91,6 +91,7 @@ export interface BibleGroupParticipationModel extends BaseModel {
 export interface BibleUserModel extends BaseModel {
     firstName: string;
     lastName: string;
+    fullName?: string;
     phone: string;
     password: string;
     lastCongrat: Date;
