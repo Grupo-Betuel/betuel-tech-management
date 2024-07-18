@@ -15,7 +15,7 @@ import React, {useEffect} from "react";
 import {ISale} from "../../models/interfaces/SalesModel";
 import {addSales, deleteSale, updateSales} from "../../services/sales";
 import {toast} from "react-toastify";
-import {IProductParam} from "../../models/products";
+import {IProductParam} from "../../models/productModels";
 import "./CreateSaleModal.scss";
 
 export interface ICreateSaleModal {

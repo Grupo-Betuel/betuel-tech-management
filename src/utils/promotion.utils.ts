@@ -1,4 +1,4 @@
-import {IProductParam} from "../models/products";
+import {IProductParam} from "../models/productModels";
 
 export function generateProductDescriptionFromParams(params: IProductParam[]): string {
     if (params.length === 0) {

@@ -20,13 +20,13 @@ import DixyBabyLogo from "../../assets/images/dixybaby.jpeg";
 import CorotosFavicon from "../../assets/images/corotos-favicon.png";
 import FleaFavicon from "../../assets/images/flea-favicon.png";
 import "./Dashboard.scss";
-import {IProductData, IProductParam} from "../../models/products";
+import {IProductData, IProductParam} from "../../models/productModels";
 import {getRecordedDates, getSales} from "../../services/sales";
 import {ISale} from "../../models/interfaces/SalesModel";
 import CreateSaleModal from "../../components/CreateSaleModal/CreateSaleModal";
 import styled from "styled-components";
 import ProductModalForm from "../../components/ProductModalForm/ProductModalForm";
-import {deleteProduct, getProducts} from "../../services/products";
+import {deleteProduct, getProducts} from "../../services/productService";
 import {
     ecommerceNames,
     ECommerceTypes, getScheduleStatus, handleSchedulePromotion, handleScheduleWsPromotion,

@@ -1,5 +1,6 @@
 import { CompanyTypes } from "./common";
 import {ICategory} from "./CategoryModel";
+import {IProductOffers} from "./productOfferModels";
 
 export interface IProductData {
   _id: string;
@@ -18,6 +19,7 @@ export interface IProductData {
   category: ICategory;
   facebookId?: string;
   newArrival?: boolean;
+  productOffers?: IProductOffers[];
   tags?: string[];
 }
 

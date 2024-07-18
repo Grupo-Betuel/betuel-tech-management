@@ -27,7 +27,7 @@ import {
     WhatsappSessionTypes
 } from "../../models/interfaces/WhatsappModels";
 import {Multiselect} from "multiselect-react-dropdown";
-import {IProductData} from "../../models/products";
+import {IProductData} from "../../models/productModels";
 import {Product} from "../index";
 import "./Messaging.scss";
 import {cancelWhatsappMessaging} from "../../services/promotions";

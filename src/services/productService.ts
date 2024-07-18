@@ -1,4 +1,6 @@
 import {deletePhoto} from "./gcloud";
+import {IProductOffers} from "../models/productOfferModels";
+import {IProductData} from "../models/productModels";
 
 export const getProducts = async (company: string) => {
     try {
@@ -63,6 +65,24 @@ export const addProduct = async (body: string) => {
                 body,
             }
         );
+    } catch (e) {
+        throw e;
+    }
+
+}
+
+
+export const handleProductOffers = async (data: { productId: string, offers: IProductOffers[] }): Promise<IProductOffers[]> => {
+    try {
+        return await (await fetch(`${process.env.REACT_APP_API}products/handle-offers`, {
+                method: 'POST',
+                headers: {
+                    'Accept': 'application/json',
+                    'Content-Type': 'application/json'
+                },
+                body: JSON.stringify(data),
+            }
+        )).json();
     } catch (e) {
         throw e;
     }

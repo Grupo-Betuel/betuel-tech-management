@@ -1,5 +1,5 @@
 import { CompanyTypes } from "../common";
-import {IProductData, IProductParam} from "../products";
+import {IProductData, IProductParam} from "../productModels";
 
 
 export interface IProductSaleParam extends IProductParam {

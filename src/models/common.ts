@@ -1,5 +1,5 @@
 import { ECommerceTypes } from "../services/promotions";
-import { IProductData } from "./products";
+import { IProductData } from "./productModels";
 
 export type ECommerceResponseStatusTypes = 'publishing' | 'published' | 'completed' | 'failed';
 

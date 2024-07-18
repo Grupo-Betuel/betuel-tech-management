@@ -14,7 +14,7 @@ import { IClient } from "../../models/interfaces/ClientModel";
 import { Messaging } from "../index";
 import { WhatsappSessionTypes } from "../../models/interfaces/WhatsappModels";
 import {IProduct} from "../Product/Product";
-import {IProductData} from "../../models/products";
+import {IProductData} from "../../models/productModels";
 
 export interface IClientFormProps {
     toggle: () => any;

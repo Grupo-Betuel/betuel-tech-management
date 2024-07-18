@@ -1,6 +1,6 @@
 import React, {ChangeEvent} from 'react';
 import "./Product.scss";
-import {IProductData} from "../../models/products";
+import {IProductData} from "../../models/productModels";
 import {Button} from "reactstrap";
 import {ISale} from "../../models/interfaces/SalesModel";
 

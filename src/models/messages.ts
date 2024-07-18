@@ -1,5 +1,5 @@
 import { ecommerceNames, ECommerceTypes } from "../services/promotions";
-import { IProductData } from "./products";
+import { IProductData } from "./productModels";
 
 export const errorMessages = {
     SELECT_AT_LEAST_ONE_PRODUCT: '¡Hey! Tienes que seleccionar almenos un producto para promocionar.',

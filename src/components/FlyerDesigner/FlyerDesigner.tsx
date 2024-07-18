@@ -34,7 +34,7 @@ import {FlyerAction} from "./components/FlyerAction/FlyerAction";
 import {FlyerActionsElements} from "./constants/flyer-actions-elements";
 import {FlyerDesignerSidebar} from "./components/FlyerDesignerSidebar/FlyerDesignerSidebar";
 import {FlyerElement} from "./components/FlyerElement/FlyerElement";
-import {IProductData} from "../../models/products";
+import {IProductData} from "../../models/productModels";
 
 export interface IFlyerDesignerProps {
     onChangeFlyer?: (flyer: IFlyer) => void;
