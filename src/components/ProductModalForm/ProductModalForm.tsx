@@ -1667,6 +1667,7 @@ const ProductModalForm: React.FC<IProductFormProps> = (
                                     </CardBody>
                                     <CardFooter>
 
+
                                         {/*<Switch checked={}></Switch>*/}
                                     </CardFooter>
                                 </Card>
