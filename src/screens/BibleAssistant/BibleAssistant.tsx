@@ -207,7 +207,7 @@ export const BibleAssistant = () => {
 
     React.useEffect(() => {
         const study = studies.find(g => g._id === selectedStudy?._id);
-        study && setSelectedStudy(study);
+        setSelectedStudy(study || studies[0]);
         const updatedGroup = study?.groups.find(g => g._id === selectedGroup?._id);
         updatedGroup && setSelectedGroup(updatedGroup)
     }, [studies]);
