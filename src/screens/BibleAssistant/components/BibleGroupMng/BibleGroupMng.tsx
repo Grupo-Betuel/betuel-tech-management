@@ -75,10 +75,18 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
     }, [group?.startDate]);
 
 
-    const handleCoordinator = (user: BibleUserModel) => async () => {
+    const handleCoordinator = (user: BibleUserModel, removeCoordinator?: boolean) => async () => {
+        let coordinators = [];
+        if (removeCoordinator) {
+            coordinators = group.coordinators.filter(coordinator => coordinator._id !== user._id);
+
+        } else {
+            coordinators = [...group.coordinators, user];
+        }
+
         await addCoordinator({
             ...group,
-            coordinators: [...(group.coordinators), user],
+            coordinators,
         })
         toast("Coordinador agregado", {type: "success"});
     }
@@ -142,6 +150,7 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                 {group?.users.map((user, index) => {
                     const participation = getBibleDayParticipation(user);
                     const progress = getBibleDayProgress(participation);
+                    const isCoordinator = group.coordinators?.some(coordinator => coordinator._id === user._id);
                     return (
                         <tr key={index}>
                             <td>{user.firstName}</td>
@@ -169,9 +178,10 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                             <td>
                                 <div className="d-flex justify-content-between gap-3">
                                     {group.coordinators?.length <= 3 &&
-                                        <Button className="cursor-pointer" color="info" outline
-                                                onClick={handleCoordinator(user)}>
-                                            Coordinador
+                                        <Button className="cursor-pointer" color={isCoordinator ? "danger" : "info"}
+                                                outline
+                                                onClick={handleCoordinator(user, isCoordinator)}>
+                                            {isCoordinator ? 'Quitar' : ''} Coordinador
                                         </Button>
                                     }
                                     <Button className="cursor-pointer" color="info" outline
