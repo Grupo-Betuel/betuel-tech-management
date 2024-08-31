@@ -203,6 +203,7 @@ export const BibleAssistant = () => {
 
     React.useEffect(() => {
         fetchData();
+
     }, []);
 
     React.useEffect(() => {
