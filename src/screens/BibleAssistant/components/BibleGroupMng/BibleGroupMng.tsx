@@ -91,7 +91,7 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
         toast("Coordinador agregado", {type: "success"});
     }
 
-    const isCoordinator = useCallback((user: BibleUserModel) => {
+    const checkIsCoordinator = useCallback((user: BibleUserModel) => {
         return group?.coordinators?.some(coordinator => coordinator._id === user._id);
     }, [group?.coordinators]);
 
@@ -150,7 +150,8 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                 {group?.users.map((user, index) => {
                     const participation = getBibleDayParticipation(user);
                     const progress = getBibleDayProgress(participation);
-                    const isCoordinator = group.coordinators?.some(coordinator => coordinator._id === user._id);
+                    const isCoordinator = checkIsCoordinator(user);
+
                     return (
                         <tr key={index}>
                             <td>{user.firstName}</td>
@@ -159,7 +160,7 @@ const BibleGroupMng: React.FC<BibleGroupMngProps> = ({
                             <td>
                                 {participation?.status && <Badge
                                     color={getStatusBadgeColor(participation?.status)}>{participation?.status}</Badge>}
-                                {isCoordinator(user) && <Badge color="primary">Coordinador</Badge>}
+                                {isCoordinator && <Badge color="primary">Coordinador</Badge>}
                             </td>
                             <td>
                                 <div className="d-flex flex-column gap-3">

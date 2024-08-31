@@ -220,7 +220,7 @@ export const BibleAssistant = () => {
     const handleGetBibleStudies = async () => {
         const data = await getBibleStudies();
         setStudies(data);
-        setSelectedStudy(data[1]);
+        // setSelectedStudy(data[1]);
     }
 
     const handleSelectStudy = (e: React.ChangeEvent<HTMLInputElement>) => {
