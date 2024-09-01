@@ -34,7 +34,7 @@ export const BibleStudyActionsMng = (
 
 
     React.useEffect(() => {
-        setActions(study.actions);
+        setActions(study.actions.sort((a, b) => a.hour - b.hour));
     }, [study]);
 
     const handleConfirmedAction = async (actionToConfirm?: CommonActionTypes, data?: BibleStudyActionsModel | string) => {
