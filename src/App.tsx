@@ -16,6 +16,7 @@ import IUser from "./models/interfaces/user";
 import Excursions from "./screens/BetuelTravel/Excursions/Excursions";
 import {BibleUserUpdate} from "./screens/BibleAssistant/BibleUserUpdate";
 import useDisableScrollOnNumberInput from "./components/hooks/useDisableScrollOnNumberInput";
+import {RedirectPromotion} from "./components/RedirectPromotion";
 
 export interface IAppContext {
     setToken: (token: string) => void;
@@ -95,6 +96,8 @@ function App() {
                 {/* eslint-disable-next-line no-undef */}
                 {token && <Navigation user={authUser}/>}
                 <Switch>
+                    <Route path="/betuelgroup/promotion" component={() => <RedirectPromotion />}/>
+
                     {token ?
                         <>
                             {
