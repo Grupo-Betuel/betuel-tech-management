@@ -12,7 +12,7 @@ import {
     ModalFooter,
     Button, DropdownToggle, Dropdown, DropdownMenu, DropdownItem
 } from "reactstrap";
-import {MoneyStatisticLabel, Product} from "../../components";
+import {StatisticLabel, Product} from "../../components";
 import BetuelTechLogo from "../../assets/images/betueltech.png";
 import BetuelDanceLogo from "../../assets/images/betueldance/logo.png";
 import BetuelTravelLogo from "../../assets/images/betueltravel.png";
@@ -60,7 +60,7 @@ import {getLaborDays, updateLaborDays} from "../../services/laborDaysService";
 import {Schedule} from "../../components/Schedule/Schedule";
 import {Navigation} from "../../components/Navigation/Navigation";
 import InputMask from "react-input-mask";
-
+import _ from "lodash"
 // export const accountLogos: { [N in ]} ;
 
 export const CreateNewFloatButton = styled.button`
@@ -329,6 +329,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                 commission: 0,
                 amount: 0,
                 profit: 0,
+                quantity: 0,
             } as ITotals) as any
         ).forEach((key: keyof ITotals) => {
             const total = getTotalSumFromSalesDataKey(key);
@@ -348,7 +349,7 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
 
     const getTotalSumFromSalesDataKey = (key: keyof ISale) =>
         salesData
-            .map((item: ISale) => (!item[key] ? null : (item[key] as any)))
+            .map((item: ISale) => (!_.get(item, key) ? null : (_.get(item, key) as any)))
             .filter((item) => !!item)
             .reduce((a: number, b: number) => a + b, 0);
 
@@ -1028,32 +1029,33 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                             className="d-flex justify-content-center"
                         >
                             <Row className="justify-content-center label-grid col-lg-10">
-                                <MoneyStatisticLabel
+                                <StatisticLabel
+                                    label="Total Ventas"
+                                    text={salesTotals.quantity}
+                                    className="total-label"
+                                />
+                                <StatisticLabel
                                     label="Vendido"
                                     amount={salesTotals.amount}
                                     className="total-label"
                                 />
-                                <MoneyStatisticLabel
+                                <StatisticLabel
                                     label="Beneficio"
                                     amount={salesTotals.profit}
                                     className="total-label"
                                 />
-                                <MoneyStatisticLabel
-                                    label="Comisiones"
-                                    amount={salesTotals.commission}
-                                    className="total-label"
-                                />
-                                <MoneyStatisticLabel
+
+                                <StatisticLabel
                                     label="Envios"
-                                    amount={salesTotals.shipping}
+                                    amount={salesTotals.shipping || '0'}
                                     className="total-label"
                                 />
-                                <MoneyStatisticLabel
+                                <StatisticLabel
                                     label="Promoción"
                                     amount={promotion}
                                     className="total-label"
                                 />
-                                <MoneyStatisticLabel
+                                <StatisticLabel
                                     label="Diezmo"
                                     amount={tithe}
                                     className="total-label"

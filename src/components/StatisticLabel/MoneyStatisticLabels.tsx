@@ -4,15 +4,17 @@ import "./MoneyStatisticLabels.scss";
 
 export interface IMoneyStatisticLabel {
     label: string;
-    amount: number;
+    amount?: number | string;
+    text?: number;
     className?: string;
 }
 
-const MoneyStatisticLabel: React.FunctionComponent<IMoneyStatisticLabel> = (
+const StatisticLabel: React.FunctionComponent<IMoneyStatisticLabel> = (
     {
         label,
         amount,
         className,
+        text
     }
 ) => {
 
@@ -22,7 +24,7 @@ const MoneyStatisticLabel: React.FunctionComponent<IMoneyStatisticLabel> = (
                 sm={12}
                 className="d-flex justify-content-center"
             >
-                <h4 className="amount">RD$ {amount ? amount.toLocaleString('en-US') : 0}</h4>
+                <h4 className="amount">{amount ? 'RD$' : ''} {(amount || text)?.toLocaleString('en-US')}</h4>
             </Col>
             <Col
                 sm={12}
@@ -34,4 +36,4 @@ const MoneyStatisticLabel: React.FunctionComponent<IMoneyStatisticLabel> = (
     );
 };
 
-export default MoneyStatisticLabel
+export default StatisticLabel
