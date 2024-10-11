@@ -5,7 +5,7 @@ import "./MoneyStatisticLabels.scss";
 export interface IMoneyStatisticLabel {
     label: string;
     amount?: number | string;
-    text?: number;
+    text?: string | number;
     className?: string;
 }
 

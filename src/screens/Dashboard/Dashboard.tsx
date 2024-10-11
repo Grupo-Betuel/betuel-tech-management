@@ -1030,7 +1030,12 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                         >
                             <Row className="justify-content-center label-grid col-lg-10">
                                 <StatisticLabel
-                                    label="Total Ventas"
+                                    label="Ordenes"
+                                    text={salesData?.length?.toString()}
+                                    className="total-label"
+                                />
+                                <StatisticLabel
+                                    label="Ventas"
                                     text={salesTotals.quantity}
                                     className="total-label"
                                 />
@@ -1042,12 +1047,6 @@ const Dashboard: React.FunctionComponent<IDashboardComponent> = ({
                                 <StatisticLabel
                                     label="Beneficio"
                                     amount={salesTotals.profit}
-                                    className="total-label"
-                                />
-
-                                <StatisticLabel
-                                    label="Envios"
-                                    amount={salesTotals.shipping || '0'}
                                     className="total-label"
                                 />
                                 <StatisticLabel
